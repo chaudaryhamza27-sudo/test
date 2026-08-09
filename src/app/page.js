@@ -166,7 +166,10 @@ export default function Home() {
           </section>
         ))}
 
-        <footer className="kk-footer">PK92 — UI design preview. No real balance or games are connected.</footer>
+        <footer className="kk-footer">
+          PK92 is an educational simulation. Your balance and the Aviator game are real and
+          backend-connected — but every credit is a demo credit with no real value.
+        </footer>
       </main>
 
       <BottomNav />

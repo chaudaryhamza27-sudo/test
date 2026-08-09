@@ -3,20 +3,21 @@
 import { useState } from "react";
 import Link from "next/link";
 import BottomNav from "../components/BottomNav";
+import AppShellHeader from "../components/AppShellHeader";
 
 const amountOptions = [500, 1000, 5000, 7000, 10000, 15000, 25000, 50000];
 const methodOptions = [
-  { key: "wallet-a", label: "QuickPay Wallet", icon: "📱" },
-  { key: "wallet-b", label: "SwiftPay Wallet", icon: "💳" },
+  { key: "mobile-wallet", label: "Mobile Wallet", icon: "📱" },
+  { key: "bank-transfer", label: "Bank Transfer", icon: "💳" },
 ];
 
 export default function WithdrawPage() {
   const [amount, setAmount] = useState(500);
-  const [method, setMethod] = useState("wallet-a");
+  const [method, setMethod] = useState("mobile-wallet");
   const [account, setAccount] = useState("");
   const [popup, setPopup] = useState(null);
 
-  const openNotice = (msg) => setPopup(msg);
+  const openNotice = (msg, tone = "info") => setPopup({ msg, tone });
   const closeNotice = () => setPopup(null);
 
   const handleAmountPick = (value) => setAmount(value);
@@ -31,11 +32,11 @@ export default function WithdrawPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!amount || amount < 500) {
-      openNotice("Minimum withdraw amount is 500.");
+      openNotice("Minimum withdraw amount is 500.", "error");
       return;
     }
     if (!account.trim()) {
-      openNotice("Please enter your account number.");
+      openNotice("Please enter your account number.", "error");
       return;
     }
     if (submitting) return;
@@ -48,64 +49,43 @@ export default function WithdrawPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        openNotice(data.error || "Failed to submit withdraw request.");
+        openNotice(data.error || "Failed to submit withdraw request.", "error");
         return;
       }
-      openNotice("Withdraw request submitted. It will be processed once approved by an admin.");
+      openNotice(
+        `Withdrawal request for Rs${amount.toLocaleString()} submitted — the amount is held from your balance now. It'll be processed once an admin reviews it.`,
+        "success"
+      );
     } catch {
-      openNotice("Something went wrong. Please try again.");
+      openNotice("Something went wrong. Please try again.", "error");
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="app-shell auth-page">
+    <div className="app-shell">
       <div className="app-glow g1" />
       <div className="app-glow g2" />
       <div className="app-glow g3" />
 
-      <header className="topbar">
-        <Link href="/" className="brand-logo">
-          <div className="brand-mark">DA</div>
-          <div className="brand-copy">
-            <b>Demo Arcade</b>
-            <span>UI Showcase</span>
-          </div>
-        </Link>
-        <div className="demo-pill">
-          <span>🧪</span> Demo mode
-        </div>
-      </header>
+      <AppShellHeader subtitle="Aviator — Simulation" />
 
-      <main className="content">
-        <section className="deposit-hero">
-          <div className="deposit-kicker">✦ WITHDRAW DEMO</div>
-          <h1 className="deposit-title">
-            Cash Out
-            <br />
-            <span>Preview Only</span>
-          </h1>
-          <p className="deposit-sub">
-            This screen previews a withdraw UI for the showcase. No real payout is ever
-            issued and no real account is debited.
-          </p>
-
-          <div className="secure-strip">
-            <div className="secure-pill">
-              <span>🧩</span>
-              <b>Static</b>
-              <span>Demo layout</span>
+      <main className="content app-page-content">
+        <section className="deposit-hero compact">
+          <div className="deposit-hero-row">
+            <div>
+              <div className="deposit-kicker">✦ CASH OUT DEMO CREDITS</div>
+              <h1 className="deposit-title compact">
+                Withdraw <span>Demo Credits</span>
+              </h1>
+              <p className="deposit-sub">
+                Submit a withdrawal request for admin review. Funds are held from your demo
+                balance immediately — no real payout is ever issued to any real account.
+              </p>
             </div>
-            <div className="secure-pill">
-              <span>🪙</span>
-              <b>Play</b>
-              <span>Coins only</span>
-            </div>
-            <div className="secure-pill">
-              <span>🚫</span>
-              <b>No</b>
-              <span>Real payouts</span>
+            <div className="demo-pill">
+              <span>🖊️</span> Demo Mode
             </div>
           </div>
         </section>
@@ -177,7 +157,7 @@ export default function WithdrawPage() {
 
             <input
               type="text"
-              placeholder="Demo account number"
+              placeholder="Account number"
               className="phone-input"
               value={account}
               onChange={(e) => setAccount(e.target.value)}
@@ -190,23 +170,31 @@ export default function WithdrawPage() {
         </section>
 
         <div className="min-note">
-          ✅ Demo only — no real payout is ever issued. This screen exists purely to
-          showcase the withdraw UI layout.
+          ✅ Held funds are refunded automatically if an admin rejects the request. Minimum
+          withdraw is Rs 500.
         </div>
 
         <footer className="footer" style={{ marginBottom: 24 }}>
-          This page is a <b>UI/UX demo</b>. It does not process withdrawals and is not
-          connected to any real payment gateway or gambling product.
+          PK92 is an educational simulation using demo credits only — no real money or payout
+          is ever issued. See our{" "}
+          <Link href="/legal/terms" target="_blank" rel="noopener noreferrer">
+            Terms
+          </Link>{" "}
+          and{" "}
+          <Link href="/legal/withdrawal-policy" target="_blank" rel="noopener noreferrer">
+            Withdrawal Policy
+          </Link>
+          .
         </footer>
       </main>
 
-      <BottomNav onPlayClick={() => openNotice("This is a static UI demo — no real game session starts here.")} />
+      <BottomNav />
 
       <div className={`popup ${popup ? "active" : ""}`} onClick={closeNotice}>
         <div className="popup-box" onClick={(e) => e.stopPropagation()}>
-          <div className="popup-icon">🧪</div>
-          <div className="popup-title">Demo Mode</div>
-          <p className="popup-text">{popup}</p>
+          <div className="popup-icon">{popup?.tone === "success" ? "✅" : popup?.tone === "error" ? "⚠️" : "🧪"}</div>
+          <div className="popup-title">{popup?.tone === "success" ? "Withdrawal Submitted" : popup?.tone === "error" ? "Couldn't Submit" : "Demo Mode"}</div>
+          <p className="popup-text">{popup?.msg}</p>
           <button className="popup-btn" onClick={closeNotice}>
             Got it
           </button>

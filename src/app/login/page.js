@@ -25,6 +25,7 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false);
   const [remember, setRemember] = useState(false);
   const [popup, setPopup] = useState(null);
+  const [error, setError] = useState(null);
   const [redirectHome, setRedirectHome] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -45,6 +46,7 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!canSubmit || submitting) return;
+    setError(null);
     setSubmitting(true);
     try {
       const res = await fetch("/api/auth/login", {
@@ -54,13 +56,13 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        openNotice(data.error || "Login failed.");
+        setError(data.error || "Login failed. Please check your details and try again.");
         return;
       }
       setRedirectHome(true);
       openNotice("Logged in successfully. Heading back to the home screen.");
     } catch {
-      openNotice("Something went wrong. Please try again.");
+      setError("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -171,6 +173,8 @@ export default function LoginPage() {
               />
               <span>Remember password</span>
             </label>
+
+            {error && <div className="alert alert-danger" style={{ marginTop: 18 }}>{error}</div>}
 
             <button type="submit" className="kk-btn-primary" disabled={!canSubmit || submitting}>
               {submitting ? "Logging in…" : "Log in"}

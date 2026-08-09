@@ -33,6 +33,13 @@ export default function TransactionsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
+  // Seed the initial filter from a `?type=` query param (e.g. linked from the
+  // Wallet page's "Deposit history" / "Withdrawal history" shortcuts).
+  useEffect(() => {
+    const type = new URLSearchParams(window.location.search).get("type");
+    if (type && FILTERS.some((f) => f.key === type)) setFilter(type);
+  }, []);
+
   useEffect(() => setPage(1), [filter]);
 
   useEffect(() => {
@@ -78,9 +85,9 @@ export default function TransactionsPage() {
                 fontSize: 12,
                 fontWeight: 800,
                 cursor: "pointer",
-                background: filter === f.key ? "var(--kk-blue-grad)" : "#fff",
+                background: filter === f.key ? "var(--kk-blue-grad)" : "var(--surface)",
                 color: filter === f.key ? "#fff" : "var(--kk-text)",
-                boxShadow: filter === f.key ? "none" : "var(--kk-shadow)",
+                border: filter === f.key ? "none" : "1px solid var(--border)",
               }}
             >
               {f.label}
@@ -115,7 +122,7 @@ export default function TransactionsPage() {
                               fontWeight: 900,
                               padding: "2px 6px",
                               borderRadius: 999,
-                              background: "#eaf3ff",
+                              background: "var(--info-bg)",
                               color: "var(--kk-blue)",
                             }}
                           >
@@ -139,7 +146,7 @@ export default function TransactionsPage() {
                           fontWeight: 800,
                           textTransform: "uppercase",
                           marginTop: 2,
-                          color: tone === "green" ? "#1fae6a" : tone === "red" ? "#e6455a" : tone === "orange" ? "var(--kk-gold)" : "var(--kk-muted)",
+                          color: tone === "green" ? "var(--success)" : tone === "red" ? "var(--danger)" : tone === "orange" ? "var(--warning)" : "var(--kk-muted)",
                         }}
                       >
                         {tx.status}

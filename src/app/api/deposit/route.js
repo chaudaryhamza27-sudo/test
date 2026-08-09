@@ -22,7 +22,7 @@ export async function POST(request) {
   const { amount, method, accountNumber } = body || {};
   const parsedAmount = Number(amount);
 
-  if (!parsedAmount || parsedAmount < MIN_DEPOSIT) {
+  if (!Number.isFinite(parsedAmount) || parsedAmount < MIN_DEPOSIT) {
     return Response.json({ error: `Minimum deposit is Rs ${MIN_DEPOSIT}.` }, { status: 400 });
   }
   if (!method) {

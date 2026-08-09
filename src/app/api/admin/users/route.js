@@ -42,7 +42,7 @@ export async function PATCH(request) {
         : "Your account has been re-enabled.",
     });
   }
-  if (typeof balance === "number" && !Number.isNaN(balance) && balance >= 0 && balance !== user.balance) {
+  if (typeof balance === "number" && Number.isFinite(balance) && balance >= 0 && balance !== user.balance) {
     const previousBalance = user.balance;
     user.balance = balance;
     await logActivity({

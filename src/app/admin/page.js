@@ -5,6 +5,28 @@ import { useRouter } from "next/navigation";
 
 const TABS = ["Overview", "Users", "Deposits", "Withdrawals", "Game Rounds", "Payments", "Audit Log"];
 
+const STATUS_TONE = {
+  approved: "success",
+  completed: "success",
+  COMPLETED: "success",
+  APPROVED: "success",
+  cashed_out: "success",
+  rejected: "danger",
+  FAILED: "danger",
+  CANCELLED: "danger",
+  lost: "danger",
+  pending: "warning",
+  PENDING: "warning",
+  placed: "warning",
+  REFUNDED: "info",
+};
+function statusTone(status) {
+  return STATUS_TONE[status] || "neutral";
+}
+function StatusPill({ status }) {
+  return <span className={`status-pill tone-${statusTone(status)}`}>{status}</span>;
+}
+
 function StatCard({ label, value }) {
   return (
     <div className="admin-stat-card">
@@ -51,7 +73,7 @@ export default function AdminDashboard() {
   const [payments, setPayments] = useState([]);
   const [paymentsPage, setPaymentsPage] = useState(1);
   const [paymentsTotalPages, setPaymentsTotalPages] = useState(1);
-  const [paymentFilters, setPaymentFilters] = useState({ status: "all", orderId: "", user: "" });
+  const [paymentFilters, setPaymentFilters] = useState({ status: "all", provider: "all", orderId: "", user: "" });
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState("");
@@ -123,6 +145,7 @@ export default function AdminDashboard() {
   const loadPayments = useCallback(() => {
     const params = new URLSearchParams({ page: String(paymentsPage) });
     if (paymentFilters.status !== "all") params.set("status", paymentFilters.status);
+    if (paymentFilters.provider !== "all") params.set("provider", paymentFilters.provider);
     if (paymentFilters.orderId) params.set("orderId", paymentFilters.orderId);
     if (paymentFilters.user) params.set("user", paymentFilters.user);
     fetch(`/api/admin/payments?${params.toString()}`)
@@ -308,7 +331,7 @@ export default function AdminDashboard() {
                   <td>{u.email || "—"}</td>
                   <td>Rs {Number(u.balance).toLocaleString()}</td>
                   <td>{u.role}</td>
-                  <td>{u.isBanned ? "Banned" : "Active"}</td>
+                  <td><span className={`status-pill tone-${u.isBanned ? "danger" : "success"}`}>{u.isBanned ? "Banned" : "Active"}</span></td>
                   <td>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : "—"}</td>
                   <td>
                     {u.role !== "admin" && (
@@ -352,7 +375,7 @@ export default function AdminDashboard() {
                   <td>{d.user?.uid || "—"}</td>
                   <td>Rs {Number(d.amount).toLocaleString()}</td>
                   <td>{d.method}</td>
-                  <td>{d.status}</td>
+                  <td><StatusPill status={d.status} /></td>
                   <td>
                     {d.status === "pending" && (
                       <>
@@ -397,7 +420,7 @@ export default function AdminDashboard() {
                   <td>Rs {Number(w.amount).toLocaleString()}</td>
                   <td>{w.method}</td>
                   <td>{w.accountNumber}</td>
-                  <td>{w.status}</td>
+                  <td><StatusPill status={w.status} /></td>
                   <td>
                     {w.status === "pending" && (
                       <>
@@ -479,8 +502,19 @@ export default function AdminDashboard() {
                 </option>
               ))}
             </select>
+            <select
+              value={paymentFilters.provider}
+              onChange={(e) => {
+                setPaymentsPage(1);
+                setPaymentFilters((f) => ({ ...f, provider: e.target.value }));
+              }}
+            >
+              <option value="all">All providers</option>
+              <option value="paypal">PayPal</option>
+              <option value="paybost">Paybost</option>
+            </select>
             <input
-              placeholder="PayPal order ID"
+              placeholder="Provider order ID"
               value={paymentFilters.orderId}
               onChange={(e) => {
                 setPaymentsPage(1);
@@ -502,6 +536,7 @@ export default function AdminDashboard() {
               <thead>
                 <tr>
                   <th>Payment ID</th>
+                  <th>Provider</th>
                   <th>User</th>
                   <th>Amount</th>
                   <th>Provider Order ID</th>
@@ -515,13 +550,14 @@ export default function AdminDashboard() {
                 {payments.map((p) => (
                   <tr key={p._id}>
                     <td title={p._id}>{p._id.slice(-8)}</td>
+                    <td>{p.provider}</td>
                     <td>{p.userId?.uid || "—"}</td>
                     <td>
                       {p.currency} {(p.amount / 100).toFixed(2)}
                     </td>
                     <td title={p.providerOrderId}>{p.providerOrderId?.slice(0, 14)}…</td>
                     <td>{p.providerCaptureId ? `${p.providerCaptureId.slice(0, 10)}…` : "—"}</td>
-                    <td>{p.status}</td>
+                    <td><StatusPill status={p.status} /></td>
                     <td>{new Date(p.createdAt).toLocaleString()}</td>
                     <td>
                       <button className="small-btn" onClick={() => setSelectedPayment(p)}>
@@ -532,7 +568,7 @@ export default function AdminDashboard() {
                 ))}
                 {payments.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="empty">No PayPal payments yet.</td>
+                    <td colSpan={9} className="empty">No payments yet.</td>
                   </tr>
                 )}
               </tbody>
@@ -560,7 +596,7 @@ export default function AdminDashboard() {
                   <dt>Provider Capture ID</dt>
                   <dd>{selectedPayment.providerCaptureId || "—"}</dd>
                   <dt>Status</dt>
-                  <dd>{selectedPayment.status}</dd>
+                  <dd><StatusPill status={selectedPayment.status} /></dd>
                   <dt>Created</dt>
                   <dd>{new Date(selectedPayment.createdAt).toLocaleString()}</dd>
                   <dt>Updated</dt>
@@ -569,13 +605,25 @@ export default function AdminDashboard() {
                   <dd>{selectedPayment.creditedAt ? new Date(selectedPayment.creditedAt).toLocaleString() : "—"}</dd>
                 </dl>
                 <p className="admin-modal-note">
-                  Re-verify re-fetches this order directly from PayPal and reconciles our record against it. An
-                  admin can never mark a payment COMPLETED by hand — only a verified PayPal capture can do that.
+                  {selectedPayment.provider === "paybost" ? (
+                    <>
+                      Paybost has no status/query API — this payment can only ever move to COMPLETED via a
+                      verified, signature-checked IPN webhook from Paybost itself. There is nothing to
+                      re-verify manually; an admin can never mark it COMPLETED by hand.
+                    </>
+                  ) : (
+                    <>
+                      Re-verify re-fetches this order directly from PayPal and reconciles our record against it. An
+                      admin can never mark a payment COMPLETED by hand — only a verified PayPal capture can do that.
+                    </>
+                  )}
                 </p>
                 <div style={{ display: "flex", gap: 10 }}>
-                  <button className="small-btn approve" disabled={verifying} onClick={() => reverifyPayment(selectedPayment._id)}>
-                    {verifying ? "Verifying…" : "Re-verify with PayPal"}
-                  </button>
+                  {selectedPayment.provider !== "paybost" && (
+                    <button className="small-btn approve" disabled={verifying} onClick={() => reverifyPayment(selectedPayment._id)}>
+                      {verifying ? "Verifying…" : "Re-verify with PayPal"}
+                    </button>
+                  )}
                   <button className="small-btn" onClick={() => setSelectedPayment(null)}>
                     Close
                   </button>
@@ -629,8 +677,8 @@ export default function AdminDashboard() {
       <style jsx>{`
         .admin-shell {
           min-height: 100vh;
-          background: #07020f;
-          color: #fff8ef;
+          background: var(--bg);
+          color: var(--text);
           padding: 24px;
           font-family: sans-serif;
         }
@@ -639,12 +687,12 @@ export default function AdminDashboard() {
           align-items: center;
           justify-content: center;
           font-size: 14px;
-          color: #b9a8ce;
+          color: var(--text-muted);
         }
         .admin-loading-inline {
           padding: 40px;
           text-align: center;
-          color: #b9a8ce;
+          color: var(--text-muted);
           font-size: 13px;
         }
         .admin-header {
@@ -661,25 +709,25 @@ export default function AdminDashboard() {
           margin-top: 6px;
           padding: 4px 10px;
           border-radius: 999px;
-          border: 1px dashed rgba(255, 209, 102, 0.4);
-          background: rgba(255, 209, 102, 0.08);
-          color: #ffd166;
+          border: 1px dashed rgba(232, 172, 66, 0.4);
+          background: var(--warning-bg);
+          color: var(--accent);
           font-size: 10px;
           font-weight: 800;
           letter-spacing: 0.3px;
         }
         .admin-header button {
-          border: 1px solid rgba(255, 255, 255, 0.16);
-          background: rgba(255, 255, 255, 0.06);
-          color: #fff;
+          border: 1px solid var(--border-strong);
+          background: var(--surface-hover);
+          color: var(--text);
           border-radius: 10px;
           padding: 8px 14px;
           cursor: pointer;
           font-size: 12px;
         }
         .admin-banner-error {
-          background: rgba(255, 77, 109, 0.14);
-          border: 1px solid rgba(255, 77, 109, 0.28);
+          background: var(--danger-bg);
+          border: 1px solid rgba(240, 74, 94, 0.3);
           color: #ffd9e0;
           border-radius: 12px;
           padding: 10px 14px;
@@ -693,9 +741,9 @@ export default function AdminDashboard() {
           flex-wrap: wrap;
         }
         .admin-tabs button {
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          background: rgba(255, 255, 255, 0.04);
-          color: #b9a8ce;
+          border: 1px solid var(--border);
+          background: var(--surface);
+          color: var(--text-muted);
           border-radius: 10px;
           padding: 8px 16px;
           font-size: 12px;
@@ -703,8 +751,8 @@ export default function AdminDashboard() {
           cursor: pointer;
         }
         .admin-tabs button.active {
-          background: linear-gradient(135deg, #ffd166, #ff3d81);
-          color: #1a0614;
+          background: var(--accent);
+          color: #181206;
         }
         .admin-stats-grid {
           display: grid;
@@ -715,13 +763,13 @@ export default function AdminDashboard() {
         .admin-stat-card {
           border-radius: 16px;
           padding: 16px;
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: var(--surface);
+          border: 1px solid var(--border);
         }
         .admin-stat-card span {
           display: block;
           font-size: 11px;
-          color: #b9a8ce;
+          color: var(--text-muted);
           text-transform: uppercase;
           letter-spacing: 0.4px;
         }
@@ -738,13 +786,13 @@ export default function AdminDashboard() {
         .admin-chart-card {
           border-radius: 16px;
           padding: 16px;
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: var(--surface);
+          border: 1px solid var(--border);
         }
         .admin-chart-card h3 {
           font-size: 13px;
           font-weight: 700;
-          color: #eadff7;
+          color: var(--text);
           margin-bottom: 14px;
         }
         .admin-chart {
@@ -774,11 +822,11 @@ export default function AdminDashboard() {
         .admin-chart-col span {
           margin-top: 6px;
           font-size: 8px;
-          color: #7a6a90;
+          color: var(--text-faint);
         }
         .admin-table-wrap {
           overflow-x: auto;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid var(--border);
           border-radius: 16px;
         }
         table {
@@ -790,18 +838,18 @@ export default function AdminDashboard() {
         td {
           padding: 12px 14px;
           text-align: left;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          border-bottom: 1px solid var(--border);
           white-space: nowrap;
         }
         th {
-          color: #b9a8ce;
+          color: var(--text-muted);
           font-size: 11px;
           text-transform: uppercase;
           letter-spacing: 0.4px;
         }
         .empty {
           text-align: center;
-          color: #b9a8ce;
+          color: var(--text-muted);
         }
         .small-btn {
           border: 0;
@@ -811,16 +859,16 @@ export default function AdminDashboard() {
           font-weight: 800;
           cursor: pointer;
           margin-right: 6px;
-          background: rgba(255, 255, 255, 0.1);
-          color: #fff;
+          background: var(--surface-hover);
+          color: var(--text);
         }
         .small-btn.approve {
-          background: linear-gradient(135deg, #37f59a, #28e7ff);
-          color: #06120e;
+          background: var(--success);
+          color: #06190f;
         }
         .small-btn.reject {
-          background: linear-gradient(135deg, #ff5c5c, #ff3d81);
-          color: #1a0614;
+          background: var(--danger);
+          color: #fff;
         }
         .admin-pagination {
           display: flex;
@@ -829,12 +877,12 @@ export default function AdminDashboard() {
           gap: 12px;
           margin-top: 16px;
           font-size: 12px;
-          color: #b9a8ce;
+          color: var(--text-muted);
         }
         .admin-pagination button {
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          background: rgba(255, 255, 255, 0.05);
-          color: #fff;
+          border: 1px solid var(--border);
+          background: var(--surface);
+          color: var(--text);
           border-radius: 8px;
           padding: 6px 14px;
           cursor: pointer;
@@ -851,9 +899,9 @@ export default function AdminDashboard() {
         }
         .admin-filter-bar select,
         .admin-filter-bar input {
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          background: rgba(255, 255, 255, 0.05);
-          color: #fff;
+          border: 1px solid var(--border);
+          background: var(--surface);
+          color: var(--text);
           border-radius: 8px;
           padding: 8px 12px;
           font-size: 12px;
@@ -871,8 +919,8 @@ export default function AdminDashboard() {
         .admin-modal {
           width: 100%;
           max-width: 480px;
-          background: #150a28;
-          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: var(--surface);
+          border: 1px solid var(--border-strong);
           border-radius: 16px;
           padding: 22px;
         }
@@ -889,7 +937,7 @@ export default function AdminDashboard() {
           margin-bottom: 14px;
         }
         .admin-modal dt {
-          color: #b9a8ce;
+          color: var(--text-muted);
           font-weight: 700;
         }
         .admin-modal dd {
@@ -897,10 +945,25 @@ export default function AdminDashboard() {
         }
         .admin-modal-note {
           font-size: 11px;
-          color: #b9a8ce;
+          color: var(--text-muted);
           line-height: 1.5;
           margin-bottom: 14px;
         }
+        .status-pill {
+          display: inline-flex;
+          align-items: center;
+          padding: 3px 9px;
+          border-radius: 999px;
+          font-size: 10px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+        }
+        .status-pill.tone-success { background: var(--success-bg); color: var(--success); }
+        .status-pill.tone-danger { background: var(--danger-bg); color: var(--danger); }
+        .status-pill.tone-warning { background: var(--warning-bg); color: var(--warning); }
+        .status-pill.tone-info { background: var(--info-bg); color: var(--info); }
+        .status-pill.tone-neutral { background: var(--surface-hover); color: var(--text-muted); }
       `}</style>
     </div>
   );

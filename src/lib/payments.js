@@ -11,6 +11,31 @@ export const MIN_DEPOSIT_AMOUNT = 1;
 export const MAX_DEPOSIT_AMOUNT = 500;
 export const MAX_PENDING_ORDERS_PER_MINUTE = 5;
 
+// This merchant's Paybost sandbox account only accepts PKR (USD returns
+// "Currency not supported", confirmed by testing directly against
+// https://paybost.com/sandbox/payment/initiate) — so unlike the PayPal (USD)
+// flow, Paybost deposits are PKR and 1 PKR == 1 demo credit, matching the
+// rest of this app's Rs-denominated wallet.
+export const PAYBOST_PRESET_DEPOSIT_AMOUNTS = [1000, 3000, 5000, 10000, 25000, 50000];
+export const PAYBOST_MIN_DEPOSIT_AMOUNT = 100;
+export const PAYBOST_MAX_DEPOSIT_AMOUNT = 100000;
+
+export function validatePaybostAmount(amount) {
+  if (typeof amount !== "number" || !Number.isFinite(amount)) return null;
+  if (amount < PAYBOST_MIN_DEPOSIT_AMOUNT || amount > PAYBOST_MAX_DEPOSIT_AMOUNT) return null;
+  const paisa = Math.round(amount * 100);
+  if (Math.abs(paisa - amount * 100) > 1e-6) return null; // more than 2 decimal places
+  return paisa;
+}
+
+// Per-provider display label, used for Transaction.method and user-facing
+// messages. Add an entry here when a new payment provider is integrated —
+// creditVerifiedPayment() itself needs no other changes.
+const PROVIDER_LABELS = {
+  paypal: "PayPal Sandbox",
+  paybost: "Paybost (Test Mode)",
+};
+
 // Validates a dollar amount from the client and returns it as integer cents,
 // or null if invalid. Rejects non-numeric, negative, zero, NaN, Infinity, and
 // anything with more than two decimal places.
@@ -53,7 +78,10 @@ export async function creditVerifiedPayment(paymentId, { captureId, rawCaptureRe
     return { payment: existing, transaction, balance: user?.balance ?? null, alreadyCredited: true };
   }
 
-  const creditAmount = claimed.amount / 100; // cents -> whole demo-credit units (1 USD == 1 demo credit)
+  // Integer minor units -> whole demo-credit units. 1 USD == 1 credit for PayPal,
+  // 1 PKR == 1 credit for Paybost — both providers store amount as minor-unit cents.
+  const creditAmount = claimed.amount / 100;
+  const providerLabel = PROVIDER_LABELS[claimed.provider] || claimed.provider;
 
   const updatedUser = await adjustBalance(claimed.userId, creditAmount);
 
@@ -61,11 +89,11 @@ export async function creditVerifiedPayment(paymentId, { captureId, rawCaptureRe
     user: claimed.userId,
     type: "deposit",
     amount: creditAmount,
-    method: "PayPal Sandbox",
+    method: providerLabel,
     status: "completed",
     meta: {
       paymentId: claimed._id,
-      provider: "paypal",
+      provider: claimed.provider,
       providerOrderId: claimed.providerOrderId,
       providerCaptureId: claimed.providerCaptureId,
       currency: claimed.currency,
@@ -76,14 +104,14 @@ export async function creditVerifiedPayment(paymentId, { captureId, rawCaptureRe
   await logActivity({
     user: claimed.userId,
     actorRole: "user",
-    action: "paypal_deposit_completed",
-    message: `PayPal Sandbox deposit of ${claimed.currency} ${(claimed.amount / 100).toFixed(2)} completed (+${creditAmount} demo credits).`,
+    action: `${claimed.provider}_deposit_completed`,
+    message: `${providerLabel} deposit of ${claimed.currency} ${(claimed.amount / 100).toFixed(2)} completed (+${creditAmount} demo credits).`,
     meta: { paymentId: claimed._id, providerOrderId: claimed.providerOrderId },
   });
   await notifyUser(claimed.userId, {
-    type: "paypal_deposit_completed",
-    title: "PayPal Sandbox deposit completed",
-    message: `Your demo deposit of Rs${creditAmount.toLocaleString()} via PayPal Sandbox has been credited. No real money was processed.`,
+    type: `${claimed.provider}_deposit_completed`,
+    title: `${providerLabel} deposit completed`,
+    message: `Your demo deposit of Rs${creditAmount.toLocaleString()} via ${providerLabel} has been credited. No real money was processed.`,
   });
 
   return { payment: claimed, transaction, balance: updatedUser?.balance ?? null, alreadyCredited: false };

@@ -27,23 +27,30 @@ export async function PATCH(request) {
   }
 
   await dbConnect();
-  const tx = await Transaction.findOne({ _id: transactionId, type: "deposit" });
-  if (!tx) return Response.json({ error: "Deposit not found." }, { status: 404 });
-  if (tx.status !== "pending") {
+
+  // Atomically claim the pending transaction so two concurrent approve/reject
+  // requests for the same deposit (double-click, two admin tabs) can't both
+  // succeed and double-credit the user.
+  const tx = await Transaction.findOneAndUpdate(
+    { _id: transactionId, type: "deposit", status: "pending" },
+    { $set: { status: action === "approve" ? "approved" : "rejected", reviewedBy: admin._id, reviewedAt: new Date() } },
+    { new: true }
+  );
+  if (!tx) {
+    const existing = await Transaction.findOne({ _id: transactionId, type: "deposit" });
+    if (!existing) return Response.json({ error: "Deposit not found." }, { status: 404 });
     return Response.json({ error: "This deposit has already been reviewed." }, { status: 409 });
   }
 
   if (action === "approve") {
     const user = await adjustBalance(tx.user, tx.amount);
-    if (!user) return Response.json({ error: "User not found." }, { status: 404 });
-    tx.status = "approved";
-  } else {
-    tx.status = "rejected";
+    if (!user) {
+      // Crediting failed after the claim — put the transaction back to pending
+      // rather than leaving it marked "approved" without the user being paid.
+      await Transaction.updateOne({ _id: tx._id }, { $set: { status: "pending" }, $unset: { reviewedBy: 1, reviewedAt: 1 } });
+      return Response.json({ error: "User not found." }, { status: 404 });
+    }
   }
-
-  tx.reviewedBy = admin._id;
-  tx.reviewedAt = new Date();
-  await tx.save();
 
   await logActivity({
     user: admin._id,

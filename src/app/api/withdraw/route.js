@@ -23,7 +23,7 @@ export async function POST(request) {
   const { amount, method, accountNumber } = body || {};
   const parsedAmount = Number(amount);
 
-  if (!parsedAmount || parsedAmount < MIN_WITHDRAW) {
+  if (!Number.isFinite(parsedAmount) || parsedAmount < MIN_WITHDRAW) {
     return Response.json({ error: `Minimum withdraw is Rs ${MIN_WITHDRAW}.` }, { status: 400 });
   }
   if (!method || !accountNumber) {

@@ -27,23 +27,25 @@ export async function PATCH(request) {
   }
 
   await dbConnect();
-  const tx = await Transaction.findOne({ _id: transactionId, type: "withdraw" });
-  if (!tx) return Response.json({ error: "Withdrawal not found." }, { status: 404 });
-  if (tx.status !== "pending") {
+
+  // Atomically claim the pending transaction so two concurrent approve/reject
+  // requests for the same withdrawal (double-click, two admin tabs) can't both
+  // succeed — e.g. both refunding the held funds back to the user.
+  const tx = await Transaction.findOneAndUpdate(
+    { _id: transactionId, type: "withdraw", status: "pending" },
+    { $set: { status: action === "approve" ? "approved" : "rejected", reviewedBy: admin._id, reviewedAt: new Date() } },
+    { new: true }
+  );
+  if (!tx) {
+    const existing = await Transaction.findOne({ _id: transactionId, type: "withdraw" });
+    if (!existing) return Response.json({ error: "Withdrawal not found." }, { status: 404 });
     return Response.json({ error: "This withdrawal has already been reviewed." }, { status: 409 });
   }
 
   if (action === "reject") {
     // Funds were held at request time — refund them back to the user.
     await adjustBalance(tx.user, tx.amount);
-    tx.status = "rejected";
-  } else {
-    tx.status = "approved";
   }
-
-  tx.reviewedBy = admin._id;
-  tx.reviewedAt = new Date();
-  await tx.save();
 
   await logActivity({
     user: admin._id,

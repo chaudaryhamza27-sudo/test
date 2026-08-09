@@ -4,22 +4,31 @@ import User from "../../../../lib/models/User";
 import { setSessionCookie } from "../../../../lib/auth";
 import { logActivity } from "../../../../lib/activity";
 import { notifyUser } from "../../../../lib/notifications";
+import { checkRateLimit, getClientIp } from "../../../../lib/rateLimit";
 
 const STARTER_BALANCE = 10000;
+const SIGNUP_MAX_ATTEMPTS = 5;
+const SIGNUP_WINDOW_MS = 60 * 60_000;
 
 function genInviteCode() {
   return Math.random().toString(36).slice(2, 10).toUpperCase();
 }
 
 export async function POST(request) {
+  const ip = getClientIp(request);
+  const { allowed } = checkRateLimit(`signup:${ip}`, { max: SIGNUP_MAX_ATTEMPTS, windowMs: SIGNUP_WINDOW_MS });
+  if (!allowed) {
+    return Response.json({ error: "Too many accounts created from this connection. Please try again later." }, { status: 429 });
+  }
+
   const body = await request.json();
   const { name, phone, email, password, confirmPassword, inviteCode } = body || {};
 
   if ((!phone && !email) || !password) {
     return Response.json({ error: "Phone or email, and password are required." }, { status: 400 });
   }
-  if (password.length < 6) {
-    return Response.json({ error: "Password must be at least 6 characters." }, { status: 400 });
+  if (password.length < 8) {
+    return Response.json({ error: "Password must be at least 8 characters." }, { status: 400 });
   }
   if (typeof confirmPassword === "string" && confirmPassword !== password) {
     return Response.json({ error: "Passwords do not match." }, { status: 400 });

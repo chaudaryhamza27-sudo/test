@@ -3,21 +3,26 @@
 import { useState } from "react";
 import Link from "next/link";
 import BottomNav from "../components/BottomNav";
+import AppShellHeader from "../components/AppShellHeader";
 import PayPalAddFunds from "../components/PayPalAddFunds";
+import PaybostAddFunds from "../components/PaybostAddFunds";
 
 const amountOptions = [3000, 5000, 7500, 10000, 25000, 50000];
 const methodOptions = [
-  { key: "wallet-a", label: "QuickPay Wallet", icon: "📱" },
-  { key: "wallet-b", label: "SwiftPay Wallet", icon: "💳" },
+  { key: "mobile-wallet", label: "Mobile Wallet", icon: "📱" },
+  { key: "bank-transfer", label: "Bank Transfer", icon: "💳" },
 ];
 
 export default function DepositPage() {
   const [amount, setAmount] = useState(3000);
-  const [method, setMethod] = useState("wallet-a");
+  const [method, setMethod] = useState("mobile-wallet");
   const [phone, setPhone] = useState("");
   const [popup, setPopup] = useState(null);
 
-  const openNotice = (msg) => setPopup(msg);
+  // tone determines the popup's title/icon so a real success or error
+  // message doesn't get mislabeled "Demo Mode" (that title is reserved for
+  // genuine informational placeholders, not real outcomes of a real request).
+  const openNotice = (msg, tone = "info") => setPopup({ msg, tone });
   const closeNotice = () => setPopup(null);
 
   const handleAmountPick = (value) => setAmount(value);
@@ -32,7 +37,7 @@ export default function DepositPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!amount || amount < 3000) {
-      openNotice("Minimum deposit amount is Rs 3,000.");
+      openNotice("Minimum deposit amount is Rs 3,000.", "error");
       return;
     }
     if (submitting) return;
@@ -45,79 +50,72 @@ export default function DepositPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        openNotice(data.error || "Failed to submit deposit request.");
+        openNotice(data.error || "Failed to submit deposit request.", "error");
         return;
       }
-      openNotice("Deposit request submitted. It will be credited once approved by an admin.");
+      openNotice(
+        `Deposit request for Rs${amount.toLocaleString()} submitted. It's now pending — check Transaction History, and your balance will update once an admin approves it.`,
+        "success"
+      );
     } catch {
-      openNotice("Something went wrong. Please try again.");
+      openNotice("Something went wrong. Please try again.", "error");
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="app-shell auth-page">
+    <div className="app-shell">
       <div className="app-glow g1" />
       <div className="app-glow g2" />
       <div className="app-glow g3" />
 
-      <header className="topbar">
-        <Link href="/" className="brand-logo">
-          <div className="brand-mark">DA</div>
-          <div className="brand-copy">
-            <b>Demo Arcade</b>
-            <span>UI Showcase</span>
+      <AppShellHeader subtitle="Aviator — Simulation" />
+
+      <main className="content app-page-content">
+        <section className="deposit-hero compact">
+          <div className="deposit-hero-row">
+            <div>
+              <div className="deposit-kicker">✦ ADD DEMO CREDITS</div>
+              <h1 className="deposit-title compact">
+                Top Up <span>Your Wallet</span>
+              </h1>
+              <p className="deposit-sub">
+                Add demo credits instantly via a sandbox payment, or submit a manual request for
+                admin review. Every credit here is simulated — no real money ever moves.
+              </p>
+            </div>
+            <div className="demo-pill">
+              <span>🖊️</span> Demo Mode
+            </div>
           </div>
-        </Link>
-        <div className="demo-pill">
-          <span>🧪</span> Demo mode
+        </section>
+
+        <div className="deposit-instant-grid" id="deposit-options">
+          <section className="deposit-card" style={{ textAlign: "center" }}>
+            <div className="card-title">
+              <h2>Instant Option</h2>
+              <span>PayPal Sandbox</span>
+            </div>
+            <p style={{ fontSize: 12, color: "var(--muted)", marginBottom: 14 }}>
+              Skip the admin approval wait — credit demo funds instantly through a PayPal Sandbox
+              test payment. Still 100% simulated, still no real money.
+            </p>
+            <PayPalAddFunds theme="dark" triggerClassName="deposit-submit" triggerLabel="⚡ Add Funds Instantly via PayPal Sandbox" />
+          </section>
+
+          <section className="deposit-card" style={{ textAlign: "center" }}>
+            <div className="card-title">
+              <h2>Instant Option</h2>
+              <span>Paybost — Test Mode</span>
+            </div>
+            <p style={{ fontSize: 12, color: "var(--muted)", marginBottom: 14 }}>
+              Credit demo funds instantly through Paybost&apos;s sandbox checkout. Running in test mode —
+              still 100% simulated, still no real money.
+            </p>
+            <PaybostAddFunds theme="dark" triggerClassName="deposit-submit" triggerLabel="⚡ Add Funds Instantly via Paybost (Test Mode)" />
+          </section>
         </div>
-      </header>
-
-      <main className="content">
-        <section className="deposit-hero">
-          <div className="deposit-kicker">✦ DEPOSIT DEMO</div>
-          <h1 className="deposit-title">
-            Play Coins
-            <br />
-            <span>Top Up Preview</span>
-          </h1>
-          <p className="deposit-sub">
-            This screen previews a deposit UI for the showcase. No real payment provider is
-            connected — nothing here moves real money.
-          </p>
-
-          <div className="secure-strip">
-            <div className="secure-pill">
-              <span>🧩</span>
-              <b>Static</b>
-              <span>Demo layout</span>
-            </div>
-            <div className="secure-pill">
-              <span>🪙</span>
-              <b>Play</b>
-              <span>Coins only</span>
-            </div>
-            <div className="secure-pill">
-              <span>🚫</span>
-              <b>No</b>
-              <span>Real payments</span>
-            </div>
-          </div>
-        </section>
-
-        <section className="deposit-card" style={{ textAlign: "center" }}>
-          <div className="card-title">
-            <h2>Instant Option</h2>
-            <span>PayPal Sandbox</span>
-          </div>
-          <p style={{ fontSize: 12, color: "var(--muted)", marginBottom: 14 }}>
-            Skip the admin approval wait — credit demo funds instantly through a PayPal Sandbox
-            test payment. Still 100% simulated, still no real money.
-          </p>
-          <PayPalAddFunds theme="dark" triggerClassName="deposit-submit" triggerLabel="⚡ Add Funds Instantly via PayPal Sandbox" />
-        </section>
 
         <section className="deposit-card">
           <div className="card-title">
@@ -201,23 +199,31 @@ export default function DepositPage() {
         </section>
 
         <div className="min-note">
-          ✅ Demo only — minimum amount is enforced purely for layout purposes. No real
-          transaction is ever created.
+          ✅ Manual requests are reviewed by an admin before your balance updates. Minimum
+          deposit is Rs 3,000.
         </div>
 
         <footer className="footer" style={{ marginBottom: 24 }}>
-          This page is a <b>UI/UX demo</b>. It does not process payments and is not
-          connected to any real payment gateway or gambling product.
+          PK92 is an educational simulation using demo credits only — no real money or payment
+          gateway is involved. See our{" "}
+          <Link href="/legal/terms" target="_blank" rel="noopener noreferrer">
+            Terms
+          </Link>{" "}
+          and{" "}
+          <Link href="/legal/deposit-policy" target="_blank" rel="noopener noreferrer">
+            Deposit Policy
+          </Link>
+          .
         </footer>
       </main>
 
-      <BottomNav onPlayClick={() => openNotice("This is a static UI demo — no real game session starts here.")} />
+      <BottomNav />
 
       <div className={`popup ${popup ? "active" : ""}`} onClick={closeNotice}>
         <div className="popup-box" onClick={(e) => e.stopPropagation()}>
-          <div className="popup-icon">🧪</div>
-          <div className="popup-title">Demo Mode</div>
-          <p className="popup-text">{popup}</p>
+          <div className="popup-icon">{popup?.tone === "success" ? "✅" : popup?.tone === "error" ? "⚠️" : "🧪"}</div>
+          <div className="popup-title">{popup?.tone === "success" ? "Deposit Submitted" : popup?.tone === "error" ? "Couldn't Submit" : "Demo Mode"}</div>
+          <p className="popup-text">{popup?.msg}</p>
           <button className="popup-btn" onClick={closeNotice}>
             Got it
           </button>

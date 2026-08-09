@@ -20,6 +20,20 @@ export async function POST(request, ctx) {
   const payment = await Payment.findById(id);
   if (!payment) return Response.json({ error: "Payment not found." }, { status: 404 });
 
+  if (payment.provider === "paybost") {
+    // Paybost's published API has no "get payment status" endpoint — only an
+    // Initiate Payment call and an inbound IPN webhook. There is nothing to
+    // re-fetch here, so an admin cannot force-reconcile a Paybost payment; it
+    // can only ever move to COMPLETED via a verified, signature-checked IPN.
+    return Response.json(
+      {
+        error:
+          "Paybost has no status API to re-verify against. This payment will only complete when Paybost's IPN webhook arrives — it cannot be reconciled manually.",
+      },
+      { status: 501 }
+    );
+  }
+
   let order;
   try {
     order = await getOrder(payment.providerOrderId);

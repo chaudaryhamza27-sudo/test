@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const PaymentSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
-    provider: { type: String, enum: ["paypal"], required: true },
+    provider: { type: String, enum: ["paypal", "paybost"], required: true },
     providerOrderId: { type: String, required: true },
     providerCaptureId: { type: String, default: null, sparse: true },
     // Integer cents — never floating-point dollars. Converted to whole demo-credit

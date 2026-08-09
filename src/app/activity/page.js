@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { IconGift, IconActivity } from "../icons";
+import Link from "next/link";
+import { IconGift, IconActivity, IconChevronLeft } from "../icons";
 import BottomNav from "../components/BottomNav";
 
 const ACTION_LABELS = {
@@ -50,7 +51,9 @@ export default function ActivityPage() {
   return (
     <div className="kk-page">
       <header className="kk-header">
-        <span className="kk-header-side" />
+        <Link href="/" className="kk-header-icon-btn">
+          <IconChevronLeft />
+        </Link>
         <span className="kk-header-title">Activity</span>
         <span className="kk-header-side" />
       </header>

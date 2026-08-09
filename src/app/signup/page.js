@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -31,8 +31,14 @@ export default function SignupPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [agree, setAgree] = useState(false);
   const [popup, setPopup] = useState(null);
+  const [error, setError] = useState(null);
   const [redirectHome, setRedirectHome] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get("ref");
+    if (ref) setInvite(ref);
+  }, []);
 
   const openNotice = (msg) => setPopup(msg);
   const closeNotice = () => {
@@ -51,8 +57,9 @@ export default function SignupPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!canSubmit || submitting) return;
+    setError(null);
     if (password !== confirm) {
-      openNotice("Passwords do not match.");
+      setError("Passwords do not match.");
       return;
     }
     setSubmitting(true);
@@ -70,13 +77,13 @@ export default function SignupPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        openNotice(data.error || "Registration failed.");
+        setError(data.error || "Registration failed. Please check your details and try again.");
         return;
       }
       setRedirectHome(true);
       openNotice("Account created successfully. Heading back to the home screen.");
     } catch {
-      openNotice("Something went wrong. Please try again.");
+      setError("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -237,27 +244,17 @@ export default function SignupPage() {
               />
               <span>
                 I confirm I&apos;m 18+ and agree to the{" "}
-                <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    openNotice("Terms are a placeholder in this demo.");
-                  }}
-                >
+                <Link href="/legal/terms" target="_blank" rel="noopener noreferrer">
                   Terms
-                </a>{" "}
+                </Link>{" "}
                 &amp;{" "}
-                <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    openNotice("Privacy policy is a placeholder in this demo.");
-                  }}
-                >
+                <Link href="/legal/privacy" target="_blank" rel="noopener noreferrer">
                   Privacy Policy
-                </a>
+                </Link>
               </span>
             </label>
+
+            {error && <div className="alert alert-danger" style={{ marginTop: 18 }}>{error}</div>}
 
             <button type="submit" className="kk-btn-primary" disabled={!canSubmit || submitting}>
               {submitting ? "Registering…" : "Register"}

@@ -271,3 +271,51 @@ export const IconFlagUS = (props) => (
     </g>
   </svg>
 );
+
+export const IconTrendingUp = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M3 17l6-6 4 4 8-8" />
+    <path d="M15 7h6v6" />
+  </svg>
+);
+
+export const IconTrophy = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M8 4h8v6a4 4 0 0 1-8 0V4Z" />
+    <path d="M8 5H5a2 2 0 0 0 0 4h3M16 5h3a2 2 0 0 1 0 4h-3" />
+    <path d="M10 15v2M14 15v2" />
+    <path d="M8 20h8" />
+    <path d="M10 17h4v3h-4z" />
+  </svg>
+);
+
+export const IconShield = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M12 3l7 3v6c0 4.5-3 7.7-7 9-4-1.3-7-4.5-7-9V6l7-3Z" />
+    <path d="M9 12l2 2 4-4" />
+  </svg>
+);
+
+export const IconDocument = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M7 3h7l4 4v14H7V3Z" />
+    <path d="M14 3v4h4" />
+    <path d="M9.5 12h5M9.5 15.5h5M9.5 8.5h2" />
+  </svg>
+);
+
+export const IconUsers = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <circle cx="9" cy="8" r="3" />
+    <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+    <path d="M16 4.2a3 3 0 0 1 0 5.8" />
+    <path d="M19.5 20c0-2.8-2-5.2-4.7-5.9" />
+  </svg>
+);
+
+export const IconGlobe = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3Z" />
+  </svg>
+);

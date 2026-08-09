@@ -9,8 +9,13 @@ export default function BottomNav() {
 
   const isAgency = pathname === "/agency";
   const isActivity = pathname === "/activity";
-  const isWallet = pathname === "/wallet";
+  const isWallet =
+    pathname === "/wallet" ||
+    pathname.startsWith("/deposit") ||
+    pathname.startsWith("/withdraw") ||
+    pathname.startsWith("/transactions");
   const isProfile = pathname === "/profile";
+  const isGame = pathname === "/game";
 
   return (
     <nav className="bottom-nav">
@@ -24,7 +29,7 @@ export default function BottomNav() {
         <span>Activity</span>
       </Link>
 
-      <Link href="/" className="center-btn">
+      <Link href="/game" className={`center-btn ${isGame ? "active" : ""}`}>
         <IconGame />
       </Link>
 

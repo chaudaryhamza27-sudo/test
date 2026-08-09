@@ -78,17 +78,17 @@ export default function AdminLoginPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #07020f;
+          background: var(--bg);
           padding: 20px;
         }
         .admin-login-card {
           width: 100%;
           max-width: 380px;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: var(--surface);
+          border: 1px solid var(--border);
           border-radius: 20px;
           padding: 28px;
-          color: #fff8ef;
+          color: var(--text);
         }
         h1 {
           font-size: 22px;
@@ -96,7 +96,7 @@ export default function AdminLoginPage() {
         }
         p {
           font-size: 12px;
-          color: #b9a8ce;
+          color: var(--text-muted);
           margin-bottom: 20px;
         }
         label {
@@ -111,15 +111,15 @@ export default function AdminLoginPage() {
           margin-top: 6px;
           height: 44px;
           border-radius: 10px;
-          border: 1px solid rgba(255, 255, 255, 0.14);
-          background: rgba(255, 255, 255, 0.06);
-          color: #fff;
+          border: 1px solid var(--border);
+          background: var(--surface-sunken);
+          color: var(--text);
           padding: 0 12px;
           font-size: 14px;
         }
         .admin-error {
-          background: rgba(255, 77, 109, 0.14);
-          border: 1px solid rgba(255, 77, 109, 0.28);
+          background: var(--danger-bg);
+          border: 1px solid rgba(240, 74, 94, 0.3);
           color: #ffd9e0;
           border-radius: 10px;
           padding: 10px 12px;
@@ -131,8 +131,8 @@ export default function AdminLoginPage() {
           height: 46px;
           border: 0;
           border-radius: 12px;
-          background: linear-gradient(135deg, #ffd166, #ff3d81);
-          color: #1a0614;
+          background: var(--accent);
+          color: #181206;
           font-weight: 800;
           cursor: pointer;
         }

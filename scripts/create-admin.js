@@ -1,10 +1,13 @@
 // Usage: node scripts/create-admin.js [email] [password]
 // Falls back to ADMIN_SEED_EMAIL / ADMIN_SEED_PASSWORD from .env.local.
 
-const fs = require("fs");
-const path = require("path");
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function loadEnvLocal() {
   const envPath = path.join(__dirname, "..", ".env.local");

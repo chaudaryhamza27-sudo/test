@@ -2,20 +2,27 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { IconChevronLeft, IconDeposit, IconWithdraw, IconHistory } from "../icons";
+import { IconChevronLeft, IconDeposit, IconWithdraw, IconHistory, IconTrendingUp, IconTrophy } from "../icons";
 import BottomNav from "../components/BottomNav";
 import PayPalAddFunds from "../components/PayPalAddFunds";
+import PaybostAddFunds from "../components/PaybostAddFunds";
 
 export default function WalletPage() {
-  const [popup, setPopup] = useState(null);
   const [balance, setBalance] = useState(0);
+  const [stats, setStats] = useState(null);
 
   useEffect(() => {
     fetch("/api/wallet")
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => setBalance(data.balance))
       .catch(() => {});
+    fetch("/api/wallet/stats")
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then(setStats)
+      .catch(() => setStats(null));
   }, []);
+
+  const money = (n) => `Rs${Number(n ?? 0).toLocaleString()}`;
 
   return (
     <div className="kk-page">
@@ -35,32 +42,49 @@ export default function WalletPage() {
         </section>
 
         <PayPalAddFunds
-          theme="light"
+          theme="dark"
           triggerClassName="kk-transfer-btn"
           triggerLabel="➕ Add Funds (PayPal Sandbox)"
           onBalanceChange={setBalance}
         />
 
-        <section className="kk-wallet-card">
-          <div className="kk-donut">
-            <div className="kk-donut-ring" style={{ "--pct": 0 }}>
-              <span>0%</span>
+        <PaybostAddFunds
+          theme="dark"
+          triggerClassName="kk-transfer-btn"
+          triggerLabel="➕ Add Funds (Paybost — Test Mode)"
+          onBalanceChange={setBalance}
+        />
+
+        <section className="wallet-stats-grid">
+          <div className="card wallet-stat-card">
+            <div className="wallet-stat-icon" style={{ background: "linear-gradient(160deg,#33d19a,#1a9450)" }}>
+              <IconDeposit />
             </div>
-            <label>Rs0.00</label>
-            <label>Main wallet</label>
+            <b>{stats ? money(stats.totalDeposited) : "…"}</b>
+            <span>Total deposited</span>
           </div>
-          <div className="kk-donut">
-            <div className="kk-donut-ring" style={{ "--pct": 0 }}>
-              <span>0%</span>
+          <div className="card wallet-stat-card">
+            <div className="wallet-stat-icon" style={{ background: "linear-gradient(160deg,#ff6b8f,#d6296a)" }}>
+              <IconWithdraw />
             </div>
-            <label>Rs0.00</label>
-            <label>3rd party wallet</label>
+            <b>{stats ? money(stats.totalWithdrawn) : "…"}</b>
+            <span>Total withdrawn</span>
+          </div>
+          <div className="card wallet-stat-card">
+            <div className="wallet-stat-icon" style={{ background: "linear-gradient(160deg,#4aa8ff,#1565e8)" }}>
+              <IconTrendingUp />
+            </div>
+            <b>{stats ? money(stats.gameWagered) : "…"}</b>
+            <span>Game wagered</span>
+          </div>
+          <div className="card wallet-stat-card">
+            <div className="wallet-stat-icon" style={{ background: "linear-gradient(160deg,#f2ab13,#c97a06)" }}>
+              <IconTrophy />
+            </div>
+            <b>{stats ? money(stats.gameWon) : "…"}</b>
+            <span>Game won</span>
           </div>
         </section>
-
-        <button className="kk-transfer-btn" onClick={() => setPopup("Main wallet transfer")}>
-          Main wallet transfer
-        </button>
 
         <section className="kk-action-grid">
           <Link href="/deposit" className="kk-action">
@@ -75,13 +99,13 @@ export default function WalletPage() {
             </div>
             <span>Withdraw</span>
           </Link>
-          <Link href="/transactions" className="kk-action">
+          <Link href="/transactions?type=deposit" className="kk-action">
             <div className="kk-action-icon" style={{ background: "linear-gradient(160deg,#ff6b8f,#d6296a)" }}>
               <IconHistory />
             </div>
             <span>Deposit history</span>
           </Link>
-          <Link href="/transactions" className="kk-action">
+          <Link href="/transactions?type=withdraw" className="kk-action">
             <div className="kk-action-icon" style={{ background: "linear-gradient(160deg,#33d19a,#1a9450)" }}>
               <IconHistory />
             </div>
@@ -89,32 +113,10 @@ export default function WalletPage() {
           </Link>
         </section>
 
-        <section className="kk-balance-tiles">
-          <button className="kk-tile light" onClick={() => setPopup("ARGame balance")}>
-            <b>Rs0.00</b>
-            <span>ARGame</span>
-          </button>
-          <button className="kk-tile blue" onClick={() => setPopup("Lottery balance")}>
-            <b>Rs0.00</b>
-            <span>Lottery</span>
-          </button>
-        </section>
-
-        <footer className="kk-footer">All balances shown are placeholders for this UI preview.</footer>
+        <footer className="kk-footer">Stats above reflect your real demo-credit activity. No real money is ever involved.</footer>
       </main>
 
       <BottomNav />
-
-      <div className={`popup ${popup ? "active" : ""}`} onClick={() => setPopup(null)}>
-        <div className="kk-popup-box" onClick={(e) => e.stopPropagation()}>
-          <div className="kk-popup-icon">💳</div>
-          <div className="kk-popup-title">Demo Mode</div>
-          <p className="kk-popup-text">&quot;{popup}&quot; is a placeholder in this UI showcase — no real wallet transaction happens here.</p>
-          <button className="kk-popup-btn" onClick={() => setPopup(null)}>
-            Got it
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

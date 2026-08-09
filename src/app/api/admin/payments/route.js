@@ -12,6 +12,7 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const page = Math.max(1, Number(searchParams.get("page")) || 1);
   const status = searchParams.get("status");
+  const provider = searchParams.get("provider");
   const orderId = searchParams.get("orderId");
   const userQuery = searchParams.get("user");
   const from = searchParams.get("from");
@@ -19,7 +20,8 @@ export async function GET(request) {
 
   await dbConnect();
 
-  const filter = { provider: "paypal" };
+  const filter = {};
+  if (provider && provider !== "all") filter.provider = provider;
   if (status && status !== "all") filter.status = status;
   if (orderId) filter.providerOrderId = { $regex: orderId.trim(), $options: "i" };
   if (from || to) {

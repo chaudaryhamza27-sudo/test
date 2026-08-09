@@ -3,8 +3,18 @@ import dbConnect from "../../../../lib/mongodb";
 import User from "../../../../lib/models/User";
 import { setSessionCookie } from "../../../../lib/auth";
 import { logActivity } from "../../../../lib/activity";
+import { checkRateLimit, getClientIp } from "../../../../lib/rateLimit";
+
+const LOGIN_MAX_ATTEMPTS = 10;
+const LOGIN_WINDOW_MS = 10 * 60_000;
 
 export async function POST(request) {
+  const ip = getClientIp(request);
+  const { allowed } = checkRateLimit(`login:${ip}`, { max: LOGIN_MAX_ATTEMPTS, windowMs: LOGIN_WINDOW_MS });
+  if (!allowed) {
+    return Response.json({ error: "Too many login attempts. Please wait a few minutes and try again." }, { status: 429 });
+  }
+
   const body = await request.json();
   const { phone, email, password } = body || {};
 

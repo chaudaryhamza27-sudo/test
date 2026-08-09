@@ -14,32 +14,51 @@ import {
   IconVip,
   IconGameHistory,
   IconTransaction,
-  IconBell,
-  IconGift,
   IconChevronRight,
+  IconShield,
 } from "../icons";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [popup, setPopup] = useState(null);
+  const [notice, setNotice] = useState(null);
   const [user, setUser] = useState(null);
+  const [vip, setVip] = useState(null);
 
-  useEffect(() => {
+  const loadUser = () => {
     fetch("/api/auth/me")
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => setUser(data.user))
       .catch(() => router.push("/login"));
-  }, [router]);
+  };
+
+  useEffect(loadUser, [router]);
+
+  useEffect(() => {
+    if (!user) return;
+    fetch("/api/profile/vip")
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then(setVip)
+      .catch(() => setVip(null));
+  }, [user]);
 
   const uid = user?.uid || "—";
   const balance = user?.balance ?? 0;
+  const displayName = user?.name?.trim() || (user ? `Player #${uid}` : "…");
+  const tier = vip?.tier || "Member";
 
-  const openNotice = (msg) => setPopup(msg);
-  const closeNotice = () => setPopup(null);
+  const closeNotice = () => setNotice(null);
 
   const copyUid = () => {
     navigator.clipboard?.writeText(uid);
-    openNotice("UID copied to clipboard.");
+    setNotice({ icon: "✅", title: "Copied", text: "UID copied to clipboard." });
+  };
+
+  const showVipInfo = () => {
+    if (!vip) return;
+    const text = vip.nextTier
+      ? `You're on the ${vip.tier} tier with Rs${Number(vip.lifetimeDeposit).toLocaleString()} in lifetime deposits. Deposit Rs${Number(vip.amountToNextTier).toLocaleString()} more to reach ${vip.nextTier}.`
+      : `You're on the ${vip.tier} tier with Rs${Number(vip.lifetimeDeposit).toLocaleString()} in lifetime deposits — the highest tier.`;
+    setNotice({ icon: "👑", title: `${vip.tier} tier`, text });
   };
 
   const handleLogout = async () => {
@@ -56,8 +75,8 @@ export default function ProfilePage() {
           </div>
           <div className="kk-account-info">
             <div className="kk-account-name">
-              MemberU6S165E1
-              <span className="kk-vip-badge">VIP0</span>
+              {displayName}
+              <span className="kk-vip-badge">{tier}</span>
             </div>
             <button className="kk-uid-pill" onClick={copyUid}>
               UID | {uid}
@@ -73,7 +92,7 @@ export default function ProfilePage() {
             <div className="lbl">Total balance</div>
             <b>Rs{Number(balance).toFixed(2)}</b>
           </div>
-          <button className="kk-refresh-btn" onClick={() => window.location.reload()}>
+          <button className="kk-refresh-btn" onClick={loadUser}>
             <IconRefresh />
           </button>
         </div>
@@ -97,7 +116,7 @@ export default function ProfilePage() {
             </div>
             <span>Withdraw</span>
           </Link>
-          <button className="kk-action" onClick={() => openNotice("VIP program")}>
+          <button className="kk-action" onClick={showVipInfo}>
             <div className="kk-action-icon" style={{ background: "linear-gradient(160deg,#33d19a,#1a9450)" }}>
               <IconVip />
             </div>
@@ -107,7 +126,7 @@ export default function ProfilePage() {
       </section>
 
       <section className="kk-grid-2">
-        <Link href="/transactions" className="kk-info-card">
+        <Link href="/game/history" className="kk-info-card">
           <div className="kk-info-icon" style={{ background: "linear-gradient(160deg,#4aa8ff,#1565e8)" }}>
             <IconGameHistory />
           </div>
@@ -125,7 +144,7 @@ export default function ProfilePage() {
             <div className="kk-info-sub">My transaction history</div>
           </div>
         </Link>
-        <Link href="/deposit" className="kk-info-card">
+        <Link href="/transactions?type=deposit" className="kk-info-card">
           <div className="kk-info-icon" style={{ background: "linear-gradient(160deg,#ffb23d,#e8531b)" }}>
             <IconDeposit />
           </div>
@@ -134,7 +153,7 @@ export default function ProfilePage() {
             <div className="kk-info-sub">My deposit history</div>
           </div>
         </Link>
-        <Link href="/withdraw" className="kk-info-card">
+        <Link href="/transactions?type=withdraw" className="kk-info-card">
           <div className="kk-info-icon" style={{ background: "linear-gradient(160deg,#ff6b8f,#d6296a)" }}>
             <IconWithdraw />
           </div>
@@ -146,24 +165,15 @@ export default function ProfilePage() {
       </section>
 
       <div className="kk-list">
-        <button className="kk-list-item" onClick={() => openNotice("Notifications")}>
+        <Link href="/legal" className="kk-list-item">
           <span className="kk-list-item-icon">
-            <IconBell />
+            <IconShield />
           </span>
-          <span className="label">Notification</span>
+          <span className="label">Legal & Support</span>
           <span className="chev">
             <IconChevronRight />
           </span>
-        </button>
-        <button className="kk-list-item" onClick={() => openNotice("Gifts")}>
-          <span className="kk-list-item-icon">
-            <IconGift />
-          </span>
-          <span className="label">Gifts</span>
-          <span className="chev">
-            <IconChevronRight />
-          </span>
-        </button>
+        </Link>
         <button className="kk-list-item" onClick={handleLogout}>
           <span className="kk-list-item-icon">
             <IconWithdraw style={{ transform: "rotate(90deg)" }} />
@@ -179,11 +189,11 @@ export default function ProfilePage() {
 
       <BottomNav />
 
-      <div className={`popup ${popup ? "active" : ""}`} onClick={closeNotice}>
+      <div className={`popup ${notice ? "active" : ""}`} onClick={closeNotice}>
         <div className="kk-popup-box" onClick={(e) => e.stopPropagation()}>
-          <div className="kk-popup-icon">👤</div>
-          <div className="kk-popup-title">Demo Mode</div>
-          <p className="kk-popup-text">&quot;{popup}&quot; is a placeholder in this UI showcase — no real account data is connected.</p>
+          <div className="kk-popup-icon">{notice?.icon || "👤"}</div>
+          <div className="kk-popup-title">{notice?.title || ""}</div>
+          <p className="kk-popup-text">{notice?.text || ""}</p>
           <button className="kk-popup-btn" onClick={closeNotice}>
             Got it
           </button>
