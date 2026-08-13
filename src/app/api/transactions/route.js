@@ -23,13 +23,16 @@ export async function GET(request) {
     }
   }
 
-  const [items, total] = await Promise.all([
+  const [rawItems, total] = await Promise.all([
     Transaction.find(filter)
       .sort({ createdAt: -1 })
       .skip((page - 1) * PAGE_SIZE)
-      .limit(PAGE_SIZE),
+      .limit(PAGE_SIZE)
+      .lean(),
     Transaction.countDocuments(filter),
   ]);
+  // Strip the (potentially multi-MB) proof image out of list responses.
+  const items = rawItems.map(({ meta, ...t }) => ({ ...t, hasProof: Boolean(meta?.proofImage) }));
 
   return Response.json({
     items,

@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import BottomNav from "../components/BottomNav";
-import { IconCopy } from "../icons";
+import { IconCopy, IconUsers, IconCalendar, IconClock, IconWallet, IconHistory, IconShield, IconLink, IconGift } from "../icons";
 
 const STATS = [
-  { key: "referrals", label: "Referred users" },
-  { key: "depositedReferrals", label: "Referrals who deposited", tone: "green" },
-  { key: "depositAmount", label: "Total deposit amount", tone: "orange", money: true },
-  { key: "depositCount", label: "Total deposit count" },
+  { key: "referrals", label: "Referred Users", sub: "Users you invited", icon: IconUsers, bg: "linear-gradient(160deg,#4aa8ff,#1565e8)" },
+  { key: "depositedReferrals", label: "Referrals who Deposited", sub: "Users who made a deposit", icon: IconGift, bg: "linear-gradient(160deg,#33d19a,#1a9450)" },
+  { key: "depositAmount", label: "Total Deposit Amount", sub: "Total amount deposited", icon: IconWallet, bg: "linear-gradient(160deg,#f2ab13,#c97a06)", money: true },
+  { key: "depositCount", label: "Total Deposit Count", sub: "Total number of deposits", icon: IconHistory, bg: "linear-gradient(160deg,#a855f7,#6d28d9)" },
 ];
 
 export default function AgencyPage() {
@@ -66,7 +66,10 @@ export default function AgencyPage() {
       </header>
 
       <main>
-        <section className="kk-agency-banner">
+        <section className="kk-agency-banner agency-hero">
+          <div className="agency-hero-icon">
+            <IconUsers />
+          </div>
           <div className="big">{values.referrals}</div>
           <div className="pill">Your total referrals</div>
           <div className="note">Share your invite code to grow your referral network</div>
@@ -74,48 +77,58 @@ export default function AgencyPage() {
 
         <div className="kk-agency-tabs">
           <button className={`kk-agency-tab ${range === "month" ? "active" : ""}`} onClick={() => setRange("month")}>
+            <IconCalendar style={{ width: 14, height: 14 }} />
             This month
           </button>
           <button className={`kk-agency-tab ${range === "all" ? "active" : ""}`} onClick={() => setRange("all")}>
+            <IconClock style={{ width: 14, height: 14 }} />
             All time
           </button>
         </div>
 
-        <section className="kk-agency-stats" style={{ gridTemplateColumns: "1fr 1fr" }}>
-          <div className="kk-agency-col">
-            {STATS.slice(0, 2).map((s) => (
-              <div className={`kk-agency-stat ${s.tone || ""}`} key={s.key}>
-                <b>{loading ? "…" : s.money ? `Rs${Number(values[s.key]).toLocaleString()}` : values[s.key]}</b>
-                <span>{s.label}</span>
+        <section className="wallet-stats-grid" style={{ margin: "16px 16px 0" }}>
+          {STATS.map((s) => (
+            <div className="card wallet-stat-card" key={s.key}>
+              <div className="wallet-stat-icon" style={{ background: s.bg }}>
+                <s.icon />
               </div>
-            ))}
-          </div>
-          <div className="kk-agency-col">
-            {STATS.slice(2, 4).map((s) => (
-              <div className={`kk-agency-stat ${s.tone || ""}`} key={s.key}>
-                <b>{loading ? "…" : s.money ? `Rs${Number(values[s.key]).toLocaleString()}` : values[s.key]}</b>
-                <span>{s.label}</span>
-              </div>
-            ))}
-          </div>
+              <span style={{ fontSize: 10, color: "var(--text-faint)", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".3px" }}>{s.label}</span>
+              <b>{loading ? "…" : s.money ? `Rs${Number(values[s.key]).toLocaleString()}` : values[s.key]}</b>
+              <span>{s.sub}</span>
+            </div>
+          ))}
         </section>
 
-        <section className="card" style={{ margin: "18px 16px 0", padding: 16 }}>
-          <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>Your invite code</div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-            <b style={{ fontSize: 20, letterSpacing: 1, color: "var(--kk-text)" }}>{user?.inviteCode || "…"}</b>
-            <button className="kk-qr-btn" style={{ margin: 0, width: "auto", padding: "10px 16px" }} onClick={() => copy("code", user.inviteCode)} disabled={!user?.inviteCode}>
-              <IconCopy />
-              {copied === "code" ? "Copied!" : "Copy code"}
+        <section className="card agency-invite-card">
+          <div className="agency-invite-head">
+            <span>Your Invite Code</span>
+            <button className="badge-pill badge-info agency-copy-btn" onClick={() => copy("code", user.inviteCode)} disabled={!user?.inviteCode}>
+              <IconCopy style={{ width: 12, height: 12 }} />
+              {copied === "code" ? "Copied!" : "Copy Code"}
             </button>
           </div>
-          <button className="kk-qr-btn" style={{ marginTop: 14, marginLeft: 0, marginRight: 0 }} onClick={() => copy("link", inviteLink)} disabled={!inviteLink}>
-            <IconCopy />
-            {copied === "link" ? "Link copied!" : "Copy invite link"}
+          <div className="agency-invite-code">{user?.inviteCode || "…"}</div>
+          <div className="agency-invite-badges">
+            <span className="badge-pill badge-info">
+              <IconShield style={{ width: 11, height: 11 }} />
+              Unique
+            </span>
+            <span className="badge-pill" style={{ background: "rgba(168,85,247,.14)", color: "#c084fc" }}>
+              <IconLink style={{ width: 11, height: 11 }} />
+              Case Sensitive
+            </span>
+          </div>
+
+          <button className="deposit-submit-btn" style={{ margin: "16px 0 0", width: "100%" }} onClick={() => copy("link", inviteLink)} disabled={!inviteLink}>
+            <IconCopy style={{ width: 16, height: 16 }} />
+            {copied === "link" ? "Link Copied!" : "Copy Invite Link"}
           </button>
         </section>
 
-        <footer className="kk-footer">Invite friends and see how many of them deposit — real referral data, no real money.</footer>
+        <div className="agency-note">
+          <IconShield style={{ width: 13, height: 13 }} />
+          Invite friends and earn bonuses. All data is updated in real-time.
+        </div>
       </main>
 
       <BottomNav />

@@ -80,8 +80,9 @@ export default function SignupPage() {
         setError(data.error || "Registration failed. Please check your details and try again.");
         return;
       }
-      setRedirectHome(true);
-      openNotice("Account created successfully. Heading back to the home screen.");
+   
+       router.push("/");
+      openNotice("Account created successfully. ");
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -279,7 +280,7 @@ export default function SignupPage() {
       <div className={`popup ${popup ? "active" : ""}`} onClick={closeNotice}>
         <div className="kk-popup-box" onClick={(e) => e.stopPropagation()}>
           <div className="kk-popup-icon">✨</div>
-          <div className="kk-popup-title">Demo Mode</div>
+          <div className="kk-popup-title">PK92</div>
           <p className="kk-popup-text">{popup}</p>
           <button className="kk-popup-btn" onClick={closeNotice}>
             Got it

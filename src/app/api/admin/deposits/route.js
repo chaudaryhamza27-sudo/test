@@ -10,9 +10,17 @@ export async function GET() {
   if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
 
   await dbConnect();
-  const deposits = await Transaction.find({ type: "deposit" })
+  const raw = await Transaction.find({ type: "deposit" })
     .populate("user", "uid phone email")
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
+  // Proof images (up to 5MB each) are fetched on demand via
+  // /api/admin/deposits/[id]/proof, not embedded in the list.
+  const deposits = raw.map(({ meta, ...d }) => ({
+    ...d,
+    hasProof: Boolean(meta?.proofImage),
+    rejectionReason: meta?.rejectionReason || null,
+  }));
   return Response.json({ deposits });
 }
 
@@ -21,7 +29,7 @@ export async function PATCH(request) {
   if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
 
   const body = await request.json();
-  const { transactionId, action } = body || {};
+  const { transactionId, action, rejectionReason } = body || {};
   if (!transactionId || !["approve", "reject"].includes(action)) {
     return Response.json({ error: "transactionId and a valid action are required." }, { status: 400 });
   }
@@ -50,6 +58,11 @@ export async function PATCH(request) {
       await Transaction.updateOne({ _id: tx._id }, { $set: { status: "pending" }, $unset: { reviewedBy: 1, reviewedAt: 1 } });
       return Response.json({ error: "User not found." }, { status: 404 });
     }
+  } else if (typeof rejectionReason === "string" && rejectionReason.trim()) {
+    // Set the whole meta object (rather than a dotted sub-path) since meta
+    // may currently be null, and Mongo can't set a nested path on null.
+    tx.meta = { ...(tx.meta || {}), rejectionReason: rejectionReason.trim().slice(0, 300) };
+    await Transaction.updateOne({ _id: tx._id }, { $set: { meta: tx.meta } });
   }
 
   await logActivity({
@@ -58,7 +71,7 @@ export async function PATCH(request) {
     action: action === "approve" ? "deposit_approved" : "deposit_rejected",
     targetUser: tx.user,
     message: `${action === "approve" ? "Approved" : "Rejected"} a demo deposit of Rs${Number(tx.amount).toLocaleString()}.`,
-    meta: { transactionId: tx._id, amount: tx.amount },
+    meta: { transactionId: tx._id, amount: tx.amount, rejectionReason: tx.meta?.rejectionReason || null },
   });
   await notifyUser(tx.user, {
     type: action === "approve" ? "deposit_approved" : "deposit_rejected",
@@ -66,8 +79,8 @@ export async function PATCH(request) {
     message:
       action === "approve"
         ? `Your demo deposit of Rs${Number(tx.amount).toLocaleString()} has been credited.`
-        : `Your demo deposit request of Rs${Number(tx.amount).toLocaleString()} was rejected.`,
+        : `Your demo deposit request of Rs${Number(tx.amount).toLocaleString()} was rejected.${tx.meta?.rejectionReason ? ` Reason: ${tx.meta.rejectionReason}` : ""}`,
   });
 
-  return Response.json({ deposit: tx });
+  return Response.json({ deposit: { ...tx.toObject(), meta: undefined, hasProof: undefined } });
 }

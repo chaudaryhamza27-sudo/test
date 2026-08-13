@@ -10,9 +10,14 @@ import {
   IconTrophy,
   IconShield,
   IconGlobe,
+  IconChartLine,
+  IconExpand,
+  IconHeadset,
+  IconStar,
 } from "../icons";
 import { useGameSocket } from "./useGameSocket";
 import AppShellHeader from "../components/AppShellHeader";
+import GameChart from "./GameChart";
 
 const QUICK_AMOUNTS = [100, 500, 1000, 5000];
 const MIN_BET = 10;
@@ -58,6 +63,8 @@ export default function GamePage() {
   const [tab, setTab] = useState("mine");
   const [tableItems, setTableItems] = useState([]);
   const [tableLoading, setTableLoading] = useState(true);
+  const [showGrid, setShowGrid] = useState(true);
+  const stageRef = useRef(null);
   const autoFiredRef = useRef(null);
 
   // The Aviator game requires an account — anonymous spectating was removed.
@@ -154,7 +161,6 @@ export default function GamePage() {
   const canBet = authed && phase === "WAITING" && !myBet;
   const canCashOut = authed && phase === "RUNNING" && myBet?.status === "placed";
   const insufficientBalance = canBet && balance < amount;
-  const planeLift = Math.min(220, Math.log(multiplier + 0.001) * 90);
   const playerCount = state?.playerCount ?? 0;
   const roundShort = state?.roundId ? String(state.roundId).slice(-6) : "------";
 
@@ -196,6 +202,14 @@ export default function GamePage() {
     setTimeout(() => setCopied(false), 1500);
   };
 
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen?.();
+    } else {
+      stageRef.current?.requestFullscreen?.();
+    }
+  };
+
   const visibleRecent = showAllRecent ? history : history.slice(0, 5);
   const activeTabConfig = TABS.find((t) => t.key === tab);
   const showPlayerCol = tab !== "mine";
@@ -230,14 +244,18 @@ export default function GamePage() {
 
         <div className="game-layout">
           <div className="game-main-col">
-            <section className="game-stage">
-              <div className="game-stage-bg" />
-              <div
-                className={`game-plane ${phase === "CRASHED" || phase === "DONE" ? "crashed" : ""}`}
-                style={{ transform: `translate(${Math.min(120, planeLift * 0.55)}px, -${planeLift}px)` }}
-              >
-                ✈️
+            <section className={`game-stage ${showGrid ? "" : "no-grid"}`} ref={stageRef}>
+              <div className="game-stage-controls">
+                <button className="game-stage-icon-btn" onClick={() => setShowGrid((v) => !v)} aria-label="Toggle grid" title="Toggle grid">
+                  <IconChartLine />
+                </button>
+                <button className="game-stage-icon-btn" onClick={toggleFullscreen} aria-label="Fullscreen" title="Fullscreen">
+                  <IconExpand />
+                </button>
               </div>
+
+              <GameChart phase={phase} multiplier={multiplier} roundId={state?.roundId} />
+              <span className={`game-stage-baseline ${phase === "RUNNING" ? "moving" : ""}`} />
 
               {phase === "WAITING" && (
                 <div className="game-multiplier waiting">
@@ -245,7 +263,15 @@ export default function GamePage() {
                   <span className="game-countdown">{(msLeft / 1000).toFixed(1)}s</span>
                 </div>
               )}
-              {phase === "RUNNING" && <div className="game-multiplier running">{multiplier.toFixed(2)}x</div>}
+              {phase === "RUNNING" && (
+                <div className="game-multiplier running">
+                  {multiplier.toFixed(2)}x
+                  <span className="game-flying-status">
+                    <span className="dot" />
+                    FLYING HIGH
+                  </span>
+                </div>
+              )}
               {(phase === "CRASHED" || phase === "DONE") && (
                 <div className="game-multiplier crashed">
                   <span className="game-phase-label">Flew away at</span>
@@ -435,16 +461,27 @@ export default function GamePage() {
           </aside>
         </div>
 
-        <div className="game-legal-footer">
-          <span className="item" title={state?.serverSeedHash ? `Commit hash: ${state.serverSeedHash}` : undefined}>
-            <IconShield style={{ width: 14, height: 14 }} />
-            Provably Fair
-          </span>
-          <span className="item">For entertainment purposes only — demo credits, no real money</span>
-          <Link href="/legal/betting-rules" target="_blank" rel="noopener noreferrer" className="item">
-            <IconGlobe style={{ width: 14, height: 14 }} />
-            How to Play
-          </Link>
+        <div className="game-trust-row">
+          <div className="game-trust-card" title={state?.serverSeedHash ? `Commit hash: ${state.serverSeedHash}` : undefined}>
+            <span className="game-trust-icon"><IconShield /></span>
+            <b>Provably Fair</b>
+            <span>Crash point is hashed before every round starts</span>
+          </div>
+          <div className="game-trust-card">
+            <span className="game-trust-icon"><IconStar /></span>
+            <b>Demo Credits Only</b>
+            <span>No real money is used, wagered, or paid out</span>
+          </div>
+          <div className="game-trust-card">
+            <span className="game-trust-icon"><IconHeadset /></span>
+            <b>Need Help?</b>
+            <Link href="/legal/contact">Contact support</Link>
+          </div>
+          <div className="game-trust-card">
+            <span className="game-trust-icon"><IconGlobe /></span>
+            <b>How to Play</b>
+            <Link href="/legal/betting-rules" target="_blank" rel="noopener noreferrer">Read the rules</Link>
+          </div>
         </div>
       </main>
     </div>

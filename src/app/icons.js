@@ -319,3 +319,195 @@ export const IconGlobe = (props) => (
     <path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3Z" />
   </svg>
 );
+
+export const IconCalendar = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <rect x="3.5" y="5" width="17" height="16" rx="3" />
+    <path d="M3.5 10h17M8 3v4M16 3v4" />
+  </svg>
+);
+
+export const IconClock = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 7v5l3.5 2" />
+  </svg>
+);
+
+export const IconX = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M6 6l12 12M18 6L6 18" />
+  </svg>
+);
+
+export const IconCheck = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M5 13l4 4L19 7" />
+  </svg>
+);
+
+export const IconUpload = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M12 16V4M7 9l5-5 5 5" />
+    <path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+  </svg>
+);
+
+export const IconPlane = (props) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M21 12.5c0 .4-.3.8-.7.9l-5.6 1.8-2 5.7c-.1.4-.5.6-.9.5-.3-.1-.5-.3-.6-.6l-1-5.9-4.1 1.3-.9 2c-.1.3-.4.5-.7.5-.4 0-.8-.3-.8-.8v-3l-1.5-.5c-.3-.1-.5-.4-.5-.8 0-.3.2-.6.5-.7l1.5-.5V9.2c0-.4.3-.7.8-.7.3 0 .6.2.7.5l.9 2 4.1 1.3 1-5.9c0-.3.3-.6.6-.6.4-.1.8.1.9.5l2 5.7 5.6 1.8c.4.1.7.5.7.9Z" />
+  </svg>
+);
+
+export const IconChartLine = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+    <path d="M7 15l4-4 3 3 6-7" />
+  </svg>
+);
+
+export const IconExpand = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M9 3H3v6M15 21h6v-6M3 15v6h6M21 9V3h-6" />
+  </svg>
+);
+
+export const IconHeadset = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M4 13v-1a8 8 0 0 1 16 0v1" />
+    <path d="M4 13a2 2 0 0 1 2-2h1v6H6a2 2 0 0 1-2-2v-2Z" />
+    <path d="M20 13a2 2 0 0 0-2-2h-1v6h1a2 2 0 0 0 2-2v-2Z" />
+    <path d="M18 17.5a4 4 0 0 1-4 3.5h-1.5" />
+  </svg>
+);
+
+export const IconStar = (props) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.8-4.6 6.6-.9L12 2.5Z" />
+  </svg>
+);
+
+export const IconLink = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M9.5 14.5l5-5" />
+    <path d="M11 7.5l1-1a3.5 3.5 0 0 1 5 5l-1 1M13 16.5l-1 1a3.5 3.5 0 0 1-5-5l1-1" />
+  </svg>
+);
+
+export const IconHome = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M4 11.5 12 4l8 7.5" />
+    <path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9" />
+    <path d="M10 20v-5h4v5" />
+  </svg>
+);
+
+export const IconInfo = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 10.5v5.5" />
+    <circle cx="12" cy="7.6" r="1" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+// Recommended-games art — original full-colour flat illustrations standing
+// in for each game's theme (no copyrighted artwork), rendered large on a
+// tinted card. Fills are explicit hex, not currentColor, so they read as
+// small illustrations rather than monoline icons.
+export const IconGameAviator = (props) => (
+  <svg viewBox="0 0 48 48" {...props}>
+    <g transform="rotate(-25 24 24)">
+      <path d="M6 24 18 20.5h16l7 3.5-7 3.5H18Z" fill="#e0342f" />
+      <path d="M21 21 30.5 7 35 7 28 21Z" fill="#fff" />
+      <path d="M21 27 30.5 41 35 41 28 27Z" fill="#fff" opacity=".95" />
+      <path d="M8 24 14.5 20 14.5 28Z" fill="#b9241f" />
+      <circle cx="33.5" cy="24" r="3.1" fill="#3aa0ff" />
+      <path d="M40 21.5 46.5 24 40 26.5Z" fill="#ffd166" />
+    </g>
+  </svg>
+);
+
+export const IconGameOx = (props) => (
+  <svg viewBox="0 0 48 48" {...props}>
+    <path d="M8 14c3 4 7 5.5 11 4.6M40 14c-3 4-7 5.5-11 4.6" stroke="#3b1f0f" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+    <path d="M11 17c-.4-4 2.6-7 6-7M37 17c.4-4-2.6-7-6-7" stroke="#3b1f0f" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+    <circle cx="24" cy="26" r="13.5" fill="#d69a3c" />
+    <ellipse cx="24" cy="31" rx="7" ry="5.4" fill="#f2c877" />
+    <circle cx="19.5" cy="24.5" r="1.8" fill="#241305" />
+    <circle cx="28.5" cy="24.5" r="1.8" fill="#241305" />
+    <circle cx="21.5" cy="31" r="1.4" fill="#241305" />
+    <circle cx="26.5" cy="31" r="1.4" fill="#241305" />
+    <rect x="20" y="34" width="8" height="3" rx="1.5" fill="#7a4a06" />
+    <circle cx="35" cy="36" r="5.4" fill="#ffd166" stroke="#c98f1c" strokeWidth="1.4" />
+    <path d="M33.4 38.2h3.2M35 34.8v3.4" stroke="#7a5000" strokeWidth="1.3" strokeLinecap="round" />
+  </svg>
+);
+
+export const IconGameWheel = (props) => (
+  <svg viewBox="0 0 48 48" {...props}>
+    <circle cx="24" cy="25" r="18" fill="#2a1450" />
+    <path d="M24 25 24 7A18 18 0 0 1 36.7 12.3Z" fill="#ff5c8a" />
+    <path d="M24 25 36.7 12.3A18 18 0 0 1 42 25Z" fill="#ffd166" />
+    <path d="M24 25 42 25A18 18 0 0 1 36.7 37.7Z" fill="#28e7ff" />
+    <path d="M24 25 36.7 37.7A18 18 0 0 1 24 43Z" fill="#7c3cff" />
+    <path d="M24 25 24 43A18 18 0 0 1 11.3 37.7Z" fill="#ffd166" />
+    <path d="M24 25 11.3 37.7A18 18 0 0 1 6 25Z" fill="#ff5c8a" />
+    <path d="M24 25 6 25A18 18 0 0 1 11.3 12.3Z" fill="#28e7ff" />
+    <path d="M24 25 11.3 12.3A18 18 0 0 1 24 7Z" fill="#7c3cff" />
+    <circle cx="24" cy="25" r="5" fill="#ffe9a8" stroke="#c98f1c" strokeWidth="1.4" />
+    <path d="M24 3 27.5 9.4 20.5 9.4Z" fill="#e0342f" />
+  </svg>
+);
+
+export const IconGameCards = (props) => (
+  <svg viewBox="0 0 48 48" {...props}>
+    <g transform="rotate(-18 24 26)">
+      <rect x="8" y="10" width="17" height="24" rx="3" fill="#fff" stroke="#d9d9e3" />
+      <text x="12.5" y="21" fontSize="9" fontWeight="800" fill="#e0342f">K</text>
+      <text x="12.5" y="31.5" fontSize="10" fill="#e0342f">♥</text>
+    </g>
+    <g>
+      <rect x="15.5" y="7" width="17" height="24" rx="3" fill="#fff" stroke="#d9d9e3" />
+      <text x="20" y="18" fontSize="9" fontWeight="800" fill="#1a1a1a">A</text>
+      <text x="20" y="28.5" fontSize="10" fill="#1a1a1a">♠</text>
+    </g>
+    <g transform="rotate(18 24 26)">
+      <rect x="23" y="10" width="17" height="24" rx="3" fill="#fff" stroke="#d9d9e3" />
+      <text x="27.5" y="21" fontSize="9" fontWeight="800" fill="#e0342f">Q</text>
+      <text x="27.5" y="31.5" fontSize="10" fill="#e0342f">♦</text>
+    </g>
+  </svg>
+);
+
+export const IconGameCrown = (props) => (
+  <svg viewBox="0 0 48 48" {...props}>
+    <path d="M8 34h32l3-17-10 6.5L24 12l-9 11.5L5 17Z" fill="#ffd166" stroke="#c98f1c" strokeWidth="1.4" strokeLinejoin="round" />
+    <rect x="8" y="34" width="32" height="5" rx="1.5" fill="#e0342f" />
+    <circle cx="24" cy="24" r="3" fill="#3aa0ff" />
+    <circle cx="15" cy="27" r="2.4" fill="#ff5c8a" />
+    <circle cx="33" cy="27" r="2.4" fill="#37f59a" />
+    <circle cx="24" cy="9.5" r="2.2" fill="#ffe9a8" />
+  </svg>
+);
+
+export const IconGameFish = (props) => (
+  <svg viewBox="0 0 48 48" {...props}>
+    <path d="M6 27c6-9 16-14 27-13 6 .5 10 4 12 8-3 5-8 9-14 10-11 2-21-1-25-5Z" fill="#1fa6a0" />
+    <path d="M45 22c-3 1.5-3 6 0 8-4-.5-7-3-8-6 1-3 5-3.5 8-2Z" fill="#167f7c" />
+    <circle cx="16" cy="24" r="2.2" fill="#08312f" />
+    <path d="M12 30c4 2 10 3 16 2" stroke="#0d403d" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+    <path d="M20 15c3 2 5 5 5 8" stroke="#8fe9e2" strokeWidth="2" fill="none" strokeLinecap="round" opacity=".7" />
+  </svg>
+);
+
+export const IconGameDragon = (props) => (
+  <svg viewBox="0 0 48 48" {...props}>
+    <path d="M6 30c4-1 6-4 6.5-8 .8-6.5 6-11 12.5-11 5 0 8.5 2.4 10.5 5.4" stroke="#ffd166" strokeWidth="3.4" fill="none" strokeLinecap="round" />
+    <path d="M26 12c3.4-2.6 8-2.6 11 .4M35 14c2.2.8 4 2.6 4.8 5" stroke="#f2ab13" strokeWidth="3" fill="none" strokeLinecap="round" />
+    <path d="M15 19c5-.4 11 2 14 7.2 2 3.8 5.8 5.8 10 5.2" stroke="#ffe9a8" strokeWidth="3" fill="none" strokeLinecap="round" />
+    <circle cx="41" cy="15.5" r="1.8" fill="#e0342f" />
+    <path d="M6 30c2 3 5.6 5 9.4 5" stroke="#ffd166" strokeWidth="3.4" fill="none" strokeLinecap="round" />
+    <circle cx="14" cy="37" r="5.4" fill="#ffd166" stroke="#c98f1c" strokeWidth="1.4" />
+    <path d="M12.4 39.2h3.2M14 35.8v3.4" stroke="#7a5000" strokeWidth="1.3" strokeLinecap="round" />
+  </svg>
+);

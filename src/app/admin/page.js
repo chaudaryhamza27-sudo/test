@@ -77,6 +77,7 @@ export default function AdminDashboard() {
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState("");
+  const [proofModal, setProofModal] = useState(null);
 
   const loadAll = useCallback(async () => {
     const [usersRes, depositsRes, withdrawalsRes] = await Promise.all([
@@ -179,11 +180,16 @@ export default function AdminDashboard() {
   };
 
   const reviewDeposit = async (transactionId, action) => {
+    let rejectionReason;
+    if (action === "reject") {
+      rejectionReason = window.prompt("Reason for rejecting this deposit (shown to the user):", "Payment proof did not match the requested amount.");
+      if (rejectionReason === null) return; // cancelled
+    }
     setError("");
     const res = await fetch("/api/admin/deposits", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ transactionId, action }),
+      body: JSON.stringify({ transactionId, action, rejectionReason }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -191,6 +197,19 @@ export default function AdminDashboard() {
       return;
     }
     loadAll();
+  };
+
+  const viewProof = async (transactionId) => {
+    setError("");
+    setProofModal({ loading: true, image: null });
+    const res = await fetch(`/api/admin/deposits/${transactionId}/proof`);
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error || "No payment proof on file for this deposit.");
+      setProofModal(null);
+      return;
+    }
+    setProofModal({ loading: false, image: data.proofImage });
   };
 
   const reviewWithdrawal = async (transactionId, action) => {
@@ -365,6 +384,7 @@ export default function AdminDashboard() {
                 <th>User</th>
                 <th>Amount</th>
                 <th>Method</th>
+                <th>Proof</th>
                 <th>Status</th>
                 <th>Action</th>
               </tr>
@@ -375,7 +395,19 @@ export default function AdminDashboard() {
                   <td>{d.user?.uid || "—"}</td>
                   <td>Rs {Number(d.amount).toLocaleString()}</td>
                   <td>{d.method}</td>
-                  <td><StatusPill status={d.status} /></td>
+                  <td>
+                    {d.hasProof ? (
+                      <button className="small-btn" onClick={() => viewProof(d._id)}>View Proof</button>
+                    ) : (
+                      <span className="empty">None</span>
+                    )}
+                  </td>
+                  <td>
+                    <StatusPill status={d.status} />
+                    {d.status === "rejected" && d.rejectionReason && (
+                      <div style={{ fontSize: 11, opacity: 0.7, marginTop: 4 }}>{d.rejectionReason}</div>
+                    )}
+                  </td>
                   <td>
                     {d.status === "pending" && (
                       <>
@@ -392,7 +424,7 @@ export default function AdminDashboard() {
               ))}
               {deposits.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="empty">No deposit requests yet.</td>
+                  <td colSpan={6} className="empty">No deposit requests yet.</td>
                 </tr>
               )}
             </tbody>
@@ -670,6 +702,26 @@ export default function AdminDashboard() {
             <button disabled={auditPage <= 1} onClick={() => setAuditPage((p) => Math.max(1, p - 1))}>Prev</button>
             <span>Page {auditPage} of {auditTotalPages}</span>
             <button disabled={auditPage >= auditTotalPages} onClick={() => setAuditPage((p) => Math.min(auditTotalPages, p + 1))}>Next</button>
+          </div>
+        </div>
+      )}
+
+      {proofModal && (
+        <div className="admin-modal-backdrop" onClick={() => setProofModal(null)}>
+          <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Payment Proof</h3>
+            {proofModal.loading ? (
+              <p className="admin-modal-note">Loading…</p>
+            ) : proofModal.image?.startsWith("data:application/pdf") ? (
+              <p className="admin-modal-note">
+                This proof was uploaded as a PDF — <a href={proofModal.image} target="_blank" rel="noopener noreferrer">open it in a new tab</a>.
+              </p>
+            ) : (
+              <img src={proofModal.image} alt="Payment proof" style={{ maxWidth: "100%", borderRadius: 8, display: "block" }} />
+            )}
+            <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+              <button className="small-btn" onClick={() => setProofModal(null)}>Close</button>
+            </div>
           </div>
         </div>
       )}

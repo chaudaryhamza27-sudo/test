@@ -1,14 +1,22 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { IconShield, IconX, IconChevronRight, IconWallet, IconUpload, IconCheck } from "../icons";
 
 // This merchant's Paybost sandbox account only accepts PKR — matches this
 // app's existing Rs-denominated wallet, so 1 PKR (test) == 1 demo credit here.
-const PRESET_AMOUNTS = [1000, 3000, 5000, 10000, 25000, 50000];
+const PRESET_AMOUNTS = [1000, 3000, 5000, 10000, 25000, 50000, 75000];
 const MIN_AMOUNT = 100;
 const MAX_AMOUNT = 100000;
 const POLL_INTERVAL_MS = 2000;
 const POLL_MAX_ATTEMPTS = 15; // ~30s
+
+const HOW_IT_WORKS = [
+  { step: 1, title: "Choose Amount", desc: "Select or enter the amount you want", icon: IconWallet, bg: "linear-gradient(160deg,#a855f7,#6d28d9)" },
+  { step: 2, title: "Pay with Paybost", desc: "Complete the payment using Paybost", icon: null, emoji: "🚀", bg: "linear-gradient(160deg,#4aa8ff,#1565e8)" },
+  { step: 3, title: "Auto Credit", desc: "Amount will be added to your wallet instantly", icon: IconUpload, bg: "linear-gradient(160deg,#4aa8ff,#1565e8)" },
+  { step: 4, title: "Start Playing", desc: "Use your balance to play and enjoy", icon: IconCheck, bg: "linear-gradient(160deg,#33d19a,#1a9450)" },
+];
 
 // Paybost is a redirect-based hosted checkout (no embedded JS SDK), so this
 // component works differently from PayPalAddFunds: clicking "Pay" navigates
@@ -17,15 +25,14 @@ const POLL_MAX_ATTEMPTS = 15; // ~30s
 // up wherever the popup left off.
 export default function PaybostAddFunds({ theme = "dark", triggerClassName, triggerLabel = "Add Funds (Paybost — Test Mode)", onBalanceChange }) {
   const [open, setOpen] = useState(false);
-  const [amount, setAmount] = useState(3000);
-  const [manualAmount, setManualAmount] = useState("3000");
+  const [amount, setAmount] = useState(1000);
+  const [manualAmount, setManualAmount] = useState("");
   const [phase, setPhase] = useState("select"); // select | redirecting | polling | success | cancelled | error
   const [resultMessage, setResultMessage] = useState("");
   const [resultBalance, setResultBalance] = useState(null);
   const pollRef = useRef(null);
 
   const boxClass = theme === "light" ? "kk-popup-box" : "popup-box";
-  const titleClass = theme === "light" ? "kk-popup-title" : "popup-title";
   const textClass = theme === "light" ? "kk-popup-text" : "popup-text";
   const btnClass = theme === "light" ? "kk-popup-btn" : "popup-btn";
 
@@ -101,7 +108,7 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
 
   const pickAmount = (v) => {
     setAmount(v);
-    setManualAmount(String(v));
+    setManualAmount("");
   };
 
   const handleManualChange = (e) => {
@@ -139,57 +146,114 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
       </button>
 
       <div className={`popup ${open ? "active" : ""}`} onClick={phase === "polling" ? undefined : close}>
-        <div className={boxClass} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 400 }}>
-          <div className="demo-payment-badge">PAYBOST — TEST MODE / NO REAL MONEY</div>
-          <div className={titleClass} style={{ fontSize: 22, marginTop: 10 }}>
-            Add Demo Funds
+        <div className={`${boxClass} paybost-modal`} onClick={(e) => e.stopPropagation()}>
+          <button type="button" className="paybost-close-btn" onClick={close} aria-label="Close">
+            <IconX />
+          </button>
+
+          <div className="paybost-modal-badge">
+            <span>🚀</span> PAYBOST <span className="dot">•</span> TEST MODE <span className="dot">•</span> NO REAL MONEY
           </div>
-          <p className={textClass}>
-            Paybost is running in test mode. No real JazzCash/EasyPaisa payment is processed — this only credits
-            simulated demo balance.
-          </p>
 
           {phase === "select" && (
             <>
-              <div className="amount-grid" style={{ marginTop: 16 }}>
-                {PRESET_AMOUNTS.map((v) => (
-                  <label className="amount-option" key={v}>
-                    <input type="radio" name="paybost_amount" checked={amount === v} onChange={() => pickAmount(v)} />
-                    <div className="amount-box">
-                      <div className="coin-icon">🪙</div>
-                      <div>
-                        <b>Rs{v.toLocaleString()}</b>
-                        <span>PKR (test mode)</span>
-                      </div>
-                    </div>
-                  </label>
-                ))}
+              <div className="kk-popup-title" style={{ fontSize: 22, marginTop: 12 }}>
+                Add Funds via Paybost
+              </div>
+              <p className={textClass}>Add demo funds instantly using Paybost in test mode.</p>
+
+              <div className="paybost-range-box">
+                <div className="paybost-range-icon">
+                  <IconWallet />
+                </div>
+                <div>
+                  <div className="paybost-range-label">Demo Balance will be added</div>
+                  <div className="paybost-range-value">
+                    Rs{MIN_AMOUNT.toLocaleString()} ~ Rs{MAX_AMOUNT.toLocaleString()}
+                  </div>
+                  <div className="paybost-range-sub">Choose an amount or enter custom value</div>
+                </div>
               </div>
 
-              <div className="manual-box" style={{ marginTop: 12 }}>
-                <div className="manual-label">
-                  Custom Amount
-                  <span>Rs{MIN_AMOUNT} – Rs{MAX_AMOUNT.toLocaleString()}</span>
-                </div>
+              <div className="paybost-section-label">Quick Select Amount</div>
+              <div className="paybost-quick-grid">
+                {PRESET_AMOUNTS.map((v) => (
+                  <button
+                    type="button"
+                    key={v}
+                    className={`paybost-amount-pill ${!manualAmount && amount === v ? "active" : ""}`}
+                    onClick={() => pickAmount(v)}
+                  >
+                    Rs{v.toLocaleString()}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className={`paybost-amount-pill ${manualAmount !== "" ? "active" : ""}`}
+                  onClick={() => document.getElementById("paybost-custom-input")?.focus()}
+                >
+                  Custom
+                </button>
+              </div>
+
+              <div className="paybost-section-label" style={{ marginTop: 16 }}>Custom Amount</div>
+              <div className="paybost-custom-row">
+                <span className="paybost-rs-prefix">Rs</span>
                 <input
+                  id="paybost-custom-input"
                   type="number"
                   min={MIN_AMOUNT}
                   max={MAX_AMOUNT}
                   step="0.01"
-                  className="manual-input"
+                  placeholder="Enter amount"
+                  className="paybost-custom-input2"
                   value={manualAmount}
                   onChange={handleManualChange}
                 />
               </div>
+              <div className="paybost-min-max">
+                Minimum Rs{MIN_AMOUNT} &nbsp;|&nbsp; Maximum Rs{MAX_AMOUNT.toLocaleString()}
+              </div>
+
+              <div className="paybost-how-card">
+                <div className="paybost-how-head">
+                  <IconShield style={{ width: 15, height: 15, color: "var(--link)" }} />
+                  How Paybost Test Mode Works
+                </div>
+                <div className="paybost-how-steps">
+                  {HOW_IT_WORKS.map((s, i) => (
+                    <div className="paybost-how-step" key={s.step}>
+                      <div className="paybost-how-icon" style={{ background: s.bg }}>
+                        {s.icon ? <s.icon /> : s.emoji}
+                      </div>
+                      <b>{s.step}. {s.title}</b>
+                      <span>{s.desc}</span>
+                      {i < HOW_IT_WORKS.length - 1 && <span className="paybost-how-arrow">→</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="alert alert-info" style={{ marginTop: 14 }}>
+                <IconShield style={{ width: 15, height: 15, flexShrink: 0 }} />
+                <span>
+                  <b>This is a test mode using Paybost sandbox.</b> No real money is involved. Funds are for demo
+                  purposes only.
+                </span>
+              </div>
 
               <button
                 type="button"
-                className={btnClass}
-                style={{ marginTop: 16 }}
+                className="deposit-submit-btn"
+                style={{ marginTop: 16, width: "100%" }}
                 disabled={!amount || amount < MIN_AMOUNT || amount > MAX_AMOUNT}
                 onClick={handlePay}
               >
-                Pay Rs{amount || 0} with Paybost
+                🚀 Pay Rs{amount || 0} with Paybost
+                <IconChevronRight style={{ width: 16, height: 16 }} />
+              </button>
+              <button type="button" className="paybost-cancel-btn" onClick={close}>
+                Cancel
               </button>
             </>
           )}
@@ -231,12 +295,6 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
                 Try again
               </button>
             </>
-          )}
-
-          {phase === "select" && (
-            <button className={btnClass} style={{ marginTop: 14, background: "transparent", boxShadow: "none" }} onClick={close}>
-              Cancel
-            </button>
           )}
         </div>
       </div>

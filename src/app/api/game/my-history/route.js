@@ -1,5 +1,7 @@
 import dbConnect from "../../../../lib/mongodb";
 import GameBet from "../../../../lib/models/GameBet";
+// eslint-disable-next-line no-unused-vars -- registers the "GameRound" schema so .populate("round") below can resolve it in a fresh process where this route runs before anything else imports it.
+import GameRound from "../../../../lib/models/GameRound";
 import { getCurrentUser } from "../../../../lib/auth";
 
 const PAGE_SIZE = 15;
