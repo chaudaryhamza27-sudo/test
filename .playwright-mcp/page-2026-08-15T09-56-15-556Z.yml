@@ -1,0 +1,330 @@
+- generic [active] [ref=f36e1]:
+  - generic [ref=f36e2]:
+    - banner [ref=f36e3]:
+      - link "PK92" [ref=f36e4] [cursor=pointer]:
+        - /url: /
+    - main [ref=f36e11]:
+      - generic [ref=f36e14]:
+        - generic [ref=f36e16]:
+          - generic [ref=f36e17]:
+            - text: Join Our Official
+            - generic [ref=f36e18]: Channel Now!
+          - generic [ref=f36e19]: — PK92 —
+          - button "Join Now" [ref=f36e20] [cursor=pointer]
+        - generic [ref=f36e24]:
+          - generic [ref=f36e25]:
+            - text: Join Our Official
+            - generic [ref=f36e26]: Channel Now!
+          - generic [ref=f36e27]: — PK92 —
+          - button "Join Now" [ref=f36e28] [cursor=pointer]
+        - generic [ref=f36e32]:
+          - generic [ref=f36e33]:
+            - text: Join Our Official
+            - generic [ref=f36e34]: Channel Now!
+          - generic [ref=f36e35]: — PK92 —
+          - button "Join Now" [ref=f36e36] [cursor=pointer]
+        - generic [ref=f36e40]:
+          - generic [ref=f36e41]:
+            - text: Join Our Official
+            - generic [ref=f36e42]: Channel Now!
+          - generic [ref=f36e43]: — PK92 —
+          - button "Join Now" [ref=f36e44] [cursor=pointer]
+        - generic [ref=f36e48]:
+          - generic [ref=f36e49]:
+            - text: Join Our Official
+            - generic [ref=f36e50]: Channel Now!
+          - generic [ref=f36e51]: — PK92 —
+          - button "Join Now" [ref=f36e52] [cursor=pointer]
+        - generic [ref=f36e56]:
+          - generic [ref=f36e57]:
+            - text: Join Our Official
+            - generic [ref=f36e58]: Channel Now!
+          - generic [ref=f36e59]: — PK92 —
+          - button "Join Now" [ref=f36e60] [cursor=pointer]
+      - generic [ref=f36e70]:
+        - generic [ref=f36e75]: Welcome to PK92, the most trusted and fastest site, you can play our games anytime, anywhere.
+        - button "Detail" [ref=f36e76] [cursor=pointer]
+      - navigation [ref=f36e80]:
+        - button "Slots" [ref=f36e81] [cursor=pointer]
+        - button "Lottery" [ref=f36e89] [cursor=pointer]
+        - button "Casino" [ref=f36e95] [cursor=pointer]
+        - button "Rummy" [ref=f36e101] [cursor=pointer]
+        - button "Fishing" [ref=f36e107] [cursor=pointer]
+      - generic [ref=f36e114]:
+        - generic [ref=f36e115]:
+          - heading "Recommended More 4" [level=2] [ref=f36e116]:
+            - text: Recommended
+            - generic [ref=f36e117]: More 4
+          - generic [ref=f36e118]:
+            - button "Previous" [ref=f36e119] [cursor=pointer]
+            - button "Next" [ref=f36e122] [cursor=pointer]
+        - paragraph [ref=f36e125]: The most popular electronic games among players
+        - generic [ref=f36e126]:
+          - link "Hot Aviator Crash Game" [ref=f36e127] [cursor=pointer]:
+            - /url: /game
+            - generic [ref=f36e128]: Hot
+            - generic [ref=f36e138]:
+              - generic [ref=f36e139]: Aviator
+              - generic [ref=f36e140]: Crash Game
+          - generic [ref=f36e142] [cursor=pointer]:
+            - generic [ref=f36e143]: Hot
+            - generic [ref=f36e152]:
+              - generic [ref=f36e153]: Father Kim
+              - generic [ref=f36e154]: Slots
+          - generic [ref=f36e161] [cursor=pointer]:
+            - generic [ref=f36e162]: New
+            - generic [ref=f36e171]:
+              - generic [ref=f36e172]: Labubu's Box
+              - generic [ref=f36e173]: Rummy
+      - generic [ref=f36e178]:
+        - generic [ref=f36e179]:
+          - heading "Slots More 4" [level=2] [ref=f36e180]:
+            - text: Slots
+            - generic [ref=f36e181]: More 4
+          - generic [ref=f36e182]:
+            - button "Previous" [ref=f36e183] [cursor=pointer]
+            - button "Next" [ref=f36e186] [cursor=pointer]
+        - paragraph [ref=f36e189]: Online real-time game dealers, all verified fair games
+        - generic [ref=f36e190]:
+          - generic [ref=f36e191] [cursor=pointer]:
+            - generic [ref=f36e192]: Hot
+            - generic [ref=f36e206]:
+              - generic [ref=f36e207]: Money Rain
+              - generic [ref=f36e208]: Slots
+          - generic [ref=f36e215] [cursor=pointer]:
+            - generic [ref=f36e216]: Hot
+            - generic [ref=f36e226]:
+              - generic [ref=f36e227]: Fortune Dragon
+              - generic [ref=f36e228]: Slots
+          - generic [ref=f36e244] [cursor=pointer]:
+            - generic [ref=f36e245]: Pumpkin Fortune
+            - generic [ref=f36e246]: Slots
+          - generic [ref=f36e262] [cursor=pointer]:
+            - generic [ref=f36e263]: Father Kim
+            - generic [ref=f36e264]: Slots
+          - generic [ref=f36e271] [cursor=pointer]:
+            - generic [ref=f36e272]: New
+            - generic [ref=f36e286]:
+              - generic [ref=f36e287]: Triple 7s
+              - generic [ref=f36e288]: Slots
+          - button "Detail" [ref=f36e295] [cursor=pointer]
+      - generic [ref=f36e302]:
+        - generic [ref=f36e303]:
+          - heading "Lottery More 4" [level=2] [ref=f36e304]:
+            - text: Lottery
+            - generic [ref=f36e305]: More 4
+          - generic [ref=f36e306]:
+            - button "Previous" [ref=f36e307] [cursor=pointer]
+            - button "Next" [ref=f36e310] [cursor=pointer]
+        - paragraph [ref=f36e313]: Fair and diverse lottery gameplay
+        - generic [ref=f36e314]:
+          - generic [ref=f36e329] [cursor=pointer]:
+            - generic [ref=f36e330]: Color Predict
+            - generic [ref=f36e331]: Lottery
+          - generic [ref=f36e350] [cursor=pointer]:
+            - generic [ref=f36e351]: Dice Draw
+            - generic [ref=f36e352]: Lottery
+          - generic [ref=f36e371] [cursor=pointer]:
+            - generic [ref=f36e372]: 5D Draw
+            - generic [ref=f36e373]: Lottery
+      - generic [ref=f36e378]:
+        - generic [ref=f36e379]:
+          - heading "Casino More 4" [level=2] [ref=f36e380]:
+            - text: Casino
+            - generic [ref=f36e381]: More 4
+          - generic [ref=f36e382]:
+            - button "Previous" [ref=f36e383] [cursor=pointer]
+            - button "Next" [ref=f36e386] [cursor=pointer]
+        - paragraph [ref=f36e389]: Guided by live dealers, you will experience the fun of baccarat
+        - generic [ref=f36e390]:
+          - generic [ref=f36e391] [cursor=pointer]:
+            - img [ref=f36e393]:
+              - generic [ref=f36e394]:
+                - generic [ref=f36e396]: K
+                - generic [ref=f36e397]: ♥
+              - generic [ref=f36e398]:
+                - generic [ref=f36e400]: A
+                - generic [ref=f36e401]: ♠
+              - generic [ref=f36e402]:
+                - generic [ref=f36e404]: Q
+                - generic [ref=f36e405]: ♦
+            - generic [ref=f36e406]:
+              - generic [ref=f36e407]: Baccarat Pro
+              - generic [ref=f36e408]: Casino
+          - generic [ref=f36e413] [cursor=pointer]:
+            - generic [ref=f36e414]: Hot
+            - generic [ref=f36e428]:
+              - generic [ref=f36e429]: Speed Roulette
+              - generic [ref=f36e430]: Casino
+          - generic [ref=f36e435] [cursor=pointer]:
+            - img [ref=f36e437]:
+              - generic [ref=f36e438]:
+                - generic [ref=f36e440]: K
+                - generic [ref=f36e441]: ♥
+              - generic [ref=f36e442]:
+                - generic [ref=f36e444]: A
+                - generic [ref=f36e445]: ♠
+              - generic [ref=f36e446]:
+                - generic [ref=f36e448]: Q
+                - generic [ref=f36e449]: ♦
+            - generic [ref=f36e450]:
+              - generic [ref=f36e451]: Andar Bahar
+              - generic [ref=f36e452]: Casino
+          - generic [ref=f36e471] [cursor=pointer]:
+            - generic [ref=f36e472]: American Roulette
+            - generic [ref=f36e473]: Casino
+          - generic [ref=f36e492] [cursor=pointer]:
+            - generic [ref=f36e493]: Immersive Roulette
+            - generic [ref=f36e494]: Casino
+          - button "Detail" [ref=f36e499] [cursor=pointer]
+      - generic [ref=f36e506]:
+        - generic [ref=f36e507]:
+          - heading "Rummy More 4" [level=2] [ref=f36e508]:
+            - text: Rummy
+            - generic [ref=f36e509]: More 4
+          - generic [ref=f36e510]:
+            - button "Previous" [ref=f36e511] [cursor=pointer]
+            - button "Next" [ref=f36e514] [cursor=pointer]
+        - paragraph [ref=f36e517]: Exquisite scenes and delicate graphics, play online with friends
+        - generic [ref=f36e518]:
+          - generic [ref=f36e528] [cursor=pointer]:
+            - generic [ref=f36e529]: Point Rummy
+            - generic [ref=f36e530]: Rummy
+          - generic [ref=f36e535] [cursor=pointer]:
+            - img [ref=f36e537]:
+              - generic [ref=f36e538]:
+                - generic [ref=f36e540]: K
+                - generic [ref=f36e541]: ♥
+              - generic [ref=f36e542]:
+                - generic [ref=f36e544]: A
+                - generic [ref=f36e545]: ♠
+              - generic [ref=f36e546]:
+                - generic [ref=f36e548]: Q
+                - generic [ref=f36e549]: ♦
+            - generic [ref=f36e550]:
+              - generic [ref=f36e551]: Card Rally
+              - generic [ref=f36e552]: Rummy
+          - generic [ref=f36e557] [cursor=pointer]:
+            - img [ref=f36e559]:
+              - generic [ref=f36e560]:
+                - generic [ref=f36e562]: K
+                - generic [ref=f36e563]: ♥
+              - generic [ref=f36e564]:
+                - generic [ref=f36e566]: A
+                - generic [ref=f36e567]: ♠
+              - generic [ref=f36e568]:
+                - generic [ref=f36e570]: Q
+                - generic [ref=f36e571]: ♦
+            - generic [ref=f36e572]:
+              - generic [ref=f36e573]: Call Break
+              - generic [ref=f36e574]: Rummy
+          - generic [ref=f36e579] [cursor=pointer]:
+            - img [ref=f36e581]:
+              - generic [ref=f36e582]:
+                - generic [ref=f36e584]: K
+                - generic [ref=f36e585]: ♥
+              - generic [ref=f36e586]:
+                - generic [ref=f36e588]: A
+                - generic [ref=f36e589]: ♠
+              - generic [ref=f36e590]:
+                - generic [ref=f36e592]: Q
+                - generic [ref=f36e593]: ♦
+            - generic [ref=f36e594]:
+              - generic [ref=f36e595]: Black Jack
+              - generic [ref=f36e596]: Rummy
+          - generic [ref=f36e610] [cursor=pointer]:
+            - generic [ref=f36e611]: Domino Rush
+            - generic [ref=f36e612]: Rummy
+          - button "Detail" [ref=f36e617] [cursor=pointer]
+      - generic [ref=f36e624]:
+        - generic [ref=f36e625]:
+          - heading "Fishing More 4" [level=2] [ref=f36e626]:
+            - text: Fishing
+            - generic [ref=f36e627]: More 4
+          - generic [ref=f36e628]:
+            - button "Previous" [ref=f36e629] [cursor=pointer]
+            - button "Next" [ref=f36e632] [cursor=pointer]
+        - paragraph [ref=f36e635]: Classic arcade gameplay, super cool visual enjoyment
+        - generic [ref=f36e636]:
+          - generic [ref=f36e645] [cursor=pointer]:
+            - generic [ref=f36e646]: Deep Sea Hunt
+            - generic [ref=f36e647]: Fishing
+          - generic [ref=f36e661] [cursor=pointer]:
+            - generic [ref=f36e662]: Golden Catch
+            - generic [ref=f36e663]: Fishing
+          - generic [ref=f36e669] [cursor=pointer]:
+            - generic [ref=f36e670]: Hot
+            - generic [ref=f36e678]:
+              - generic [ref=f36e679]: Happy Fishing
+              - generic [ref=f36e680]: Fishing
+          - generic [ref=f36e694] [cursor=pointer]:
+            - generic [ref=f36e695]: Mega Fishing
+            - generic [ref=f36e696]: Fishing
+          - generic [ref=f36e710] [cursor=pointer]:
+            - generic [ref=f36e711]: Dino Hunt
+            - generic [ref=f36e712]: Fishing
+          - button "Detail" [ref=f36e718] [cursor=pointer]
+      - generic [ref=f36e725]:
+        - generic [ref=f36e726]:
+          - heading "Original More 4" [level=2] [ref=f36e727]:
+            - text: Original
+            - generic [ref=f36e728]: More 4
+          - generic [ref=f36e729]:
+            - button "Previous" [ref=f36e730] [cursor=pointer]
+            - button "Next" [ref=f36e733] [cursor=pointer]
+        - paragraph [ref=f36e736]: The games are independently developed by our team, fun, fair, and safe
+        - generic [ref=f36e737]:
+          - link "Hot Aviator Crash Game" [ref=f36e738] [cursor=pointer]:
+            - /url: /game
+            - generic [ref=f36e739]: Hot
+            - generic [ref=f36e749]:
+              - generic [ref=f36e750]: Aviator
+              - generic [ref=f36e751]: Crash Game
+          - generic [ref=f36e763] [cursor=pointer]:
+            - generic [ref=f36e764]: Crash II
+            - generic [ref=f36e765]: Crash Game
+          - generic [ref=f36e781] [cursor=pointer]:
+            - generic [ref=f36e782]: 7 Up Down
+            - generic [ref=f36e783]: Original
+          - generic [ref=f36e798] [cursor=pointer]:
+            - generic [ref=f36e799]: Lucky Runner
+            - generic [ref=f36e800]: Original
+          - generic [ref=f36e815] [cursor=pointer]:
+            - generic [ref=f36e816]: Snake Ladder
+            - generic [ref=f36e817]: Original
+          - button "Detail" [ref=f36e823] [cursor=pointer]
+      - generic [ref=f36e830]: Basic Tools
+      - generic [ref=f36e833]:
+        - button "Language" [ref=f36e834] [cursor=pointer]
+        - button "Announcement" [ref=f36e840] [cursor=pointer]
+        - link "24/7 Customer service" [ref=f36e847] [cursor=pointer]:
+          - /url: /legal/contact
+        - link "About us" [ref=f36e855] [cursor=pointer]:
+          - /url: /legal
+      - generic [ref=f36e861]:
+        - generic [ref=f36e862]:
+          - generic [ref=f36e863]: PK92
+          - generic [ref=f36e869]: 18+
+        - generic [ref=f36e870]:
+          - generic [ref=f36e871]: Fair Play Audited
+          - generic [ref=f36e875]: SSL Secured
+          - generic [ref=f36e880]: Demo Credits Only
+          - generic [ref=f36e883]: 24/7 Support
+        - list [ref=f36e889]:
+          - listitem [ref=f36e890]: This platform is an educational UI simulation — every credit shown is a demo credit with no real-world value.
+          - listitem [ref=f36e893]: The Aviator crash game runs on a real backend, but no real money is ever wagered or paid out.
+          - listitem [ref=f36e896]: PK92 is a portfolio/demo project and does not accept real deposits or process real withdrawals.
+          - listitem [ref=f36e899]: Built to showcase gaming-platform UI/UX and full-stack engineering patterns.
+        - generic [ref=f36e902]: Gambling can be addictive — please play responsibly. PK92 only simulates access for users aged 18 and above.
+    - navigation [ref=f36e903]:
+      - link "Promotion" [ref=f36e904] [cursor=pointer]:
+        - /url: /agency
+      - link "Activity" [ref=f36e908] [cursor=pointer]:
+        - /url: /activity
+      - link [ref=f36e913] [cursor=pointer]:
+        - /url: /game
+      - link "Wallet" [ref=f36e919] [cursor=pointer]:
+        - /url: /wallet
+      - link "Account" [ref=f36e924] [cursor=pointer]:
+        - /url: /profile
+  - button "Open Next.js Dev Tools" [ref=f36e934] [cursor=pointer]

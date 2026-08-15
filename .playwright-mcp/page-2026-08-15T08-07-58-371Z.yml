@@ -1,0 +1,35 @@
+- generic [active] [ref=f4e1]:
+  - generic [ref=f4e3]:
+    - banner [ref=f4e4]:
+      - generic [ref=f4e5]:
+        - link [ref=f4e6] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f4e9]: PK92
+        - button "EN" [ref=f4e14] [cursor=pointer]
+      - heading "Log in" [level=1] [ref=f4e26]
+      - paragraph [ref=f4e27]: Please log in with your phone number or emailIf you forget your password, please contact customer service
+    - generic [ref=f4e28]:
+      - generic [ref=f4e29]:
+        - button "phone number" [ref=f4e30] [cursor=pointer]
+        - button "Email Login" [ref=f4e33] [cursor=pointer]
+      - generic [ref=f4e37]:
+        - generic [ref=f4e38]:
+          - generic [ref=f4e39]: Phone number
+          - generic [ref=f4e42]:
+            - button "+92" [ref=f4e43] [cursor=pointer]
+            - textbox "Please enter the phone number" [ref=f4e46]
+        - generic [ref=f4e47]:
+          - generic [ref=f4e48]: Password
+          - generic [ref=f4e53]:
+            - textbox "Password" [ref=f4e54]
+            - button "Toggle password visibility" [ref=f4e55] [cursor=pointer]
+        - generic [ref=f4e60]:
+          - button "Remember password" [ref=f4e61] [cursor=pointer]
+          - generic [ref=f4e62] [cursor=pointer]: Remember password
+        - button "Log in" [disabled] [ref=f4e63]
+      - link "Register" [ref=f4e64] [cursor=pointer]:
+        - /url: /signup
+      - generic [ref=f4e65]:
+        - button [ref=f4e66] [cursor=pointer]
+        - button [ref=f4e72] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f4e83] [cursor=pointer]

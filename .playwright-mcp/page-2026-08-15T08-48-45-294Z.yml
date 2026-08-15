@@ -1,0 +1,76 @@
+- generic [active] [ref=f23e1]:
+  - generic [ref=f23e2]:
+    - generic [ref=f23e9]:
+      - generic [ref=f23e10]:
+        - text: …
+        - generic [ref=f23e11]: Member
+      - button "UID | —" [ref=f23e12] [cursor=pointer]
+      - generic [ref=f23e16]: "Last login: …"
+    - generic [ref=f23e17]:
+      - generic [ref=f23e18]:
+        - generic [ref=f23e19]:
+          - generic [ref=f23e20]: Total balance
+          - generic [ref=f23e21]: Rs0.00
+        - button [ref=f23e22] [cursor=pointer]
+      - generic [ref=f23e26]:
+        - link "Wallet" [ref=f23e27] [cursor=pointer]:
+          - /url: /wallet
+        - link "Deposit" [ref=f23e33] [cursor=pointer]:
+          - /url: /deposit
+        - link "Withdraw" [ref=f23e38] [cursor=pointer]:
+          - /url: /withdraw
+        - button "VIP" [ref=f23e43] [cursor=pointer]
+    - generic [ref=f23e48]:
+      - link "Game History My game history" [ref=f23e49] [cursor=pointer]:
+        - /url: /game/history
+        - generic [ref=f23e56]:
+          - generic [ref=f23e57]: Game History
+          - generic [ref=f23e58]: My game history
+      - link "Transaction My transaction history" [ref=f23e59] [cursor=pointer]:
+        - /url: /transactions
+        - generic [ref=f23e63]:
+          - generic [ref=f23e64]: Transaction
+          - generic [ref=f23e65]: My transaction history
+      - link "Deposit My deposit history" [ref=f23e66] [cursor=pointer]:
+        - /url: /transactions?type=deposit
+        - generic [ref=f23e70]:
+          - generic [ref=f23e71]: Deposit
+          - generic [ref=f23e72]: My deposit history
+      - link "Withdraw My withdraw history" [ref=f23e73] [cursor=pointer]:
+        - /url: /transactions?type=withdraw
+        - generic [ref=f23e77]:
+          - generic [ref=f23e78]: Withdraw
+          - generic [ref=f23e79]: My withdraw history
+    - generic [ref=f23e80]: Notification
+    - generic [ref=f23e82]:
+      - link "Gifts" [ref=f23e83] [cursor=pointer]:
+        - /url: /activity
+      - link "Game statistics" [ref=f23e93] [cursor=pointer]:
+        - /url: /game/history
+      - button "Language English" [ref=f23e102] [cursor=pointer]:
+        - generic [ref=f23e107]:
+          - text: Language
+          - generic [ref=f23e108]: English
+    - generic [ref=f23e112]: Service center
+    - generic [ref=f23e114]:
+      - button "Settings" [ref=f23e115] [cursor=pointer]
+      - button "Feedback" [ref=f23e121] [cursor=pointer]
+      - button "Announcement" [ref=f23e126] [cursor=pointer]
+      - link "Customer Service" [ref=f23e133] [cursor=pointer]:
+        - /url: /legal/contact
+      - link "About us" [ref=f23e141] [cursor=pointer]:
+        - /url: /legal
+    - button "Log out" [ref=f23e147] [cursor=pointer]
+    - contentinfo [ref=f23e151]: This account and its balance are placeholders for this UI preview.
+    - navigation [ref=f23e152]:
+      - link "Promotion" [ref=f23e153] [cursor=pointer]:
+        - /url: /agency
+      - link "Activity" [ref=f23e157] [cursor=pointer]:
+        - /url: /activity
+      - link [ref=f23e162] [cursor=pointer]:
+        - /url: /game
+      - link "Wallet" [ref=f23e168] [cursor=pointer]:
+        - /url: /wallet
+      - link "Account" [ref=f23e173] [cursor=pointer]:
+        - /url: /profile
+  - button "Open Next.js Dev Tools" [ref=f23e183] [cursor=pointer]

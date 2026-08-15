@@ -91,7 +91,11 @@ export default function ActivityPage() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [stats, setStats] = useState(null);
   const [totalActivity, setTotalActivity] = useState(0);
+  const [popup, setPopup] = useState(null);
   const filterRef = useRef(null);
+
+  const openDemo = (label) => setPopup(label);
+  const closeDemo = () => setPopup(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -174,6 +178,70 @@ export default function ActivityPage() {
       </header>
 
       <main>
+        <section className="kk-quick-actions">
+          <button className="kk-quick-action" onClick={() => openDemo("Activity Award")}>
+            <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#ff8a65,#e64a19)" }}>
+              <IconTrophy />
+            </span>
+            <span>Activity Award</span>
+          </button>
+          <button className="kk-quick-action" onClick={() => openDemo("Betting Rebate")}>
+            <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#ffb23d,#e8531b)" }}>
+              <IconWallet />
+            </span>
+            <span>Betting Rebate</span>
+          </button>
+          <button className="kk-quick-action" onClick={() => openDemo("Super Jackpot")}>
+            <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#4de8c0,#12a883)" }}>
+              <IconTrophy />
+            </span>
+            <span>Super Jackpot</span>
+          </button>
+        </section>
+
+        <section className="kk-promo-grid">
+          <button className="kk-promo-card" onClick={() => openDemo("Gifts")}>
+            <div className="kk-promo-card-art" style={{ background: "linear-gradient(135deg,#ff8a80,#ff5252)" }}>🎁</div>
+            <div className="kk-promo-card-body">
+              <b>Gifts</b>
+              <p>Enter the redemption code to receive gift rewards</p>
+            </div>
+          </button>
+          <button className="kk-promo-card" onClick={() => openDemo("Attendance Bonus")}>
+            <div className="kk-promo-card-art" style={{ background: "linear-gradient(135deg,#ffab91,#ff7043)" }}>📅</div>
+            <div className="kk-promo-card-body">
+              <b>Attendance bonus</b>
+              <p>The more consecutive days you sign in, the higher the reward will be.</p>
+            </div>
+          </button>
+        </section>
+
+        <button className="kk-promo-banner" onClick={() => openDemo("Recharge Bonus")}>
+          <div className="kk-promo-banner-art" style={{ "--a": "#3f7fe0", "--b": "#153e91" }}>
+            <div className="kk-promo-banner-title">
+              Recharge
+              <br />
+              Bonus
+            </div>
+          </div>
+          <div className="kk-promo-banner-body">
+            <b>Recharge bonus</b>
+          </div>
+        </button>
+
+        <button className="kk-promo-banner" style={{ marginBottom: 8 }} onClick={() => openDemo("Streak Bonus")}>
+          <div className="kk-promo-banner-art" style={{ "--a": "#2f6fe0", "--b": "#123a8f" }}>
+            <div className="kk-promo-banner-title">
+              Streak
+              <br />
+              Bonus
+            </div>
+          </div>
+          <div className="kk-promo-banner-body">
+            <b>Login streak bonus</b>
+          </div>
+        </button>
+
         <div className="kk-activity-stats">
           <div className="kk-activity-stat">
             <div className="kk-activity-stat-icon" style={{ background: "linear-gradient(160deg,#4aa8ff,#1565e8)" }}>
@@ -294,6 +362,19 @@ export default function ActivityPage() {
       </main>
 
       <BottomNav />
+
+      <div className={`popup ${popup ? "active" : ""}`} onClick={closeDemo}>
+        <div className="kk-popup-box" onClick={(e) => e.stopPropagation()}>
+          <div className="kk-popup-icon">🎁</div>
+          <div className="kk-popup-title">Demo Mode</div>
+          <p className="kk-popup-text">
+            &quot;{popup}&quot; is a placeholder tile in this UI showcase — no real bonus is credited.
+          </p>
+          <button className="kk-popup-btn" onClick={closeDemo}>
+            Got it
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

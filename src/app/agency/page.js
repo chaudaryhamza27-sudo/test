@@ -1,8 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import BottomNav from "../components/BottomNav";
-import { IconCopy, IconUsers, IconCalendar, IconClock, IconWallet, IconHistory, IconShield, IconLink, IconGift } from "../icons";
+import {
+  IconCopy,
+  IconUsers,
+  IconCalendar,
+  IconClock,
+  IconWallet,
+  IconHistory,
+  IconShield,
+  IconGift,
+  IconQr,
+  IconChevronRight,
+  IconHeadset,
+  IconChartLine,
+} from "../icons";
 
 const STATS = [
   { key: "referrals", label: "Referred Users", sub: "Users you invited", icon: IconUsers, bg: "linear-gradient(160deg,#4aa8ff,#1565e8)" },
@@ -49,12 +63,15 @@ export default function AgencyPage() {
     depositCount: stats?.depositCount ?? 0,
   };
 
-  const inviteLink = user?.inviteCode && typeof window !== "undefined" ? `${window.location.origin}/signup?ref=${user.inviteCode}` : "";
-
   const copy = (label, text) => {
     navigator.clipboard?.writeText(text);
     setCopied(label);
     setTimeout(() => setCopied(null), 1500);
+  };
+
+  const openDemo = (label) => {
+    setCopied(null);
+    alert(`"${label}" is a placeholder in this UI showcase.`);
   };
 
   return (
@@ -67,62 +84,102 @@ export default function AgencyPage() {
 
       <main>
         <section className="kk-agency-banner agency-hero">
-          <div className="agency-hero-icon">
-            <IconUsers />
+          <div className="agency-hero-card">
+            <div className="agency-hero-icon">
+              <IconUsers />
+            </div>
+            <div className="big">{values.referrals}</div>
+            <div className="pill">Your total referrals</div>
+            <div className="note">Share your invite code to grow your referral network</div>
           </div>
-          <div className="big">{values.referrals}</div>
-          <div className="pill">Your total referrals</div>
-          <div className="note">Share your invite code to grow your referral network</div>
         </section>
 
-        <div className="kk-agency-tabs">
-          <button className={`kk-agency-tab ${range === "month" ? "active" : ""}`} onClick={() => setRange("month")}>
-            <IconCalendar style={{ width: 14, height: 14 }} />
-            This month
+        <button type="button" className="kk-qr-btn" onClick={() => openDemo("Download QR Code")}>
+          <IconQr />
+          Download QR Code
+        </button>
+
+        <div className="kk-list" style={{ marginTop: 16 }}>
+          <button className="kk-list-item" onClick={() => copy("code", user?.inviteCode)} disabled={!user?.inviteCode}>
+            <span className="kk-list-item-icon">
+              <IconCopy />
+            </span>
+            <span className="label">
+              {copied === "code" ? "Copied!" : "Copy invitation code"}
+              <small>{user?.inviteCode || "…"}</small>
+            </span>
           </button>
-          <button className={`kk-agency-tab ${range === "all" ? "active" : ""}`} onClick={() => setRange("all")}>
-            <IconClock style={{ width: 14, height: 14 }} />
-            All time
-          </button>
+          <Link href="/agency/subordinate" className="kk-list-item">
+            <span className="kk-list-item-icon">
+              <IconHistory />
+            </span>
+            <span className="label">Subordinate data</span>
+            <span className="chev">
+              <IconChevronRight />
+            </span>
+          </Link>
+          <Link href="/agency/commission" className="kk-list-item">
+            <span className="kk-list-item-icon">
+              <IconWallet />
+            </span>
+            <span className="label">Commission detail</span>
+            <span className="chev">
+              <IconChevronRight />
+            </span>
+          </Link>
         </div>
 
-        <section className="wallet-stats-grid" style={{ margin: "16px 16px 0" }}>
-          {STATS.map((s) => (
-            <div className="card wallet-stat-card" key={s.key}>
-              <div className="wallet-stat-icon" style={{ background: s.bg }}>
-                <s.icon />
-              </div>
-              <span style={{ fontSize: 10, color: "var(--text-faint)", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".3px" }}>{s.label}</span>
-              <b>{loading ? "…" : s.money ? `Rs${Number(values[s.key]).toLocaleString()}` : values[s.key]}</b>
-              <span>{s.sub}</span>
+        <div className="kk-list" style={{ marginTop: 12 }}>
+          <Link href="/legal/contact" className="kk-list-item">
+            <span className="kk-list-item-icon">
+              <IconHeadset />
+            </span>
+            <span className="label">Agent line customer service</span>
+            <span className="chev">
+              <IconChevronRight />
+            </span>
+          </Link>
+          <Link href="/agency/rebate-ratio" className="kk-list-item">
+            <span className="kk-list-item-icon">
+              <IconGift />
+            </span>
+            <span className="label">Rebate ratio</span>
+            <span className="chev">
+              <IconChevronRight />
+            </span>
+          </Link>
+        </div>
+
+        <section className="card" style={{ margin: "16px 16px 0", padding: 18 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 800, color: "var(--kk-text)" }}>
+              <IconChartLine style={{ width: 16, height: 16, color: "var(--kk-blue)" }} />
+              Promotion Data
+            </span>
+            <div className="kk-agency-tabs" style={{ margin: 0, gap: 6 }}>
+              <button className={`kk-agency-tab ${range === "month" ? "active" : ""}`} style={{ padding: "6px 10px", fontSize: 11.5 }} onClick={() => setRange("month")}>
+                <IconCalendar style={{ width: 12, height: 12 }} />
+                Month
+              </button>
+              <button className={`kk-agency-tab ${range === "all" ? "active" : ""}`} style={{ padding: "6px 10px", fontSize: 11.5 }} onClick={() => setRange("all")}>
+                <IconClock style={{ width: 12, height: 12 }} />
+                All time
+              </button>
             </div>
-          ))}
-        </section>
-
-        <section className="card agency-invite-card">
-          <div className="agency-invite-head">
-            <span>Your Invite Code</span>
-            <button className="badge-pill badge-info agency-copy-btn" onClick={() => copy("code", user.inviteCode)} disabled={!user?.inviteCode}>
-              <IconCopy style={{ width: 12, height: 12 }} />
-              {copied === "code" ? "Copied!" : "Copy Code"}
-            </button>
-          </div>
-          <div className="agency-invite-code">{user?.inviteCode || "…"}</div>
-          <div className="agency-invite-badges">
-            <span className="badge-pill badge-info">
-              <IconShield style={{ width: 11, height: 11 }} />
-              Unique
-            </span>
-            <span className="badge-pill" style={{ background: "rgba(168,85,247,.14)", color: "#c084fc" }}>
-              <IconLink style={{ width: 11, height: 11 }} />
-              Case Sensitive
-            </span>
           </div>
 
-          <button className="deposit-submit-btn" style={{ margin: "16px 0 0", width: "100%" }} onClick={() => copy("link", inviteLink)} disabled={!inviteLink}>
-            <IconCopy style={{ width: 16, height: 16 }} />
-            {copied === "link" ? "Link Copied!" : "Copy Invite Link"}
-          </button>
+          <div className="wallet-stats-grid" style={{ margin: 0 }}>
+            {STATS.map((s) => (
+              <div className="wallet-stat-card" key={s.key} style={{ background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: 14 }}>
+                <div className="wallet-stat-icon" style={{ background: s.bg }}>
+                  <s.icon />
+                </div>
+                <span style={{ fontSize: 10, color: "var(--text-faint)", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".3px" }}>{s.label}</span>
+                <b>{loading ? "…" : s.money ? `Rs${Number(values[s.key]).toLocaleString()}` : values[s.key]}</b>
+                <span>{s.sub}</span>
+              </div>
+            ))}
+          </div>
         </section>
 
         <div className="agency-note">

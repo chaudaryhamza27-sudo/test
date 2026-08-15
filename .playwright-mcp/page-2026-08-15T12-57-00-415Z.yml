@@ -1,0 +1,75 @@
+- generic [active] [ref=f49e1]:
+  - generic [ref=f49e2]:
+    - banner [ref=f49e6]:
+      - generic [ref=f49e7]:
+        - link "Back" [ref=f49e8] [cursor=pointer]:
+          - /url: /
+        - link "PK92" [ref=f49e11] [cursor=pointer]:
+          - /url: /
+      - generic [ref=f49e19]:
+        - generic [ref=f49e20]:
+          - generic [ref=f49e21]: Balance
+          - generic [ref=f49e22]: Rs 0.00
+        - link [ref=f49e23] [cursor=pointer]:
+          - /url: /deposit#deposit-options
+        - button "Account menu" [ref=f49e27] [cursor=pointer]
+    - main [ref=f49e31]:
+      - generic [ref=f49e32]: Recent Rounds
+      - generic [ref=f49e33]: Recent rounds will appear here
+      - generic [ref=f49e35]:
+        - generic [ref=f49e36]:
+          - text: "Round ID: ------"
+          - button "Copy round ID" [ref=f49e37] [cursor=pointer]
+        - generic [ref=f49e41]: Basic Mode
+        - generic [ref=f49e42]: 0 players this round
+      - generic [ref=f49e44]:
+        - generic [ref=f49e45]:
+          - generic [ref=f49e46]:
+            - generic [ref=f49e47]:
+              - button "Toggle grid" [ref=f49e48] [cursor=pointer]
+              - button "Fullscreen" [ref=f49e52] [cursor=pointer]
+            - img [ref=f49e56]:
+              - generic [ref=f49e57]: 1.0x
+              - generic [ref=f49e59]: 1.3x
+              - generic [ref=f49e61]: 1.5x
+              - generic [ref=f49e63]: 1.8x
+              - generic [ref=f49e65]: 2.0x
+              - generic [ref=f49e67]: 0s
+              - generic [ref=f49e68]: 2s
+              - generic [ref=f49e69]: 4s
+              - generic [ref=f49e70]: 6s
+              - generic [ref=f49e71]: 8s
+              - generic [ref=f49e72]: 10s
+            - generic:
+              - generic: Next round in
+              - generic: 0.0s
+          - generic [ref=f49e73]: Checking your session…
+          - generic [ref=f49e74]:
+            - generic [ref=f49e75]:
+              - button "My Bets" [ref=f49e76] [cursor=pointer]
+              - button "All Bets" [ref=f49e80] [cursor=pointer]
+              - button "Top Wins" [ref=f49e86] [cursor=pointer]
+            - generic [ref=f49e93]:
+              - link "Log in" [ref=f49e94] [cursor=pointer]:
+                - /url: /login
+              - text: to see your bet history.
+        - complementary [ref=f49e95]:
+          - generic [ref=f49e96]:
+            - heading "Recent Rounds" [level=2] [ref=f49e98]
+            - generic [ref=f49e99]: Round history will appear here
+      - generic [ref=f49e100]:
+        - generic [ref=f49e101]:
+          - generic [ref=f49e106]: Provably Fair
+          - generic [ref=f49e107]: Crash point is hashed before every round starts
+        - generic [ref=f49e108]:
+          - generic [ref=f49e112]: Demo Credits Only
+          - generic [ref=f49e113]: No real money is used, wagered, or paid out
+        - generic [ref=f49e114]:
+          - generic [ref=f49e121]: Need Help?
+          - link "Contact support" [ref=f49e122] [cursor=pointer]:
+            - /url: /legal/contact
+        - generic [ref=f49e123]:
+          - generic [ref=f49e128]: How to Play
+          - link "Read the rules" [ref=f49e129] [cursor=pointer]:
+            - /url: /legal/betting-rules
+  - button "Open Next.js Dev Tools" [ref=f49e135] [cursor=pointer]

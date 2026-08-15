@@ -1,27 +1,27 @@
 @import "tailwindcss";
 
 :root{
-    /* ---- surfaces ---- */
-    --bg:#0a0e14;
-    --bg-raised:#10151f;
-    --surface:#141a24;
-    --surface-sunken:#0c1017;
-    --surface-hover:#1a212e;
+    /* ---- surfaces (light, matches the kk-page family) ---- */
+    --bg:#EEF2FB;
+    --bg-raised:#FFFFFF;
+    --surface:#FFFFFF;
+    --surface-sunken:#F2F4F9;
+    --surface-hover:#E7ECF7;
 
     /* ---- borders ---- */
-    --border:rgba(255,255,255,.08);
-    --border-strong:rgba(255,255,255,.16);
+    --border:rgba(15,23,42,.08);
+    --border-strong:rgba(15,23,42,.16);
 
     /* ---- text ---- */
-    --text:#F2F4F8;
-    --text-muted:#8891A3;
-    --text-faint:#565D6E;
+    --text:#071B34;
+    --text-muted:#7D8299;
+    --text-faint:#AEB3C7;
 
     /* ---- brand / accent (restrained, 2 accents max) ---- */
     --accent:#E8AC42;
     --accent-dim:#B4832C;
-    --link:#4C8DFF;
-    --link-dim:#2E5FC4;
+    --link:#1976D2;
+    --link-dim:#114E8C;
 
     /* ---- semantic ---- */
     --success:#22C55E;
@@ -44,11 +44,14 @@
     --shadow-md:0 10px 28px rgba(0,0,0,.36);
     --shadow-lg:0 20px 48px rgba(0,0,0,.44);
 
-    /* ---- legacy-name aliases — every old rule below keeps resolving to the
-       new unified palette without a class-name/selector rename sweep ---- */
-    --void:var(--bg); --panel:var(--surface); --line:var(--border);
-    --gold:var(--accent); --cyan:var(--link); --violet:var(--link);
-    --pink:var(--accent-dim); --green:var(--success); --shadow:var(--shadow-lg);
+    /* ---- legacy-name aliases for the app-shell family (Game/Deposit/
+       Withdraw) — that family keeps its own fixed dark "cockpit" palette,
+       deliberately decoupled from --bg/--accent/--link/etc above since
+       those now hold the *light* kk-page palette. Nothing in the kk-page
+       family reads these names (verified — grep for var(--void) etc). ---- */
+    --void:#050914; --panel:#0F1728; --line:rgba(255,255,255,.10);
+    --gold:#F5B82E; --cyan:#3B82F6; --violet:#7657FF;
+    --pink:#FF4D5A; --green:#22C55E; --muted:#8D98AE; --shadow:0 20px 48px rgba(0,0,0,.44);
 
     --kk-bg:var(--bg);
     --kk-blue:var(--link);
@@ -71,7 +74,7 @@
 
 *{box-sizing:border-box}
 
-html,body{min-height:100%;color:var(--text);background:var(--void)}
+html,body{min-height:100%;color:var(--text);background:#8B8FA3}
 
 body{
   font-family: Arial, Helvetica, sans-serif;
@@ -79,11 +82,15 @@ body{
   position:relative;
 }
 
+/* Neutral backdrop behind the app column — the app itself never widens
+   past mobile size (see .app-shell/.kk-page below), so on any screen
+   wider than that this shows as the framing margin, matching the
+   reference site's "phone screen centered on a desktop page" look. */
 body:before{
   content:"";
   position:fixed;
   inset:0;
-  background:linear-gradient(180deg,var(--bg) 0%,#05070b 100%);
+  background:#8B8FA3;
   z-index:-3;
 }
 
@@ -101,7 +108,20 @@ body:after{
 
 a{text-decoration:none;color:inherit}
 
-.app-shell{min-height:100vh;padding-bottom:118px;position:relative}
+/* App frame — the whole app renders as a fixed mobile-width column,
+   centered on the neutral backdrop, at every viewport size instead of
+   expanding to fill wide desktop windows. */
+.app-shell{
+  /* Scoped override: every descendant rule that reads var(--text)/
+     var(--text-muted)/var(--text-faint) — whether via inheritance or an
+     explicit color:var(--text) — now resolves against this dark-appropriate
+     triad instead of the light kk-page family's dark-navy-on-white values. */
+  --text:#F5F7FF; --text-muted:#8D98AE; --text-faint:#5C6478;
+  --border:rgba(255,255,255,.10); --border-strong:rgba(255,255,255,.18);
+  min-height:100vh;padding-bottom:118px;position:relative;max-width:480px;width:100%;align-self:center;
+  background:var(--void);color:var(--text);
+}
+@media(min-width:481px){.app-shell{box-shadow:0 0 60px rgba(0,0,0,.35)}}
 .app-glow{position:fixed;width:260px;height:260px;border-radius:999px;filter:blur(28px);opacity:.34;z-index:-1}
 .g1{top:90px;left:-120px;background:var(--pink)}
 .g2{right:-140px;top:360px;background:var(--cyan)}
@@ -129,12 +149,25 @@ a{text-decoration:none;color:inherit}
 }
 
 /* Shared app-shell header (Deposit / Withdraw / Game) */
-.app-header{height:auto;min-height:64px;flex-wrap:wrap;gap:10px 16px;padding:12px 16px}
-.app-header-left{display:flex;align-items:center;gap:10px}
-.app-header .brand-mark{width:36px;height:36px;border-radius:11px}
+.app-header{height:auto;min-height:64px;flex-wrap:nowrap;gap:8px;padding:12px 16px}
+.app-header-left{display:flex;align-items:center;gap:8px;min-width:0;flex-shrink:1}
+.app-header .brand-mark{width:36px;height:36px;border-radius:11px;flex-shrink:0}
 .app-header .brand-copy b{font-size:15px}
-.app-header-trust{display:none;align-items:center;gap:10px}
-@media(min-width:960px){.app-header-trust{display:flex}}
+.add-funds-btn{display:flex;align-items:center;gap:6px;flex-shrink:0}
+
+/* The app column is always mobile-width (see .app-shell/.kk-page max-width
+   rules) regardless of the browser's actual viewport size, so these can't
+   be gated behind a viewport @media query — that would only ever fire on
+   an actually-narrow browser window, not a laptop showing our narrow
+   column. There isn't room for the back button + logo + tagline + balance
+   + Add Funds label + profile avatar on one line, so the lower-priority
+   bits are trimmed unconditionally instead of letting the row wrap. */
+.app-header .brand-copy span{display:none}
+.add-funds-label{display:none}
+.add-funds-btn{padding:0 10px !important;width:34px;justify-content:center}
+.game-header-right{gap:8px}
+.game-balance-block .val{font-size:14px}
+.app-header-trust{display:none}
 .app-trust-badge{display:flex;align-items:center;gap:7px;font-size:11px}
 .app-trust-badge span:first-child{font-size:14px}
 .app-trust-badge div{display:flex;flex-direction:column;line-height:1.2}
@@ -142,7 +175,6 @@ a{text-decoration:none;color:inherit}
 .app-trust-badge span:last-child{font-size:9.5px;color:var(--muted)}
 
 .content{padding:14px 0 0}
-@media(min-width:680px){.content{max-width:980px;margin:0 auto}}
 
 .notice-banner{
   margin:17px 14px;border-radius:20px;padding:14px 16px;display:flex;align-items:center;gap:10px;
@@ -175,7 +207,6 @@ a{text-decoration:none;color:inherit}
 .game-tag{margin-top:6px;font-size:10px;color:var(--muted)}
 
 .promo-wrap{margin:26px 14px 0;display:grid;gap:12px}
-@media(min-width:680px){.promo-wrap{grid-template-columns:1fr 1fr}}
 .promo-card{border-radius:28px;padding:20px;min-height:140px;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.10);background:linear-gradient(135deg,rgba(255,209,102,.20),rgba(255,61,129,.13),rgba(124,60,255,.15));box-shadow:var(--shadow)}
 .promo-card:before{content:"";position:absolute;right:-38px;top:-44px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.10)}
 .promo-card h3{font-size:24px;line-height:1}
@@ -185,8 +216,13 @@ a{text-decoration:none;color:inherit}
 .footer b{color:var(--gold)}
 
 .popup,.modal-backdrop{position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:20px}
-.popup.active,.modal-backdrop.active{display:flex}
+.popup.active,.modal-backdrop.active{display:flex;animation:popupFadeIn .2s ease}
 .popup-box,.kk-popup-box,.modal-box{width:100%;max-width:380px;border-radius:var(--r-xl);padding:26px 22px;text-align:center;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-lg)}
+.popup.active .popup-box,.popup.active .kk-popup-box,.popup.active .modal-box,
+.modal-backdrop.active .popup-box,.modal-backdrop.active .kk-popup-box,.modal-backdrop.active .modal-box{animation:popupBoxIn .28s cubic-bezier(.2,.8,.2,1)}
+
+@keyframes popupFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popupBoxIn{from{opacity:0;transform:translateY(18px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
 .popup-icon,.kk-popup-icon{width:64px;height:64px;margin:0 auto 16px;border-radius:var(--r-lg);display:grid;place-items:center;background:var(--accent);color:#181206;font-size:26px}
 .popup-title,.kk-popup-title{font-size:22px;font-weight:800;color:var(--text)}
 .popup-text,.kk-popup-text{margin-top:7px;color:var(--text-muted);font-size:13px;line-height:1.6}
@@ -255,8 +291,28 @@ a{text-decoration:none;color:inherit}
 /* Activity timeline */
 .kk-activity-filter{display:flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:12px;background:var(--surface);border:1px solid var(--border);font-size:11.5px;font-weight:700;color:var(--text);cursor:pointer;white-space:nowrap}
 
+/* Activity page — promo hub (quick actions, gift cards, banners) */
+.kk-quick-actions{display:flex;justify-content:center;gap:30px;padding:18px 16px 6px;flex-wrap:wrap}
+.kk-quick-action{display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:0;cursor:pointer}
+.kk-quick-action-icon{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;color:#fff;box-shadow:0 8px 18px rgba(15,23,42,.16)}
+.kk-quick-action-icon svg{width:23px;height:23px}
+.kk-quick-action span{font-size:11.5px;font-weight:700;color:var(--kk-text);text-align:center;line-height:1.3;max-width:70px}
+
+.kk-promo-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 16px 0}
+.kk-promo-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;box-shadow:var(--kk-shadow);cursor:pointer;text-align:left;padding:0}
+.kk-promo-card-art{height:88px;display:grid;place-items:center;font-size:34px}
+.kk-promo-card-body{padding:12px 14px 14px}
+.kk-promo-card-body b{display:block;font-size:13.5px;font-weight:800;color:var(--kk-text)}
+.kk-promo-card-body p{margin-top:5px;font-size:11px;color:var(--kk-muted);line-height:1.5}
+
+.kk-promo-banner{display:block;width:calc(100% - 32px);margin:14px 16px 0;border-radius:20px;overflow:hidden;background:var(--surface);border:1px solid var(--border);box-shadow:var(--kk-shadow);cursor:pointer;padding:0;text-align:left}
+.kk-promo-banner-art{height:140px;background:linear-gradient(160deg,var(--a,#2f6fe0),var(--b,#123a8f));display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.kk-promo-banner-art:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.20),transparent 50%)}
+.kk-promo-banner-title{position:relative;font-size:24px;font-weight:900;color:#fff;text-align:center;line-height:1.15;text-shadow:0 3px 12px rgba(0,0,0,.4);text-transform:uppercase}
+.kk-promo-banner-body{padding:12px 16px}
+.kk-promo-banner-body b{font-size:13.5px;font-weight:800;color:var(--kk-text)}
+
 .kk-activity-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 16px 0}
-@media(min-width:640px){.kk-activity-stats{grid-template-columns:repeat(4,1fr)}}
 .kk-activity-stat{display:flex;align-items:center;gap:10px;padding:12px;border-radius:16px;background:var(--surface);border:1px solid var(--border)}
 .kk-activity-stat-icon{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;color:#fff;flex-shrink:0}
 .kk-activity-stat-icon svg{width:17px;height:17px}
@@ -295,7 +351,7 @@ a{text-decoration:none;color:inherit}
 .profile-menu-item.danger{color:var(--danger);border-top:1px solid var(--border);margin-top:4px;padding-top:12px;border-radius:0 0 10px 10px}
 
 .bottom-nav{
-  position:fixed;left:0;bottom:0;width:100%;height:64px;padding:0 6px;
+  position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:480px;height:64px;padding:0 6px;
   background:var(--bg-raised);border-top:1px solid var(--border);
   box-shadow:0 -6px 24px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:space-around;z-index:950;
 }
@@ -324,7 +380,6 @@ a{text-decoration:none;color:inherit}
 .deposit-title.compact{font-size:26px;margin-top:8px;text-transform:none}
 .deposit-title.compact span{text-shadow:none}
 .app-page-content{padding-left:0}
-@media(min-width:1300px){.app-page-content{max-width:1400px}}
 
 .secure-strip{position:relative;margin-top:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .secure-pill{min-height:64px;padding:10px 8px;border-radius:18px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.09)}
@@ -336,13 +391,11 @@ a{text-decoration:none;color:inherit}
 .deposit-card + .deposit-card{margin-top:16px}
 .deposit-instant-grid{display:grid;gap:16px;margin:0 14px}
 .deposit-instant-grid .deposit-card{margin:0}
-@media(min-width:680px){.deposit-instant-grid{grid-template-columns:1fr 1fr}}
 .card-title{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px}
 .card-title h2{font-size:20px;line-height:1}
 .card-title span{font-size:11px;color:var(--muted);font-weight:800}
 
 .amount-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-@media(min-width:520px){.amount-grid{grid-template-columns:repeat(3,1fr)}}
 .amount-option input{display:none}
 .amount-box{
   min-height:74px;border-radius:22px;padding:13px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;
@@ -406,7 +459,6 @@ a{text-decoration:none;color:inherit}
 
 .paybost-section-label{margin-top:16px;margin-bottom:8px;font-size:12.5px;font-weight:800;color:var(--text)}
 .paybost-quick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-@media(min-width:520px){.paybost-quick-grid{grid-template-columns:repeat(4,1fr)}}
 
 .paybost-custom-row{display:flex;align-items:center;gap:8px;height:48px;padding:0 14px;border-radius:14px;background:var(--surface-sunken);border:1px solid var(--border)}
 .paybost-rs-prefix{font-size:14px;font-weight:800;color:var(--link)}
@@ -416,14 +468,12 @@ a{text-decoration:none;color:inherit}
 .paybost-how-card{margin-top:18px;padding:16px;border-radius:16px;background:var(--surface-sunken);border:1px solid var(--border)}
 .paybost-how-head{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--text);margin-bottom:16px}
 .paybost-how-steps{display:grid;grid-template-columns:repeat(2,1fr);gap:20px 10px}
-@media(min-width:600px){.paybost-how-steps{grid-template-columns:repeat(4,1fr)}}
 .paybost-how-step{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px}
 .paybost-how-icon{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:16px;margin-bottom:6px}
 .paybost-how-icon svg{width:18px;height:18px}
 .paybost-how-step b{font-size:11.5px;font-weight:800;color:var(--text)}
 .paybost-how-step span{font-size:10px;color:var(--text-muted);line-height:1.3}
 .paybost-how-arrow{display:none}
-@media(min-width:600px){.paybost-how-arrow{display:block;position:absolute;right:-16px;top:12px;color:var(--text-faint);font-size:14px}}
 
 .paybost-cancel-btn{width:100%;margin-top:10px;height:46px;border-radius:14px;background:none;border:1px solid var(--border);color:var(--text-muted);font-size:13px;font-weight:700;cursor:pointer}
 
@@ -435,19 +485,21 @@ a{text-decoration:none;color:inherit}
 }
 
 /* --- Aviator crash-game simulation --- */
-.game-history-strip{margin:4px 14px 14px;display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.game-recent-strip-head{margin:0 14px;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--muted)}
+.game-history-strip{margin:8px 14px 14px;display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
 .game-history-strip::-webkit-scrollbar{display:none}
 .game-history-empty{font-size:11px;color:var(--muted);white-space:nowrap}
 .game-history-chip{flex-shrink:0;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:800;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);color:#e8dff3}
 .game-history-chip.low{color:#ffb3b3;border-color:rgba(255,92,92,.35);background:rgba(255,92,92,.10)}
 .game-history-chip.high{color:#9dffce;border-color:rgba(55,245,154,.35);background:rgba(55,245,154,.10)}
 
+.game-mode-badge{background:rgba(124,92,255,.16);color:#b9a6ff;font-size:10px;letter-spacing:.3px}
+
 .game-stage{
-  position:relative;margin:0 14px 16px;height:300px;border-radius:28px;overflow:hidden;
+  position:relative;margin:0 14px 16px;height:220px;border-radius:28px;overflow:hidden;
   background:linear-gradient(180deg,#0c1424,#070b14);border:1px solid rgba(255,255,255,.10);box-shadow:var(--shadow);
   display:flex;flex-direction:column;
 }
-@media(min-width:960px){.game-stage{margin:0}}
 .game-stage.no-grid .game-chart-grid,.game-stage.no-grid .game-chart-axis{display:none}
 
 .game-stage-controls{position:absolute;top:12px;right:12px;z-index:3;display:flex;gap:8px}
@@ -497,13 +549,11 @@ a{text-decoration:none;color:inherit}
 .game-profile-btn{width:38px;height:38px;border-radius:50%;background:var(--surface-hover);color:var(--text-muted);display:grid;place-items:center;border:0;cursor:pointer;flex-shrink:0}
 .game-profile-btn svg{width:19px;height:19px}
 
-@media(min-width:1300px){.game-page-content{max-width:1400px}}
-
-.game-layout{display:grid;grid-template-columns:1fr;gap:16px;padding:0 14px}
-@media(min-width:960px){.game-layout{grid-template-columns:2fr 1fr;align-items:start;padding:0 20px}}
+.game-layout{display:grid;grid-template-columns:1fr;gap:14px;padding:0}
 .game-main-col,.game-side-col{display:flex;flex-direction:column;gap:16px;min-width:0}
 
-.game-round-bar{display:flex;align-items:center;justify-content:space-between;margin:0 14px 8px;font-size:11px;color:var(--muted)}
+.game-round-bar{display:flex;align-items:center;justify-content:space-between;margin:0 14px 8px;font-size:9.5px;color:var(--muted)}
+.game-round-bar .badge-pill{padding:3px 7px;font-size:9px}
 @media(min-width:960px){.game-round-bar{margin:0 0 8px}}
 .game-round-id{display:flex;align-items:center;gap:6px;font-weight:700}
 .game-round-id button{background:none;border:0;color:var(--muted);cursor:pointer;display:grid;place-items:center;padding:2px}
@@ -529,7 +579,9 @@ a{text-decoration:none;color:inherit}
 
 .game-bet-panel{margin:0 14px;padding:18px;border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.035));border:1px solid rgba(255,255,255,.10);box-shadow:var(--shadow)}
 @media(min-width:960px){.game-bet-panel{margin:0}}
-.game-bet-panel h2{font-size:16px;font-weight:800;margin-bottom:14px}
+.game-bet-panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.game-bet-panel h2{font-size:16px;font-weight:800;margin-bottom:0;text-transform:uppercase;letter-spacing:.3px}
+.game-bet-panel-head .badge-pill{background:rgba(124,92,255,.16);color:#b9a6ff;font-size:10px}
 .game-field-label{font-size:11px;font-weight:800;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.3px}
 .game-amount-row{display:flex;gap:8px;align-items:center}
 .game-amount-input-wrap{flex:1;position:relative;display:flex;align-items:center}
@@ -540,7 +592,7 @@ a{text-decoration:none;color:inherit}
 
 .game-quick-amounts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
 .game-quick-btn{height:36px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);color:var(--text);font-size:12px;font-weight:800;cursor:pointer}
-.game-quick-btn.active{background:var(--violet);border-color:var(--violet);color:#fff}
+.game-quick-btn.active{background:rgba(245,184,46,.12);border-color:var(--gold);color:var(--gold)}
 
 .game-auto-row{display:flex;align-items:center;gap:8px}
 .game-auto-row input{flex:1;height:48px;padding:0 14px;border-radius:16px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.10);color:var(--text);font-size:15px;font-weight:800}
@@ -562,7 +614,6 @@ a{text-decoration:none;color:inherit}
 .game-recent-time{font-size:11px;color:var(--muted)}
 
 .game-trust-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:20px 14px 0}
-@media(min-width:600px){.game-trust-row{grid-template-columns:repeat(4,1fr)}}
 @media(min-width:960px){.game-trust-row{margin:20px 0 0}}
 .game-trust-card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:16px 10px;border-radius:18px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03)}
 .game-trust-icon{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;margin-bottom:4px;background:rgba(255,182,66,.12);color:var(--gold)}
@@ -575,9 +626,14 @@ a{text-decoration:none;color:inherit}
 /* ==========================================================================
    PK92 dark theme — Home / Agency / Wallet / Account / Activity
    ========================================================================== */
-.kk-page{background:var(--kk-bg);min-height:100vh;padding-bottom:78px;color:var(--kk-text);font-family:Arial,Helvetica,sans-serif}
+.kk-page{background:var(--kk-bg);min-height:100vh;padding-bottom:78px;color:var(--kk-text);font-family:Arial,Helvetica,sans-serif;max-width:480px;width:100%;align-self:center;position:relative}
+@media(min-width:481px){.kk-page{box-shadow:0 0 60px rgba(0,0,0,.18)}}
 
 .kk-topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;background:var(--bg-raised);position:sticky;top:0;z-index:500;box-shadow:0 1px 0 var(--kk-line)}
+
+.kk-section{scroll-margin-top:78px;border-radius:20px}
+.kk-section-flash{animation:sectionFlash .9s ease}
+@keyframes sectionFlash{0%{background:var(--info-bg)}100%{background:transparent}}
 .kk-brand{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .kk-brand-logo{width:34px;height:34px;flex-shrink:0}
 .kk-brand-copy{display:flex;flex-direction:column;line-height:1.2}
@@ -593,15 +649,18 @@ a{text-decoration:none;color:inherit}
 .kk-nav-tab:hover{color:var(--kk-text)}
 
 .kk-header-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
-.kk-balance{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:6px 12px 6px 6px}
-.kk-balance-icon{width:30px;height:30px;border-radius:10px;background:var(--warning-bg);color:var(--accent);display:grid;place-items:center;flex-shrink:0}
-.kk-balance-icon svg{width:17px;height:17px}
+
+.kk-header-auth{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.kk-header-login{background:none;border:0;color:var(--kk-blue);font-weight:800;font-size:13px;cursor:pointer}
+.kk-header-register{padding:8px 16px;border-radius:10px;border:1.5px solid var(--kk-blue);color:var(--kk-blue);font-weight:800;font-size:13px;background:none;cursor:pointer}
+.kk-balance{display:flex;align-items:center;gap:8px}
+.kk-balance-icon{width:26px;height:26px;color:var(--kk-blue);display:grid;place-items:center;flex-shrink:0}
+.kk-balance-icon svg{width:22px;height:22px}
 .kk-balance-text{text-align:right}
-.kk-balance-label{font-size:10px;color:var(--kk-muted);line-height:1}
-.kk-balance-value{margin-top:2px;font-size:15px;font-weight:800;color:var(--kk-text);line-height:1}
+.kk-balance-label{font-size:11px;color:var(--kk-muted);line-height:1.3}
+.kk-balance-value{margin-top:1px;font-size:16px;font-weight:800;color:var(--kk-blue);line-height:1}
 
 @media(min-width:860px){
-  .kk-nav-tabs{display:flex}
   .kk-brand-tag{display:block}
 }
 
@@ -614,8 +673,8 @@ a{text-decoration:none;color:inherit}
 .kk-hero-row{display:flex;flex-direction:column;gap:12px;margin:12px 12px 4px}
 .kk-hero-row .kk-hero{margin:0;flex:1;min-width:0}
 
-.kk-hero{border-radius:20px;overflow:hidden;position:relative;box-shadow:var(--kk-shadow)}
-.kk-hero-slider{display:flex;transition:.6s cubic-bezier(.2,.8,.2,1)}
+.kk-hero{border-radius:20px;overflow:hidden;position:relative;box-shadow:var(--kk-shadow);width:100%}
+.kk-hero-slider{display:flex;width:100%;transition:.6s cubic-bezier(.2,.8,.2,1)}
 .kk-hero-slide{min-width:100%;min-height:230px;padding:24px 22px 40px;position:relative;background:linear-gradient(160deg,var(--a,#2f6fe0),var(--b,#123a8f));display:flex;align-items:center;justify-content:space-between;gap:16px;text-align:left;overflow:hidden}
 .kk-hero-slide:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 15% 20%,rgba(255,255,255,.14),transparent 40%),radial-gradient(circle at 85% 85%,rgba(255,255,255,.10),transparent 45%)}
 .kk-hero-slide:after{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.5) 1px,transparent 1.4px);background-size:15px 15px;-webkit-mask-image:radial-gradient(circle at 78% 45%,#000 0%,#000 35%,transparent 68%);mask-image:radial-gradient(circle at 78% 45%,#000 0%,#000 35%,transparent 68%);opacity:.4}
@@ -660,12 +719,11 @@ a{text-decoration:none;color:inherit}
 
 .kk-cats{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(96px,1fr);gap:10px;overflow-x:auto;padding:14px 16px 8px;scrollbar-width:none}
 .kk-cats::-webkit-scrollbar{display:none}
-.kk-cat{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:16px;flex-shrink:0;cursor:pointer;background:var(--surface);border:1px solid var(--border);text-align:left}
-.kk-cat-icon{width:34px;height:34px;min-width:34px;border-radius:11px;display:grid;place-items:center;color:#fff;box-shadow:0 8px 16px rgba(0,0,0,.3)}
+.kk-cat{display:flex;flex-direction:column;align-items:center;gap:7px;padding:6px 4px;border-radius:16px;flex-shrink:0;cursor:pointer;background:none;border:0;text-align:center}
+.kk-cat-icon{width:44px;height:44px;min-width:44px;border-radius:50%;display:grid;place-items:center;color:#fff;box-shadow:0 6px 14px rgba(15,23,42,.16)}
 .kk-cat-icon svg{width:17px;height:17px}
 .kk-cat span{font-size:12.5px;color:var(--kk-text);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-@media(min-width:680px){.kk-cats{grid-auto-flow:row;grid-template-columns:repeat(5,1fr)}}
 
 .kk-section-head{display:flex;align-items:center;justify-content:space-between;padding:18px 16px 8px}
 .kk-section-title{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:800;color:var(--kk-text)}
@@ -676,21 +734,23 @@ a{text-decoration:none;color:inherit}
 .kk-arrow-btn{width:26px;height:26px;border-radius:8px;background:var(--kk-blue-grad);color:#fff;display:grid;place-items:center;border:0;cursor:pointer}
 .kk-arrow-btn svg{width:14px;height:14px}
 
-.kk-games{display:grid;grid-auto-flow:column;grid-auto-columns:148px;gap:14px;overflow-x:auto;padding:0 16px 10px;scroll-snap-type:x mandatory;scrollbar-width:none;scroll-behavior:smooth}
-.kk-games::-webkit-scrollbar{display:none}
-.kk-game-card{scroll-snap-align:start;background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;box-shadow:var(--kk-shadow);cursor:pointer;transition:transform .18s}
+.kk-games{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 16px 10px}
+.kk-game-card{min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--kk-shadow);cursor:pointer;transition:transform .18s}
 .kk-game-card:active{transform:scale(.97)}
-.kk-game-media{height:110px;position:relative;display:grid;place-items:center;background:linear-gradient(160deg,var(--a,#2f6fe0),var(--b,#123a8f))}
+.kk-game-media{height:88px;position:relative;display:grid;place-items:center;background:linear-gradient(160deg,var(--a,#2f6fe0),var(--b,#123a8f))}
 .kk-game-media:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.20),transparent 55%)}
-.kk-game-icon{position:relative;z-index:1;width:60px;height:60px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}
-.kk-game-badge{position:absolute;top:9px;left:9px;z-index:2;padding:3px 9px;border-radius:999px;font-size:9.5px;font-weight:900;letter-spacing:.3px;background:var(--danger);color:#fff}
+.kk-game-icon{position:relative;z-index:1;width:46px;height:46px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}
+.kk-game-badge{position:absolute;top:7px;left:7px;z-index:2;padding:3px 8px;border-radius:999px;font-size:9px;font-weight:900;letter-spacing:.3px;background:var(--danger);color:#fff}
 .kk-game-badge.new{background:var(--success)}
-.kk-game-info{padding:10px 11px 12px}
-.kk-game-name{font-size:13px;font-weight:800;color:var(--kk-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.kk-game-tag{margin-top:5px;display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--kk-muted)}
+.kk-game-info{padding:8px 9px 10px}
+.kk-game-name{font-size:12px;font-weight:800;color:var(--kk-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kk-game-tag{margin-top:4px;display:flex;align-items:center;gap:5px;font-size:10px;color:var(--kk-muted)}
 .kk-game-tag svg{width:11px;height:11px;flex-shrink:0}
 
-@media(min-width:680px){.kk-games{grid-auto-columns:168px}.kk-game-media{height:126px}}
+.kk-game-card.detail{background:var(--kk-blue-grad);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff;min-height:132px}
+.kk-game-card.detail svg{width:26px;height:26px}
+.kk-game-card.detail span{font-size:11.5px;font-weight:800}
+
 
 .kk-footer{margin:20px 16px 0;padding:16px;text-align:center;color:var(--kk-muted);font-size:11px;line-height:1.7}
 
@@ -698,6 +758,25 @@ a{text-decoration:none;color:inherit}
    .kk-footer used on other pages so it can carry the icon+bar treatment. */
 .kk-info-bar{margin:20px 16px 0;padding:14px 16px;display:flex;align-items:flex-start;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--kk-shadow)}
 .kk-info-bar-icon{width:24px;height:24px;color:var(--accent);flex-shrink:0}
+
+/* Home-page footer box — centered brand/age row, badge strip, checklist */
+.kk-footer-box{margin:20px 16px 0;padding:22px 18px;background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:var(--kk-shadow);text-align:center}
+.kk-footer-top{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+.kk-footer-brand{display:flex;align-items:center;gap:8px}
+.kk-footer-brand svg{width:26px;height:26px}
+.kk-footer-brand span{font-size:15px;font-weight:800;color:var(--kk-text)}
+.kk-age-badge{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:2px solid var(--danger);color:var(--danger);font-size:11px;font-weight:900}
+
+.kk-footer-badges{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:16px}
+.kk-footer-badge{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;background:var(--surface-sunken);border:1px solid var(--border);font-size:11px;font-weight:800;color:var(--kk-text)}
+.kk-footer-badge svg{width:14px;height:14px;color:var(--link)}
+
+.kk-footer-list{margin:18px auto 0;max-width:480px;display:flex;flex-direction:column;gap:8px}
+.kk-footer-list-item{display:flex;align-items:flex-start;gap:8px;text-align:left;font-size:11.5px;line-height:1.6;color:var(--link)}
+.kk-footer-list-item svg{width:14px;height:14px;margin-top:1px;flex-shrink:0}
+
+.kk-footer-warning{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:11px;line-height:1.7;color:var(--kk-muted)}
+.kk-footer-warning b{color:var(--kk-text)}
 .kk-info-bar-icon svg{width:100%;height:100%}
 .kk-info-bar p{font-size:11.5px;line-height:1.6;color:var(--text-muted)}
 
@@ -737,6 +816,29 @@ a{text-decoration:none;color:inherit}
 
 .kk-qr-btn{margin:18px 16px 0;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--kk-blue-grad);color:#fff;font-weight:800;font-size:14px;padding:15px;border-radius:16px;border:0;width:calc(100% - 32px);cursor:pointer}
 .kk-qr-btn svg{width:18px;height:18px}
+
+/* Nested white card sitting inside the agency blue banner */
+.agency-hero-card{position:relative;background:var(--surface);border-radius:18px;padding:22px 18px;box-shadow:0 20px 40px rgba(10,20,50,.18)}
+.agency-hero-card .agency-hero-icon{background:var(--info-bg);border:1px solid var(--border);color:var(--kk-blue)}
+.agency-hero-card .big{color:var(--kk-text)}
+.agency-hero-card .pill{background:var(--info-bg);color:var(--kk-blue)}
+.agency-hero-card .note{color:var(--kk-muted)}
+.kk-list-item .label small{display:block;margin-top:2px;font-size:11px;font-weight:600;color:var(--kk-muted);font-family:monospace}
+
+/* Rebate Ratio page */
+.rebate-tabs{display:flex;gap:8px;overflow-x:auto;padding:14px 16px 4px;scrollbar-width:none}
+.rebate-tabs::-webkit-scrollbar{display:none}
+.rebate-tab{flex-shrink:0;padding:10px 18px;border-radius:14px;font-size:13px;font-weight:800;background:var(--surface);border:1px solid var(--border);color:var(--kk-muted);cursor:pointer}
+.rebate-tab.active{background:var(--kk-blue-grad);color:#fff;border-color:transparent}
+
+.rebate-card{margin:14px 16px 0;padding:16px}
+.rebate-card-title{font-size:14px;font-weight:800;color:var(--kk-text);margin-bottom:8px;display:flex;align-items:baseline;gap:6px}
+.rebate-card-title b{color:var(--kk-blue);font-size:17px}
+.rebate-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--border);font-size:12.5px}
+.rebate-row:first-child{border-top:0}
+.rebate-row .dot{width:12px;height:12px;border-radius:50%;border:3.5px solid var(--kk-blue);flex-shrink:0;background:var(--surface)}
+.rebate-row .lbl{flex:1;color:var(--kk-muted)}
+.rebate-row .val{font-weight:800;color:var(--kk-text)}
 
 /* Wallet page */
 .kk-wallet-banner{background:var(--kk-blue-grad);padding:18px 20px 62px;text-align:center;color:#fff;border-radius:0 0 26px 26px;position:relative}
@@ -784,7 +886,6 @@ a{text-decoration:none;color:inherit}
 
 /* Wallet stat cards (real lifetime-activity data) */
 .wallet-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 16px 0}
-@media(min-width:640px){.wallet-stats-grid{grid-template-columns:repeat(4,1fr)}}
 .wallet-stat-card{padding:12px;display:flex;flex-direction:column;gap:6px}
 .wallet-stat-icon{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;color:#fff}
 .wallet-stat-icon svg{width:14px;height:14px}
@@ -795,7 +896,6 @@ a{text-decoration:none;color:inherit}
 .wallet-stat-spark{width:100%;height:16px;margin-top:0;display:block}
 
 .wallet-quick-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 16px}
-@media(min-width:640px){.wallet-quick-list{grid-template-columns:repeat(4,1fr)}}
 .wallet-quick-card{display:flex;align-items:center;gap:8px;padding:10px;border-radius:14px;background:var(--surface);border:1px solid var(--border);text-decoration:none}
 .wallet-quick-card .kk-list-item-icon{width:28px;height:28px;flex-shrink:0}
 .wallet-quick-card .kk-list-item-icon svg{width:14px;height:14px}
@@ -812,7 +912,6 @@ a{text-decoration:none;color:inherit}
 .deposit-tab span span{font-size:10.5px;color:var(--kk-muted);font-weight:500}
 
 .deposit-grid-2col{display:grid;grid-template-columns:1fr;gap:16px;margin:16px 16px 0}
-@media(min-width:900px){.deposit-grid-2col{grid-template-columns:1.6fr 1fr;align-items:start}}
 .deposit-main-col,.deposit-side-col{display:flex;flex-direction:column;gap:16px;min-width:0}
 
 .deposit-step-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:16px}
@@ -907,19 +1006,6 @@ a{text-decoration:none;color:inherit}
 .kk-empty{margin:70px 16px;text-align:center;color:var(--kk-muted)}
 .kk-empty svg{width:52px;height:52px;color:var(--text-faint);margin-bottom:12px}
 .kk-empty b{display:block;color:var(--kk-text);font-size:15px;margin-bottom:4px}
-
-/* Desktop width for the whole kk-page family (Home/Wallet/Profile/Activity/
-   Agency/Transactions) — centers and widens the header+main pair together,
-   same two-tier pattern already used for the app-shell family (Deposit/
-   Withdraw/Game) via .content/.app-page-content/.game-page-content. Capping
-   the shared parent means every child grid (stat cards, lists, etc.) gets
-   the wider desktop layout automatically, without per-component overrides. */
-@media(min-width:680px){
-  .kk-page > header,.kk-page > main{max-width:980px;margin-left:auto;margin-right:auto}
-}
-@media(min-width:1300px){
-  .kk-page > header,.kk-page > main{max-width:1400px}
-}
 
 /* Auth pages (login / signup) — PK92 */
 .kk-auth-shell{min-height:100vh;background:var(--kk-bg);display:flex;flex-direction:column}

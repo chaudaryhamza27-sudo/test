@@ -1,0 +1,101 @@
+[   16642ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://plausible.io/js/pa-GOSlMmGge4KNVCmai9qmR.js:0
+[   38888ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[   38888ms] [LOG] Site protection loaded successfully @ https://pk92.site/:539
+[   38888ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[   39821ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[   39821ms] [LOG] Site protection loaded successfully @ https://pk92.site/:539
+[   41041ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://pk92.site/:0
+[   41045ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://pk92.site/:0
+[   48254ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[   52228ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/custom-login:0
+[   52230ms] [ERROR] Ignored call to 'alert()'. The document is sandboxed, and the 'allow-modals' keyword is not set. @ https://pk92.site/:1183
+[   67655ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/custom-login:0
+[   67656ms] [ERROR] Ignored call to 'alert()'. The document is sandboxed, and the 'allow-modals' keyword is not set. @ https://pk92.site/:1183
+[   74951ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/custom-login:0
+[   74952ms] [ERROR] Ignored call to 'alert()'. The document is sandboxed, and the 'allow-modals' keyword is not set. @ https://pk92.site/:1183
+[   38888ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[   39821ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[   48254ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[   52228ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/custom-login:0
+[   52230ms] [ERROR] Ignored call to 'alert()'. The document is sandboxed, and the 'allow-modals' keyword is not set. @ https://pk92.site/:1183
+[   67655ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/custom-login:0
+[   67656ms] [ERROR] Ignored call to 'alert()'. The document is sandboxed, and the 'allow-modals' keyword is not set. @ https://pk92.site/:1183
+[   74951ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/custom-login:0
+[   74952ms] [ERROR] Ignored call to 'alert()'. The document is sandboxed, and the 'allow-modals' keyword is not set. @ https://pk92.site/:1183
+[   77543ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/register:484
+[   77543ms] [LOG] Site protection loaded successfully @ https://pk92.site/register:539
+[   78083ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://pk92.site/register:0
+[   78993ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/register:484
+[  103824ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  110132ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  117512ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  120790ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  131661ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  133416ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[   38888ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[   39821ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[   41041ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://pk92.site/:0
+[   48254ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[   52228ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/custom-login:0
+[   52230ms] [ERROR] Ignored call to 'alert()'. The document is sandboxed, and the 'allow-modals' keyword is not set. @ https://pk92.site/:1183
+[   67655ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/custom-login:0
+[   67656ms] [ERROR] Ignored call to 'alert()'. The document is sandboxed, and the 'allow-modals' keyword is not set. @ https://pk92.site/:1183
+[   74951ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/custom-login:0
+[   74952ms] [ERROR] Ignored call to 'alert()'. The document is sandboxed, and the 'allow-modals' keyword is not set. @ https://pk92.site/:1183
+[   77543ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/register:484
+[   78993ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/register:484
+[  103824ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  110132ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  117512ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  120790ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  131661ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  133416ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  135729ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[  135729ms] [LOG] Site protection loaded successfully @ https://pk92.site/:539
+[  135887ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://pk92.site/:0
+[   38888ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[   39821ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[   41041ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://pk92.site/:0
+[   48254ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[   52228ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/custom-login:0
+[   52230ms] [ERROR] Ignored call to 'alert()'. The document is sandboxed, and the 'allow-modals' keyword is not set. @ https://pk92.site/:1183
+[   67655ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/custom-login:0
+[   67656ms] [ERROR] Ignored call to 'alert()'. The document is sandboxed, and the 'allow-modals' keyword is not set. @ https://pk92.site/:1183
+[   74951ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/custom-login:0
+[   74952ms] [ERROR] Ignored call to 'alert()'. The document is sandboxed, and the 'allow-modals' keyword is not set. @ https://pk92.site/:1183
+[   77543ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/register:484
+[   78993ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/register:484
+[  103824ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  110132ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  117512ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  120790ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  131661ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  133416ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  135729ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[  137473ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[  137473ms] [LOG] Site protection loaded successfully @ https://pk92.site/:539
+[  137926ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://pk92.site/:0
+[   38888ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[   39821ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[   41041ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://pk92.site/:0
+[   48254ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[   52228ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/custom-login:0
+[   52230ms] [ERROR] Ignored call to 'alert()'. The document is sandboxed, and the 'allow-modals' keyword is not set. @ https://pk92.site/:1183
+[   67655ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/custom-login:0
+[   67656ms] [ERROR] Ignored call to 'alert()'. The document is sandboxed, and the 'allow-modals' keyword is not set. @ https://pk92.site/:1183
+[   74951ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/custom-login:0
+[   74952ms] [ERROR] Ignored call to 'alert()'. The document is sandboxed, and the 'allow-modals' keyword is not set. @ https://pk92.site/:1183
+[   77543ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/register:484
+[   78993ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/register:484
+[  103824ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  110132ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  117512ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  120790ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  131661ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  133416ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0
+[  135729ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[  137473ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[  140037ms] [ERROR] Permissions policy violation: screen-wake-lock is not allowed in this document. @ https://pk92.site/:484
+[  140037ms] [LOG] Site protection loaded successfully @ https://pk92.site/:539
+[  140055ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://pk92.site/:0
+[  141130ms] [ERROR] Failed to load resource: the server responded with a status of 419 () @ https://pk92.site/auth/register:0

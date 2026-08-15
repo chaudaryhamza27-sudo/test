@@ -1,0 +1,108 @@
+- generic [active] [ref=f53e1]:
+  - generic [ref=f53e2]:
+    - banner [ref=f53e6]:
+      - generic [ref=f53e7]:
+        - link "Back" [ref=f53e8] [cursor=pointer]:
+          - /url: /
+        - link "PK92" [ref=f53e11] [cursor=pointer]:
+          - /url: /
+      - generic [ref=f53e19]:
+        - generic [ref=f53e20]:
+          - generic [ref=f53e21]: Balance
+          - generic [ref=f53e22]: Rs 0.00
+        - link [ref=f53e23] [cursor=pointer]:
+          - /url: /deposit#deposit-options
+        - button "Account menu" [ref=f53e27] [cursor=pointer]
+    - main [ref=f53e31]:
+      - generic [ref=f53e33]:
+        - generic [ref=f53e34]:
+          - generic [ref=f53e35]: ✦ CASH OUT DEMO CREDITS
+          - heading "Withdraw Demo Credits" [level=1] [ref=f53e36]
+          - paragraph [ref=f53e37]: Submit a withdrawal request for admin review. Funds are held from your demo balance immediately — no real payout is ever issued to any real account.
+        - generic [ref=f53e38]:
+          - generic [ref=f53e39]: 🖊️
+          - text: Demo Mode
+      - generic [ref=f53e40]:
+        - generic [ref=f53e41]:
+          - heading "Select Amount" [level=2] [ref=f53e42]
+          - generic [ref=f53e43]: Play coins
+        - generic [ref=f53e44]:
+          - generic [ref=f53e45]:
+            - generic [ref=f53e47] [cursor=pointer]:
+              - generic [ref=f53e48]: 🪙
+              - generic [ref=f53e49]:
+                - generic [ref=f53e50]: "500"
+                - generic [ref=f53e51]: Coins
+            - generic [ref=f53e53] [cursor=pointer]:
+              - generic [ref=f53e54]: 🪙
+              - generic [ref=f53e55]:
+                - generic [ref=f53e56]: 1,000
+                - generic [ref=f53e57]: Coins
+            - generic [ref=f53e59] [cursor=pointer]:
+              - generic [ref=f53e60]: 🪙
+              - generic [ref=f53e61]:
+                - generic [ref=f53e62]: 5,000
+                - generic [ref=f53e63]: Coins
+            - generic [ref=f53e65] [cursor=pointer]:
+              - generic [ref=f53e66]: 🪙
+              - generic [ref=f53e67]:
+                - generic [ref=f53e68]: 7,000
+                - generic [ref=f53e69]: Coins
+            - generic [ref=f53e71] [cursor=pointer]:
+              - generic [ref=f53e72]: 🪙
+              - generic [ref=f53e73]:
+                - generic [ref=f53e74]: 10,000
+                - generic [ref=f53e75]: Coins
+            - generic [ref=f53e77] [cursor=pointer]:
+              - generic [ref=f53e78]: 🪙
+              - generic [ref=f53e79]:
+                - generic [ref=f53e80]: 15,000
+                - generic [ref=f53e81]: Coins
+            - generic [ref=f53e83] [cursor=pointer]:
+              - generic [ref=f53e84]: 🪙
+              - generic [ref=f53e85]:
+                - generic [ref=f53e86]: 25,000
+                - generic [ref=f53e87]: Coins
+            - generic [ref=f53e89] [cursor=pointer]:
+              - generic [ref=f53e90]: 🪙
+              - generic [ref=f53e91]:
+                - generic [ref=f53e92]: 50,000
+                - generic [ref=f53e93]: Coins
+          - generic [ref=f53e94]:
+            - generic [ref=f53e95]:
+              - text: Manual Amount
+              - generic [ref=f53e96]: Minimum 500
+            - spinbutton "Enter custom amount" [ref=f53e97]: "500"
+          - generic [ref=f53e98]:
+            - heading "Payout Method" [level=2] [ref=f53e99]
+            - generic [ref=f53e100]: Choose one
+          - generic [ref=f53e101]:
+            - generic [ref=f53e103] [cursor=pointer]:
+              - generic [ref=f53e104]: 📱
+              - text: Mobile Wallet
+            - generic [ref=f53e106] [cursor=pointer]:
+              - generic [ref=f53e107]: 💳
+              - text: Bank Transfer
+          - textbox "Account number" [ref=f53e108]
+          - button "💸 Withdraw 500" [ref=f53e109] [cursor=pointer]
+      - generic [ref=f53e110]: ✅ Held funds are refunded automatically if an admin rejects the request. Minimum withdraw is Rs 500.
+      - generic [ref=f53e111]:
+        - text: PK92 is an educational simulation using demo credits only — no real money or payout is ever issued. See our
+        - link "Terms" [ref=f53e112] [cursor=pointer]:
+          - /url: /legal/terms
+        - text: and
+        - link "Withdrawal Policy" [ref=f53e113] [cursor=pointer]:
+          - /url: /legal/withdrawal-policy
+        - text: .
+    - navigation [ref=f53e114]:
+      - link "Promotion" [ref=f53e115] [cursor=pointer]:
+        - /url: /agency
+      - link "Activity" [ref=f53e119] [cursor=pointer]:
+        - /url: /activity
+      - link [ref=f53e124] [cursor=pointer]:
+        - /url: /game
+      - link "Wallet" [ref=f53e130] [cursor=pointer]:
+        - /url: /wallet
+      - link "Account" [ref=f53e135] [cursor=pointer]:
+        - /url: /profile
+  - button "Open Next.js Dev Tools" [ref=f53e145] [cursor=pointer]

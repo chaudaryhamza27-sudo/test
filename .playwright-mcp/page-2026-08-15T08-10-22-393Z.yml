@@ -1,0 +1,56 @@
+- generic [active] [ref=f7e1]:
+  - generic [ref=f7e2]:
+    - banner [ref=f7e3]:
+      - generic [ref=f7e4]: Agency
+    - main [ref=f7e5]:
+      - generic [ref=f7e7]:
+        - generic [ref=f7e14]: "0"
+        - generic [ref=f7e15]: Your total referrals
+        - generic [ref=f7e16]: Share your invite code to grow your referral network
+      - button "Download QR Code" [ref=f7e17] [cursor=pointer]
+      - generic [ref=f7e23]:
+        - button "Copy invitation code …" [disabled] [ref=f7e24] [cursor=pointer]:
+          - generic [ref=f7e29]:
+            - text: Copy invitation code
+            - generic [ref=f7e30]: …
+        - button "Subordinate data" [ref=f7e31] [cursor=pointer]
+        - button "Commission detail" [ref=f7e41] [cursor=pointer]
+      - generic [ref=f7e50]:
+        - button "Agent line customer service" [ref=f7e51] [cursor=pointer]
+        - button "Rebate ratio" [ref=f7e62] [cursor=pointer]
+      - generic [ref=f7e72]:
+        - generic [ref=f7e73]:
+          - generic [ref=f7e74]: Promotion Data
+          - generic [ref=f7e78]:
+            - button "Month" [ref=f7e79] [cursor=pointer]
+            - button "All time" [ref=f7e83] [cursor=pointer]
+        - generic [ref=f7e87]:
+          - generic [ref=f7e88]:
+            - generic [ref=f7e95]: Referred Users
+            - generic [ref=f7e96]: …
+            - generic [ref=f7e97]: Users you invited
+          - generic [ref=f7e98]:
+            - generic [ref=f7e104]: Referrals who Deposited
+            - generic [ref=f7e105]: …
+            - generic [ref=f7e106]: Users who made a deposit
+          - generic [ref=f7e107]:
+            - generic [ref=f7e112]: Total Deposit Amount
+            - generic [ref=f7e113]: …
+            - generic [ref=f7e114]: Total amount deposited
+          - generic [ref=f7e115]:
+            - generic [ref=f7e121]: Total Deposit Count
+            - generic [ref=f7e122]: …
+            - generic [ref=f7e123]: Total number of deposits
+      - generic [ref=f7e124]: Invite friends and earn bonuses. All data is updated in real-time.
+    - navigation [ref=f7e128]:
+      - link "Promotion" [ref=f7e129] [cursor=pointer]:
+        - /url: /agency
+      - link "Activity" [ref=f7e133] [cursor=pointer]:
+        - /url: /activity
+      - link [ref=f7e138] [cursor=pointer]:
+        - /url: /game
+      - link "Wallet" [ref=f7e144] [cursor=pointer]:
+        - /url: /wallet
+      - link "Account" [ref=f7e149] [cursor=pointer]:
+        - /url: /profile
+  - button "Open Next.js Dev Tools" [ref=f7e159] [cursor=pointer]

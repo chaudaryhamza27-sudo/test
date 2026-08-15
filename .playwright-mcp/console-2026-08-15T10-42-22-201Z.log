@@ -1,0 +1,10 @@
+[     733ms] [ERROR] Failed to load resource: the server responded with a status of 403 () @ https://pk92.site/:0
+[    2035ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://pk92.site/favicon.ico:0
+[    6990ms] [LOG] Site protection loaded successfully @ https://pk92.site/:539
+[    9604ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://pk92.site/:0
+[  853248ms] [INFO] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://fonts.gstatic.com/s/roboto/v48/KFO7CnqEu92Fr1ME7kSn66aGLdTylUAMa3yUBA.woff2 @ https://www.youtube.com/embed/PZejs3XDCSY?playsinline=1:0
+[  853533ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://pk92.site/fonts/ALKSanet.woff2:0
+[  854313ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://pk92.site/fonts/ALKSanet.woff:0
+[  855130ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://pk92.site/fonts/ALKSanet.ttf:0
+[  859013ms] [WARNING] The powerPreference option is currently ignored when calling requestAdapter() on Windows. See https://crbug.com/369219127 @ :0
+[  859214ms] [WARNING] No available adapters. @ https://www.youtube.com/embed/PZejs3XDCSY?playsinline=1:0

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { IconEagle, IconChevronLeft } from "../icons";
+import { IconEagle, IconChevronLeft, IconDeposit } from "../icons";
 import ProfileMenu from "./ProfileMenu";
 
 const money = (n) => Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -65,8 +65,9 @@ export default function AppShellHeader({ subtitle = "UI Showcase", showTrustBadg
           <div className="lbl">Balance</div>
           <div className="val">Rs {balance === null ? "0.00" : money(balance)}</div>
         </div>
-        <Link href="/deposit#deposit-options" className="badge-pill badge-info" style={{ textDecoration: "none", height: 34, padding: "0 14px" }}>
-          + Add Funds
+        <Link href="/deposit#deposit-options" className="badge-pill badge-info add-funds-btn" style={{ textDecoration: "none", height: 34, padding: "0 14px" }}>
+          <IconDeposit style={{ width: 13, height: 13, flexShrink: 0 }} />
+          <span className="add-funds-label">Add Funds</span>
         </Link>
         <ProfileMenu />
       </div>

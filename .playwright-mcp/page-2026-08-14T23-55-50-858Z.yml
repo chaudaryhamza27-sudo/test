@@ -1,0 +1,152 @@
+- generic [active] [ref=f7e1]:
+  - generic [ref=f7e2]:
+    - banner [ref=f7e3]:
+      - link "PK92" [ref=f7e4] [cursor=pointer]:
+        - /url: /
+      - generic [ref=f7e11]:
+        - generic [ref=f7e18]:
+          - generic [ref=f7e19]: Balance
+          - generic [ref=f7e20]: Rs0.00
+        - button "Notifications" [ref=f7e22] [cursor=pointer]
+        - button "Account menu" [ref=f7e27] [cursor=pointer]
+    - main [ref=f7e31]:
+      - generic [ref=f7e32]:
+        - generic [ref=f7e34]:
+          - generic [ref=f7e36]:
+            - generic [ref=f7e37]:
+              - text: Join Our Official
+              - generic [ref=f7e38]: Channel Now!
+            - generic [ref=f7e39]: — PK92 —
+            - button "Join Now" [ref=f7e40] [cursor=pointer]
+          - generic [ref=f7e44]:
+            - generic [ref=f7e45]:
+              - text: Join Our Official
+              - generic [ref=f7e46]: Channel Now!
+            - generic [ref=f7e47]: — PK92 —
+            - button "Join Now" [ref=f7e48] [cursor=pointer]
+          - generic [ref=f7e52]:
+            - generic [ref=f7e53]:
+              - text: Join Our Official
+              - generic [ref=f7e54]: Channel Now!
+            - generic [ref=f7e55]: — PK92 —
+            - button "Join Now" [ref=f7e56] [cursor=pointer]
+          - generic [ref=f7e60]:
+            - generic [ref=f7e61]:
+              - text: Join Our Official
+              - generic [ref=f7e62]: Channel Now!
+            - generic [ref=f7e63]: — PK92 —
+            - button "Join Now" [ref=f7e64] [cursor=pointer]
+          - generic [ref=f7e68]:
+            - generic [ref=f7e69]:
+              - text: Join Our Official
+              - generic [ref=f7e70]: Channel Now!
+            - generic [ref=f7e71]: — PK92 —
+            - button "Join Now" [ref=f7e72] [cursor=pointer]
+          - generic [ref=f7e76]:
+            - generic [ref=f7e77]:
+              - text: Join Our Official
+              - generic [ref=f7e78]: Channel Now!
+            - generic [ref=f7e79]: — PK92 —
+            - button "Join Now" [ref=f7e80] [cursor=pointer]
+        - generic [ref=f7e90]:
+          - generic [ref=f7e91]: Daily Gift
+          - paragraph [ref=f7e97]: There is a daily gift code waiting for you!
+          - generic [ref=f7e98]:
+            - generic [ref=f7e99]: PK92DAILY
+            - button "Copy code" [ref=f7e100] [cursor=pointer]
+          - paragraph [ref=f7e104]: Redeem and enjoy rewards every day!
+          - button "Claim Gift" [ref=f7e105] [cursor=pointer]
+      - generic [ref=f7e110]:
+        - generic [ref=f7e115]: Welcome to PK92, the most trusted and fastest site, you can play our games anytime, anywhere.
+        - button "Detail" [ref=f7e116] [cursor=pointer]
+      - navigation [ref=f7e120]:
+        - button "Slots" [ref=f7e121] [cursor=pointer]
+        - button "Lottery" [ref=f7e129] [cursor=pointer]
+        - button "Casino" [ref=f7e135] [cursor=pointer]
+        - button "Rummy" [ref=f7e141] [cursor=pointer]
+        - button "Fishing" [ref=f7e147] [cursor=pointer]
+      - generic [ref=f7e154]:
+        - generic [ref=f7e155]:
+          - heading "Recommended More 4" [level=2] [ref=f7e156]:
+            - text: Recommended
+            - generic [ref=f7e157]: More 4
+          - generic [ref=f7e158]:
+            - button "Previous" [ref=f7e159] [cursor=pointer]
+            - button "Next" [ref=f7e162] [cursor=pointer]
+        - paragraph [ref=f7e165]: The most popular electronic games among players
+        - generic [ref=f7e166]:
+          - link "Hot Aviator Crash Game" [ref=f7e167] [cursor=pointer]:
+            - /url: /game
+            - generic [ref=f7e168]: Hot
+            - generic [ref=f7e178]:
+              - generic [ref=f7e179]: Aviator
+              - generic [ref=f7e180]: Crash Game
+          - generic [ref=f7e182] [cursor=pointer]:
+            - generic [ref=f7e183]: Hot
+            - generic [ref=f7e197]:
+              - generic [ref=f7e198]: Golden Ox
+              - generic [ref=f7e199]: Slots
+          - generic [ref=f7e206] [cursor=pointer]:
+            - generic [ref=f7e207]: New
+            - generic [ref=f7e221]:
+              - generic [ref=f7e222]: Lucky Wheel
+              - generic [ref=f7e223]: Lottery
+          - generic [ref=f7e228] [cursor=pointer]:
+            - generic [ref=f7e229]:
+              - generic [ref=f7e230]: Hot
+              - img [ref=f7e231]:
+                - generic [ref=f7e232]:
+                  - generic [ref=f7e234]: K
+                  - generic [ref=f7e235]: ♥
+                - generic [ref=f7e236]:
+                  - generic [ref=f7e238]: A
+                  - generic [ref=f7e239]: ♠
+                - generic [ref=f7e240]:
+                  - generic [ref=f7e242]: Q
+                  - generic [ref=f7e243]: ♦
+            - generic [ref=f7e244]:
+              - generic [ref=f7e245]: Royal Flush
+              - generic [ref=f7e246]: Casino
+          - generic [ref=f7e251] [cursor=pointer]:
+            - generic [ref=f7e252]: Hot
+            - generic [ref=f7e261]:
+              - generic [ref=f7e262]: Teen Patti
+              - generic [ref=f7e263]: Rummy
+          - generic [ref=f7e268] [cursor=pointer]:
+            - generic [ref=f7e269]: New
+            - generic [ref=f7e277]:
+              - generic [ref=f7e278]: Big Bass
+              - generic [ref=f7e279]: Fishing
+          - generic [ref=f7e285] [cursor=pointer]:
+            - generic [ref=f7e286]: Hot
+            - generic [ref=f7e296]:
+              - generic [ref=f7e297]: Fortune Dragon
+              - generic [ref=f7e298]: Slots
+          - button "Detail" [ref=f7e305] [cursor=pointer]
+      - generic [ref=f7e312]:
+        - generic [ref=f7e313]:
+          - generic [ref=f7e314]: PK92
+          - generic [ref=f7e320]: 18+
+        - generic [ref=f7e321]:
+          - generic [ref=f7e322]: Fair Play Audited
+          - generic [ref=f7e326]: SSL Secured
+          - generic [ref=f7e331]: Demo Credits Only
+          - generic [ref=f7e334]: 24/7 Support
+        - list [ref=f7e340]:
+          - listitem [ref=f7e341]: This platform is an educational UI simulation — every credit shown is a demo credit with no real-world value.
+          - listitem [ref=f7e344]: The Aviator crash game runs on a real backend, but no real money is ever wagered or paid out.
+          - listitem [ref=f7e347]: PK92 is a portfolio/demo project and does not accept real deposits or process real withdrawals.
+          - listitem [ref=f7e350]: Built to showcase gaming-platform UI/UX and full-stack engineering patterns.
+        - generic [ref=f7e353]: Gambling can be addictive — please play responsibly. PK92 only simulates access for users aged 18 and above.
+    - navigation [ref=f7e354]:
+      - link "Promotion" [ref=f7e355] [cursor=pointer]:
+        - /url: /agency
+      - link "Activity" [ref=f7e359] [cursor=pointer]:
+        - /url: /activity
+      - link [ref=f7e364] [cursor=pointer]:
+        - /url: /game
+      - link "Wallet" [ref=f7e370] [cursor=pointer]:
+        - /url: /wallet
+      - link "Account" [ref=f7e375] [cursor=pointer]:
+        - /url: /profile
+  - button "Open Next.js Dev Tools" [ref=f7e385] [cursor=pointer]

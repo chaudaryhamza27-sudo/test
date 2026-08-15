@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { heroSlides, navTabs, categories, sections, TAG_ICONS } from "./data";
 import BottomNav from "./components/BottomNav";
-import NotificationBell from "./components/NotificationBell";
-import ProfileMenu from "./components/ProfileMenu";
 import {
   IconEagle,
   IconCoinWallet,
@@ -17,10 +15,7 @@ import {
   IconRummy,
   IconFishing,
   IconHome,
-  IconGift,
-  IconCopy,
   IconPlane,
-  IconInfo,
   IconGameAviator,
   IconGameOx,
   IconGameWheel,
@@ -28,6 +23,15 @@ import {
   IconGameCrown,
   IconGameFish,
   IconGameDragon,
+  IconGrid,
+  IconShield,
+  IconLockLine,
+  IconStar,
+  IconHeadset,
+  IconCheck,
+  IconGlobe,
+  IconMegaphone,
+  IconInfo,
 } from "./icons";
 
 const CATEGORY_ICONS = {
@@ -49,12 +53,13 @@ const GAME_ICONS = {
   IconGameDragon,
 };
 
-const DAILY_CODE = "PK92DAILY";
-
 export default function Home() {
   const [slide, setSlide] = useState(0);
   const [popup, setPopup] = useState(null);
-  const [balance, setBalance] = useState(null);
+  // undefined = auth check still in flight (render nothing in the header
+  // slot to avoid a login/register flash before we know); null = logged
+  // out; object = logged in.
+  const [user, setUser] = useState(undefined);
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -66,24 +71,31 @@ export default function Home() {
   useEffect(() => {
     fetch("/api/auth/me")
       .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data) => setBalance(data.user.balance))
-      .catch(() => setBalance(null));
+      .then((data) => setUser(data.user))
+      .catch(() => setUser(null));
   }, []);
 
-  const [codeCopied, setCodeCopied] = useState(false);
+  const balance = user?.balance ?? 0;
 
   const openDemo = (name) => setPopup(name);
   const closeDemo = () => setPopup(null);
 
-  const copyCode = () => {
-    navigator.clipboard?.writeText(DAILY_CODE).catch(() => {});
-    setCodeCopied(true);
-    setTimeout(() => setCodeCopied(false), 1500);
-  };
-
   const scrollGames = (e, dir) => {
     const row = e.currentTarget.closest("section")?.querySelector(".kk-games");
     if (row) row.scrollBy({ left: dir * row.clientWidth * 0.8, behavior: "smooth" });
+  };
+
+  const sectionId = (title) => `sec-${title.toLowerCase().replace(/\s+/g, "-")}`;
+
+  // Category icon tap — smooth-scrolls down to that category's own section
+  // further down the page instead of popping a demo dialog, matching how
+  // the reference site's category row jumps straight to the section.
+  const goToSection = (title) => {
+    const el = document.getElementById(sectionId(title));
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    el.classList.add("kk-section-flash");
+    setTimeout(() => el.classList.remove("kk-section-flash"), 900);
   };
 
   return (
@@ -118,19 +130,26 @@ export default function Home() {
           })}
         </nav>
 
-        <div className="kk-header-right">
-          <div className="kk-balance">
-            <div className="kk-balance-icon">
-              <IconCoinWallet />
-            </div>
-            <div className="kk-balance-text">
-              <div className="kk-balance-label">Balance</div>
-              <div className="kk-balance-value">Rs{Number(balance ?? 0).toFixed(2)}</div>
+        {user === undefined ? (
+          <div className="kk-header-right" style={{ visibility: "hidden" }} />
+        ) : user ? (
+          <div className="kk-header-right">
+            <div className="kk-balance">
+              <div className="kk-balance-icon">
+                <IconCoinWallet />
+              </div>
+              <div className="kk-balance-text">
+                <div className="kk-balance-label">Balance</div>
+                <div className="kk-balance-value">Rs{Number(balance).toFixed(2)}</div>
+              </div>
             </div>
           </div>
-          <NotificationBell />
-          <ProfileMenu />
-        </div>
+        ) : (
+          <div className="kk-header-auth">
+            <Link href="/login" className="kk-header-login">Log in</Link>
+            <Link href="/signup" className="kk-header-register">Register</Link>
+          </div>
+        )}
       </header>
 
       <main>
@@ -163,27 +182,6 @@ export default function Home() {
               ))}
             </div>
           </div>
-
-          <div className="kk-gift-card">
-            <div className="kk-gift-head">
-              <div className="kk-gift-icon">
-                <IconGift />
-              </div>
-              Daily Gift
-            </div>
-            <p className="kk-gift-desc">There is a daily gift code waiting for you!</p>
-            <div className="kk-gift-code">
-              <span>{DAILY_CODE}</span>
-              <button type="button" onClick={copyCode} aria-label="Copy code">
-                <IconCopy />
-              </button>
-            </div>
-            <p className="kk-gift-note">{codeCopied ? "Copied!" : "Redeem and enjoy rewards every day!"}</p>
-            <button type="button" className="kk-gift-btn" onClick={() => openDemo("Daily Gift")}>
-              <IconGift style={{ width: 14, height: 14 }} />
-              Claim Gift
-            </button>
-          </div>
         </section>
 
         <section className="kk-notice">
@@ -203,8 +201,13 @@ export default function Home() {
         <nav className="kk-cats">
           {categories.map((c) => {
             const Icon = CATEGORY_ICONS[c.icon];
+            const hasSection = sections.some((sec) => sec.title === c.label);
             return (
-              <button key={c.key} className="kk-cat" onClick={() => openDemo(c.label)}>
+              <button
+                key={c.key}
+                className="kk-cat"
+                onClick={() => (hasSection ? goToSection(c.label) : openDemo(c.label))}
+              >
                 <div className="kk-cat-icon" style={{ background: `linear-gradient(160deg, ${c.tint[0]}, ${c.tint[1]})` }}>
                   {Icon && <Icon />}
                 </div>
@@ -215,7 +218,7 @@ export default function Home() {
         </nav>
 
         {sections.map((sec) => (
-          <section key={sec.title}>
+          <section key={sec.title} id={sectionId(sec.title)} className="kk-section">
             <div className="kk-section-head">
               <h2 className="kk-section-title">
                 {sec.title}
@@ -260,18 +263,90 @@ export default function Home() {
                   </div>
                 );
               })}
+              {!sec.noDetail && (
+                <button type="button" className="kk-game-card detail" onClick={() => openDemo(`${sec.title} — More`)}>
+                  <IconGrid />
+                  <span>Detail</span>
+                </button>
+              )}
             </div>
           </section>
         ))}
 
-        <footer className="kk-info-bar">
-          <div className="kk-info-bar-icon">
-            <IconInfo />
+        <div className="kk-section-head" style={{ padding: "18px 16px 8px" }}>
+          <span className="kk-section-title" style={{ fontSize: 15 }}>Basic Tools</span>
+        </div>
+        <section className="card" style={{ margin: "0 16px", padding: "18px 8px" }}>
+          <div className="kk-quick-actions" style={{ padding: "0 8px", justifyContent: "space-between" }}>
+            <button type="button" className="kk-quick-action" onClick={() => openDemo("Language")}>
+              <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#33d19a,#1a9450)" }}>
+                <IconGlobe />
+              </span>
+              <span>Language</span>
+            </button>
+            <button type="button" className="kk-quick-action" onClick={() => openDemo("Announcement")}>
+              <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#ffb23d,#e8531b)" }}>
+                <IconMegaphone />
+              </span>
+              <span>Announcement</span>
+            </button>
+            <Link href="/legal/contact" className="kk-quick-action">
+              <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#4aa8ff,#1565e8)" }}>
+                <IconHeadset />
+              </span>
+              <span>24/7 Customer service</span>
+            </Link>
+            <Link href="/legal" className="kk-quick-action">
+              <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#7c5cff,#4a2fd6)" }}>
+                <IconInfo />
+              </span>
+              <span>About us</span>
+            </Link>
           </div>
-          <p>
-            PK92 is an educational simulation. Your balance and the Aviator game are real and
-            backend-connected — but every credit is a demo credit with no real value.
-          </p>
+        </section>
+
+        <footer className="kk-footer-box">
+          <div className="kk-footer-top">
+            <div className="kk-footer-brand">
+              <IconEagle />
+              <span>PK92</span>
+            </div>
+            <div className="kk-age-badge">18+</div>
+          </div>
+
+          <div className="kk-footer-badges">
+            <span className="kk-footer-badge"><IconShield />Fair Play Audited</span>
+            <span className="kk-footer-badge"><IconLockLine />SSL Secured</span>
+            <span className="kk-footer-badge"><IconStar />Demo Credits Only</span>
+            <span className="kk-footer-badge"><IconHeadset />24/7 Support</span>
+          </div>
+
+          <ul className="kk-footer-list">
+            <li className="kk-footer-list-item">
+              <IconCheck />
+              This platform is an educational UI simulation — every credit shown is a demo
+              credit with no real-world value.
+            </li>
+            <li className="kk-footer-list-item">
+              <IconCheck />
+              The Aviator crash game runs on a real backend, but no real money is ever wagered
+              or paid out.
+            </li>
+            <li className="kk-footer-list-item">
+              <IconCheck />
+              PK92 is a portfolio/demo project and does not accept real deposits or process real
+              withdrawals.
+            </li>
+            <li className="kk-footer-list-item">
+              <IconCheck />
+              Built to showcase gaming-platform UI/UX and full-stack engineering patterns.
+            </li>
+          </ul>
+
+          <div className="kk-footer-warning">
+            Gambling can be addictive — please play responsibly. <b>PK92</b> only simulates
+            access for users aged 18 and above.
+          </div>
         </footer>
       </main>
 

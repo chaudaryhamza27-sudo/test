@@ -23,13 +23,6 @@ const QUICK_AMOUNTS = [100, 500, 1000, 5000];
 const MIN_BET = 10;
 const MAX_BET = 100000;
 
-const CONNECTION_LABELS = {
-  connected: { label: "Live", tone: "success" },
-  connecting: { label: "Connecting…", tone: "warning" },
-  reconnecting: { label: "Reconnecting…", tone: "warning" },
-  polling: { label: "Live (basic mode)", tone: "info" },
-};
-
 const TABS = [
   { key: "mine", label: "My Bets", icon: IconWallet, endpoint: "/api/game/my-history", authOnly: true },
   { key: "all", label: "All Bets", icon: IconUsers, endpoint: "/api/game/all-bets", authOnly: false },
@@ -52,18 +45,18 @@ const mult = (n) => `${Number(n ?? 0).toFixed(2)}x`;
 
 export default function GamePage() {
   const router = useRouter();
-  const { state, authed, connectionStatus, roundFinishedAt, placeBet: socketPlaceBet, cashOut: socketCashOut } = useGameSocket();
+  const { state, authed, roundFinishedAt, placeBet: socketPlaceBet, cashOut: socketCashOut } = useGameSocket();
   const [history, setHistory] = useState([]);
   const [showAllRecent, setShowAllRecent] = useState(false);
   const [amount, setAmount] = useState(100);
   const [autoCashout, setAutoCashout] = useState(2);
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState("");
-  const [copied, setCopied] = useState(false);
   const [tab, setTab] = useState("mine");
   const [tableItems, setTableItems] = useState([]);
   const [tableLoading, setTableLoading] = useState(true);
   const [showGrid, setShowGrid] = useState(true);
+  const [copied, setCopied] = useState(false);
   const stageRef = useRef(null);
   const autoFiredRef = useRef(null);
 
@@ -161,8 +154,6 @@ export default function GamePage() {
   const canBet = authed && phase === "WAITING" && !myBet;
   const canCashOut = authed && phase === "RUNNING" && myBet?.status === "placed";
   const insufficientBalance = canBet && balance < amount;
-  const playerCount = state?.playerCount ?? 0;
-  const roundShort = state?.roundId ? String(state.roundId).slice(-6) : "------";
 
   // Client-side auto cash-out: fires the real cash-out request the moment the
   // polled multiplier crosses the target, same API path as the manual button.
@@ -211,6 +202,9 @@ export default function GamePage() {
   };
 
   const visibleRecent = showAllRecent ? history : history.slice(0, 5);
+  const recentChips = history.slice(0, 8);
+  const playerCount = state?.playerCount ?? 0;
+  const roundShort = state?.roundId ? String(state.roundId).slice(-6) : "------";
   const activeTabConfig = TABS.find((t) => t.key === tab);
   const showPlayerCol = tab !== "mine";
   const showStatusCol = tab !== "top";
@@ -224,6 +218,19 @@ export default function GamePage() {
       <AppShellHeader subtitle="Aviator — Simulation" balance={state?.balance ?? 0} showTrustBadges={false} />
 
       <main className="content game-page-content" style={{ paddingTop: 14 }}>
+        <div className="game-recent-strip-head">Recent Rounds</div>
+        <div className="game-history-strip">
+          {recentChips.length === 0 ? (
+            <span className="game-history-empty">Recent rounds will appear here</span>
+          ) : (
+            recentChips.map((h) => (
+              <span key={h.id} className={`game-history-chip ${h.crashPoint < 200 ? "low" : "high"}`}>
+                {(h.crashPoint / 100).toFixed(2)}x
+              </span>
+            ))
+          )}
+        </div>
+
         <div className="game-round-bar">
           <div className="game-round-id">
             Round ID: {roundShort}
@@ -231,14 +238,10 @@ export default function GamePage() {
               <IconCopy />
             </button>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <span className={`badge-pill badge-${CONNECTION_LABELS[connectionStatus]?.tone || "neutral"}`}>
-              {CONNECTION_LABELS[connectionStatus]?.label || connectionStatus}
-            </span>
-            <div className="game-players">
-              <span className="dot" />
-              {playerCount} {playerCount === 1 ? "player" : "players"} this round
-            </div>
+          <span className="badge-pill game-mode-badge">Basic Mode</span>
+          <div className="game-players">
+            <span className="dot" />
+            {playerCount} {playerCount === 1 ? "player" : "players"} this round
           </div>
         </div>
 
@@ -284,71 +287,12 @@ export default function GamePage() {
               <div className="game-login-note">Checking your session…</div>
             )}
 
-            <section className="game-bets-panel">
-              <div className="game-tabs">
-                {TABS.map((t) => (
-                  <button key={t.key} className={`game-tab ${tab === t.key ? "active" : ""}`} onClick={() => setTab(t.key)}>
-                    <t.icon />
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="game-table-wrap">
-                {activeTabConfig?.authOnly && !authed ? (
-                  <div className="game-table-empty">
-                    <Link href="/login">Log in</Link> to see your bet history.
-                  </div>
-                ) : tableLoading ? (
-                  <div className="game-table-empty">Loading…</div>
-                ) : tableItems.length === 0 ? (
-                  <div className="game-table-empty">No bets to show yet.</div>
-                ) : (
-                  <table className="game-table">
-                    <thead>
-                      <tr>
-                        {showPlayerCol && <th>Player</th>}
-                        <th>Round ID</th>
-                        <th>Bet (Rs)</th>
-                        <th>Cash Out (x)</th>
-                        <th>Win (Rs)</th>
-                        {showStatusCol && <th>Status</th>}
-                        <th>Time</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {tableItems.map((row) => {
-                        const won = row.status === "cashed_out" || tab === "top";
-                        const running = row.status === "placed";
-                        return (
-                          <tr key={row.id}>
-                            {showPlayerCol && <td className="muted">Player #{row.uid ?? "—"}</td>}
-                            <td className="muted">{row.roundId ? String(row.roundId).slice(-6) : "—"}</td>
-                            <td>{money(row.amount)}</td>
-                            <td className="muted">{row.cashoutMultiplier ? mult(row.cashoutMultiplier) : "—"}</td>
-                            <td className={won ? "win" : "muted"}>{won ? money(row.payout) : "—"}</td>
-                            {showStatusCol && (
-                              <td>
-                                <span className={`badge-pill ${won ? "badge-success" : running ? "badge-warning" : "badge-danger"}`}>
-                                  {won ? "Cashed Out" : running ? "Running" : "Lost"}
-                                </span>
-                              </td>
-                            )}
-                            <td className="muted">{timeAgo(row.createdAt)}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            </section>
-          </div>
-
-          <aside className="game-side-col">
             {authed && (
               <section className="game-bet-panel">
-                <h2>Place Your Bet</h2>
+                <div className="game-bet-panel-head">
+                  <h2>Place Your Bet</h2>
+                  <span className="badge-pill">Demo Mode</span>
+                </div>
 
                 <div className="game-field-label">Bet Amount (Rs)</div>
                 <div className="game-amount-row">
@@ -440,6 +384,68 @@ export default function GamePage() {
               </section>
             )}
 
+            <section className="game-bets-panel">
+              <div className="game-tabs">
+                {TABS.map((t) => (
+                  <button key={t.key} className={`game-tab ${tab === t.key ? "active" : ""}`} onClick={() => setTab(t.key)}>
+                    <t.icon />
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="game-table-wrap">
+                {activeTabConfig?.authOnly && !authed ? (
+                  <div className="game-table-empty">
+                    <Link href="/login">Log in</Link> to see your bet history.
+                  </div>
+                ) : tableLoading ? (
+                  <div className="game-table-empty">Loading…</div>
+                ) : tableItems.length === 0 ? (
+                  <div className="game-table-empty">No bets to show yet.</div>
+                ) : (
+                  <table className="game-table">
+                    <thead>
+                      <tr>
+                        {showPlayerCol && <th>Player</th>}
+                        <th>Round ID</th>
+                        <th>Bet (Rs)</th>
+                        <th>Cash Out (x)</th>
+                        <th>Win (Rs)</th>
+                        {showStatusCol && <th>Status</th>}
+                        <th>Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {tableItems.map((row) => {
+                        const won = row.status === "cashed_out" || tab === "top";
+                        const running = row.status === "placed";
+                        return (
+                          <tr key={row.id}>
+                            {showPlayerCol && <td className="muted">Player #{row.uid ?? "—"}</td>}
+                            <td className="muted">{row.roundId ? String(row.roundId).slice(-6) : "—"}</td>
+                            <td>{money(row.amount)}</td>
+                            <td className="muted">{row.cashoutMultiplier ? mult(row.cashoutMultiplier) : "—"}</td>
+                            <td className={won ? "win" : "muted"}>{won ? money(row.payout) : "—"}</td>
+                            {showStatusCol && (
+                              <td>
+                                <span className={`badge-pill ${won ? "badge-success" : running ? "badge-warning" : "badge-danger"}`}>
+                                  {won ? "Cashed Out" : running ? "Running" : "Lost"}
+                                </span>
+                              </td>
+                            )}
+                            <td className="muted">{timeAgo(row.createdAt)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </section>
+          </div>
+
+          <aside className="game-side-col">
             <section className="game-recent-panel">
               <div className="game-recent-head">
                 <h2>Recent Rounds</h2>

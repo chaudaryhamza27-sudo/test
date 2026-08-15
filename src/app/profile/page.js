@@ -15,7 +15,15 @@ import {
   IconGameHistory,
   IconTransaction,
   IconChevronRight,
-  IconShield,
+  IconGift,
+  IconChartLine,
+  IconGlobe,
+  IconLogout,
+  IconSettings,
+  IconFeedback,
+  IconMegaphone,
+  IconHeadset,
+  IconInfo,
 } from "../icons";
 
 export default function ProfilePage() {
@@ -47,6 +55,8 @@ export default function ProfilePage() {
   const tier = vip?.tier || "Member";
 
   const closeNotice = () => setNotice(null);
+
+  const openDemo = (label) => setNotice({ icon: "🛠️", title: label, text: `"${label}" is a placeholder in this UI showcase.` });
 
   const copyUid = () => {
     navigator.clipboard?.writeText(uid);
@@ -82,6 +92,9 @@ export default function ProfilePage() {
               UID | {uid}
               <IconCopy />
             </button>
+            <div className="kk-last-login">
+              Last login: {user?.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : "…"}
+            </div>
           </div>
         </div>
       </section>
@@ -164,26 +177,82 @@ export default function ProfilePage() {
         </Link>
       </section>
 
+      <div className="kk-section-head" style={{ padding: "18px 16px 8px" }}>
+        <span className="kk-section-title" style={{ fontSize: 15 }}>Notification</span>
+      </div>
       <div className="kk-list">
-        <Link href="/legal" className="kk-list-item">
+        <Link href="/activity" className="kk-list-item">
           <span className="kk-list-item-icon">
-            <IconShield />
+            <IconGift />
           </span>
-          <span className="label">Legal & Support</span>
+          <span className="label">Gifts</span>
           <span className="chev">
             <IconChevronRight />
           </span>
         </Link>
-        <button className="kk-list-item" onClick={handleLogout}>
+        <Link href="/game/history" className="kk-list-item">
           <span className="kk-list-item-icon">
-            <IconWithdraw style={{ transform: "rotate(90deg)" }} />
+            <IconChartLine />
           </span>
-          <span className="label">Logout Account</span>
+          <span className="label">Game statistics</span>
+          <span className="chev">
+            <IconChevronRight />
+          </span>
+        </Link>
+        <button className="kk-list-item" onClick={() => openDemo("Language")}>
+          <span className="kk-list-item-icon">
+            <IconGlobe />
+          </span>
+          <span className="label">
+            Language
+            <small>English</small>
+          </span>
           <span className="chev">
             <IconChevronRight />
           </span>
         </button>
       </div>
+
+      <div className="kk-section-head" style={{ padding: "18px 16px 8px" }}>
+        <span className="kk-section-title" style={{ fontSize: 15 }}>Service center</span>
+      </div>
+      <section className="kk-quick-actions" style={{ justifyContent: "space-between" }}>
+        <button className="kk-quick-action" onClick={() => openDemo("Settings")}>
+          <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#8891A3,#565D6E)" }}>
+            <IconSettings />
+          </span>
+          <span>Settings</span>
+        </button>
+        <button className="kk-quick-action" onClick={() => openDemo("Feedback")}>
+          <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#4aa8ff,#1565e8)" }}>
+            <IconFeedback />
+          </span>
+          <span>Feedback</span>
+        </button>
+        <button className="kk-quick-action" onClick={() => openDemo("Announcement")}>
+          <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#ffb23d,#e8531b)" }}>
+            <IconMegaphone />
+          </span>
+          <span>Announcement</span>
+        </button>
+        <Link href="/legal/contact" className="kk-quick-action">
+          <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#33d19a,#1a9450)" }}>
+            <IconHeadset />
+          </span>
+          <span>Customer Service</span>
+        </Link>
+        <Link href="/legal" className="kk-quick-action">
+          <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#7c5cff,#4a2fd6)" }}>
+            <IconInfo />
+          </span>
+          <span>About us</span>
+        </Link>
+      </section>
+
+      <button type="button" className="kk-btn-outline" style={{ margin: "20px 16px", width: "calc(100% - 32px)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }} onClick={handleLogout}>
+        <IconLogout style={{ width: 18, height: 18 }} />
+        Log out
+      </button>
 
       <footer className="kk-footer">This account and its balance are placeholders for this UI preview.</footer>
 

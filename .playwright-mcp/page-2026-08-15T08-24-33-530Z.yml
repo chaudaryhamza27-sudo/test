@@ -1,0 +1,180 @@
+- generic [active] [ref=f17e1]:
+  - generic [ref=f17e2]:
+    - banner [ref=f17e3]:
+      - link [ref=f17e4] [cursor=pointer]:
+        - /url: /agency
+      - generic [ref=f17e7]: Rebate Ratio
+    - main [ref=f17e8]:
+      - generic [ref=f17e9]:
+        - button "Slots" [ref=f17e10] [cursor=pointer]
+        - button "Lottery" [ref=f17e11] [cursor=pointer]
+        - button "Casino" [ref=f17e12] [cursor=pointer]
+        - button "Rummy" [ref=f17e13] [cursor=pointer]
+        - button "Fishing" [ref=f17e14] [cursor=pointer]
+      - generic [ref=f17e15]:
+        - generic [ref=f17e16]:
+          - text: Rebate level
+          - generic [ref=f17e17]: L0
+        - generic [ref=f17e18]:
+          - generic [ref=f17e20]: 1 level lower level commission rebate
+          - generic [ref=f17e21]: 0.3%
+        - generic [ref=f17e22]:
+          - generic [ref=f17e24]: 2 level lower level commission rebate
+          - generic [ref=f17e25]: 0.105%
+        - generic [ref=f17e26]:
+          - generic [ref=f17e28]: 3 level lower level commission rebate
+          - generic [ref=f17e29]: 0.03675%
+        - generic [ref=f17e30]:
+          - generic [ref=f17e32]: 4 level lower level commission rebate
+          - generic [ref=f17e33]: 0.012862%
+        - generic [ref=f17e34]:
+          - generic [ref=f17e36]: 5 level lower level commission rebate
+          - generic [ref=f17e37]: 0.004502%
+        - generic [ref=f17e38]:
+          - generic [ref=f17e40]: 6 level lower level commission rebate
+          - generic [ref=f17e41]: 0.001576%
+      - generic [ref=f17e42]:
+        - generic [ref=f17e43]:
+          - text: Rebate level
+          - generic [ref=f17e44]: L1
+        - generic [ref=f17e45]:
+          - generic [ref=f17e47]: 1 level lower level commission rebate
+          - generic [ref=f17e48]: 0.333%
+        - generic [ref=f17e49]:
+          - generic [ref=f17e51]: 2 level lower level commission rebate
+          - generic [ref=f17e52]: 0.11655%
+        - generic [ref=f17e53]:
+          - generic [ref=f17e55]: 3 level lower level commission rebate
+          - generic [ref=f17e56]: 0.040792%
+        - generic [ref=f17e57]:
+          - generic [ref=f17e59]: 4 level lower level commission rebate
+          - generic [ref=f17e60]: 0.014277%
+        - generic [ref=f17e61]:
+          - generic [ref=f17e63]: 5 level lower level commission rebate
+          - generic [ref=f17e64]: 0.004997%
+        - generic [ref=f17e65]:
+          - generic [ref=f17e67]: 6 level lower level commission rebate
+          - generic [ref=f17e68]: 0.001749%
+      - generic [ref=f17e69]:
+        - generic [ref=f17e70]:
+          - text: Rebate level
+          - generic [ref=f17e71]: L2
+        - generic [ref=f17e72]:
+          - generic [ref=f17e74]: 1 level lower level commission rebate
+          - generic [ref=f17e75]: 0.366%
+        - generic [ref=f17e76]:
+          - generic [ref=f17e78]: 2 level lower level commission rebate
+          - generic [ref=f17e79]: 0.1281%
+        - generic [ref=f17e80]:
+          - generic [ref=f17e82]: 3 level lower level commission rebate
+          - generic [ref=f17e83]: 0.044835%
+        - generic [ref=f17e84]:
+          - generic [ref=f17e86]: 4 level lower level commission rebate
+          - generic [ref=f17e87]: 0.015692%
+        - generic [ref=f17e88]:
+          - generic [ref=f17e90]: 5 level lower level commission rebate
+          - generic [ref=f17e91]: 0.005492%
+        - generic [ref=f17e92]:
+          - generic [ref=f17e94]: 6 level lower level commission rebate
+          - generic [ref=f17e95]: 0.001922%
+      - generic [ref=f17e96]:
+        - generic [ref=f17e97]:
+          - text: Rebate level
+          - generic [ref=f17e98]: L3
+        - generic [ref=f17e99]:
+          - generic [ref=f17e101]: 1 level lower level commission rebate
+          - generic [ref=f17e102]: 0.399%
+        - generic [ref=f17e103]:
+          - generic [ref=f17e105]: 2 level lower level commission rebate
+          - generic [ref=f17e106]: 0.13965%
+        - generic [ref=f17e107]:
+          - generic [ref=f17e109]: 3 level lower level commission rebate
+          - generic [ref=f17e110]: 0.048877%
+        - generic [ref=f17e111]:
+          - generic [ref=f17e113]: 4 level lower level commission rebate
+          - generic [ref=f17e114]: 0.017107%
+        - generic [ref=f17e115]:
+          - generic [ref=f17e117]: 5 level lower level commission rebate
+          - generic [ref=f17e118]: 0.005987%
+        - generic [ref=f17e119]:
+          - generic [ref=f17e121]: 6 level lower level commission rebate
+          - generic [ref=f17e122]: 0.002096%
+      - generic [ref=f17e123]:
+        - generic [ref=f17e124]:
+          - text: Rebate level
+          - generic [ref=f17e125]: L4
+        - generic [ref=f17e126]:
+          - generic [ref=f17e128]: 1 level lower level commission rebate
+          - generic [ref=f17e129]: 0.432%
+        - generic [ref=f17e130]:
+          - generic [ref=f17e132]: 2 level lower level commission rebate
+          - generic [ref=f17e133]: 0.1512%
+        - generic [ref=f17e134]:
+          - generic [ref=f17e136]: 3 level lower level commission rebate
+          - generic [ref=f17e137]: 0.05292%
+        - generic [ref=f17e138]:
+          - generic [ref=f17e140]: 4 level lower level commission rebate
+          - generic [ref=f17e141]: 0.018522%
+        - generic [ref=f17e142]:
+          - generic [ref=f17e144]: 5 level lower level commission rebate
+          - generic [ref=f17e145]: 0.006483%
+        - generic [ref=f17e146]:
+          - generic [ref=f17e148]: 6 level lower level commission rebate
+          - generic [ref=f17e149]: 0.002269%
+      - generic [ref=f17e150]:
+        - generic [ref=f17e151]:
+          - text: Rebate level
+          - generic [ref=f17e152]: L5
+        - generic [ref=f17e153]:
+          - generic [ref=f17e155]: 1 level lower level commission rebate
+          - generic [ref=f17e156]: 0.465%
+        - generic [ref=f17e157]:
+          - generic [ref=f17e159]: 2 level lower level commission rebate
+          - generic [ref=f17e160]: 0.16275%
+        - generic [ref=f17e161]:
+          - generic [ref=f17e163]: 3 level lower level commission rebate
+          - generic [ref=f17e164]: 0.056962%
+        - generic [ref=f17e165]:
+          - generic [ref=f17e167]: 4 level lower level commission rebate
+          - generic [ref=f17e168]: 0.019937%
+        - generic [ref=f17e169]:
+          - generic [ref=f17e171]: 5 level lower level commission rebate
+          - generic [ref=f17e172]: 0.006978%
+        - generic [ref=f17e173]:
+          - generic [ref=f17e175]: 6 level lower level commission rebate
+          - generic [ref=f17e176]: 0.002442%
+      - generic [ref=f17e177]:
+        - generic [ref=f17e178]:
+          - text: Rebate level
+          - generic [ref=f17e179]: L6
+        - generic [ref=f17e180]:
+          - generic [ref=f17e182]: 1 level lower level commission rebate
+          - generic [ref=f17e183]: 0.498%
+        - generic [ref=f17e184]:
+          - generic [ref=f17e186]: 2 level lower level commission rebate
+          - generic [ref=f17e187]: 0.1743%
+        - generic [ref=f17e188]:
+          - generic [ref=f17e190]: 3 level lower level commission rebate
+          - generic [ref=f17e191]: 0.061005%
+        - generic [ref=f17e192]:
+          - generic [ref=f17e194]: 4 level lower level commission rebate
+          - generic [ref=f17e195]: 0.021352%
+        - generic [ref=f17e196]:
+          - generic [ref=f17e198]: 5 level lower level commission rebate
+          - generic [ref=f17e199]: 0.007473%
+        - generic [ref=f17e200]:
+          - generic [ref=f17e202]: 6 level lower level commission rebate
+          - generic [ref=f17e203]: 0.002616%
+      - generic [ref=f17e204]: This is a demo rebate schedule for UI purposes only — no real commission is paid.
+    - navigation [ref=f17e205]:
+      - link "Promotion" [ref=f17e206] [cursor=pointer]:
+        - /url: /agency
+      - link "Activity" [ref=f17e210] [cursor=pointer]:
+        - /url: /activity
+      - link [ref=f17e215] [cursor=pointer]:
+        - /url: /game
+      - link "Wallet" [ref=f17e221] [cursor=pointer]:
+        - /url: /wallet
+      - link "Account" [ref=f17e226] [cursor=pointer]:
+        - /url: /profile
+  - button "Open Next.js Dev Tools" [ref=f17e236] [cursor=pointer]
