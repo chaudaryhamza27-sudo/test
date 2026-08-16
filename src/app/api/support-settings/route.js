@@ -10,6 +10,8 @@ export async function GET() {
   return Response.json({
     online: settings.online,
     whatsappNumber: settings.whatsappNumber,
+    announcementEnabled: settings.announcementEnabled,
+    announcementText: settings.announcementText,
     methods: settings.methods.map((m) => ({ key: m.key, label: m.label, enabled: m.enabled })),
   });
 }

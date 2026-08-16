@@ -320,7 +320,7 @@ export default function DepositPage() {
               If you face any issues with deposit, please contact our support.
             </span>
           </span>
-          <Link href="/legal/contact" className="btn btn-secondary" style={{ textDecoration: "none" }}>
+          <Link href="/support" className="btn btn-secondary" style={{ textDecoration: "none" }}>
             Contact Support
           </Link>
         </div>

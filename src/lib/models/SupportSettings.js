@@ -8,6 +8,8 @@ const SupportSettingsSchema = new mongoose.Schema(
   {
     online: { type: Boolean, default: true },
     whatsappNumber: { type: String, default: "" },
+    announcementEnabled: { type: Boolean, default: false },
+    announcementText: { type: String, default: "" },
     methods: {
       type: [
         {

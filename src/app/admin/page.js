@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import "./admin.css";
 import AdminLayout from "./AdminLayout";
-import { IconUsers, IconShield, IconWallet, IconLockLine, IconX, IconEye, IconEyeOff, IconCheck, IconDocument, IconTrendingUp } from "../icons";
+import { IconUsers, IconShield, IconWallet, IconLockLine, IconX, IconEye, IconEyeOff, IconCheck, IconTrendingUp } from "../icons";
 
 function IconSearch(props) {
   return (
@@ -149,17 +149,14 @@ export default function AdminDashboard() {
   const [proofModal, setProofModal] = useState(null);
 
   // Balance Manager — email lookup + add/deduct amount, same quick-panel
-  // pattern as the KYC/Block/Trust Score panels in User Control.
+  // pattern as the Block/Trust Score panels in User Control.
   const [balanceEmail, setBalanceEmail] = useState("");
   const [balanceDeltaInput, setBalanceDeltaInput] = useState("");
   const [balanceSubmitting, setBalanceSubmitting] = useState(false);
   const [balanceError, setBalanceError] = useState("");
   const [balanceSuccess, setBalanceSuccess] = useState("");
 
-  // User Control quick panels — KYC / Block / Trust Score, all by email lookup
-  const [kycEmail, setKycEmail] = useState("");
-  const [kycSubmitting, setKycSubmitting] = useState(false);
-  const [kycMessage, setKycMessage] = useState(null); // { tone, text }
+  // User Control quick panels — Block / Trust Score, all by email lookup
   const [blockEmail, setBlockEmail] = useState("");
   const [blockSubmitting, setBlockSubmitting] = useState(false);
   const [blockMessage, setBlockMessage] = useState(null);
@@ -175,6 +172,9 @@ export default function AdminDashboard() {
   const [whatsappInput, setWhatsappInput] = useState("");
   const [supportSavingWhatsapp, setSupportSavingWhatsapp] = useState(false);
   const [methodToggling, setMethodToggling] = useState(null);
+  const [announcementInput, setAnnouncementInput] = useState("");
+  const [announcementEnabledInput, setAnnouncementEnabledInput] = useState(false);
+  const [supportSavingAnnouncement, setSupportSavingAnnouncement] = useState(false);
 
   // CashOut
   const [cashouts, setCashouts] = useState([]);
@@ -274,6 +274,8 @@ export default function AdminDashboard() {
         setSupportSettings(data.settings);
         setSupportOnlineInput(data.settings.online ? "online" : "offline");
         setWhatsappInput(data.settings.whatsappNumber || "");
+        setAnnouncementInput(data.settings.announcementText || "");
+        setAnnouncementEnabledInput(Boolean(data.settings.announcementEnabled));
       })
       .catch(() => {});
   }, []);
@@ -320,6 +322,26 @@ export default function AdminDashboard() {
       setSupportSettings(data.settings);
     } finally {
       setSupportSavingWhatsapp(false);
+    }
+  };
+
+  const saveAnnouncement = async () => {
+    setSupportSavingAnnouncement(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/support-settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ announcementText: announcementInput, announcementEnabled: announcementEnabledInput }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to update announcement.");
+        return;
+      }
+      setSupportSettings(data.settings);
+    } finally {
+      setSupportSavingAnnouncement(false);
     }
   };
 
@@ -572,34 +594,6 @@ export default function AdminDashboard() {
     return users.find((u) => u.email?.toLowerCase() === q) || null;
   };
 
-  const submitKyc = async (action) => {
-    setKycMessage(null);
-    const target = findUserByEmail(kycEmail);
-    if (!target) {
-      setKycMessage({ tone: "error", text: "No user found with that email." });
-      return;
-    }
-    setKycSubmitting(true);
-    try {
-      const res = await fetch("/api/admin/users", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: target._id, kycApproved: action === "approve" }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setKycMessage({ tone: "error", text: data.error || "Failed to update KYC status." });
-        return;
-      }
-      setKycMessage({ tone: "success", text: `KYC ${action === "approve" ? "approved" : "removed"} for ${target.uid}.` });
-      loadAll();
-    } catch {
-      setKycMessage({ tone: "error", text: "Something went wrong. Please try again." });
-    } finally {
-      setKycSubmitting(false);
-    }
-  };
-
   const submitBlock = async (action) => {
     setBlockMessage(null);
     const target = findUserByEmail(blockEmail);
@@ -739,28 +733,7 @@ export default function AdminDashboard() {
           </div>
 
           <div className="admin-quick-grid">
-            <div className="admin-quick-card">
-              <div className="admin-quick-card-head">
-                <h3><IconDocument style={{ width: 15, height: 15 }} /> KYC Control</h3>
-                <p>Approve or remove KYC by email</p>
-              </div>
-              <div className="admin-quick-divider" />
-              <div className="admin-quick-field">
-                <label>User Email</label>
-                <input type="email" placeholder="user@example.com" value={kycEmail} onChange={(e) => setKycEmail(e.target.value)} disabled={kycSubmitting} />
-              </div>
-              <div className="admin-quick-actions">
-                <button className="admin-btn success" onClick={() => submitKyc("approve")} disabled={kycSubmitting || !kycEmail.trim()}>
-                  Add KYC
-                </button>
-                <button className="admin-btn danger" onClick={() => submitKyc("remove")} disabled={kycSubmitting || !kycEmail.trim()}>
-                  Remove KYC
-                </button>
-              </div>
-              {kycMessage && <div className={`admin-quick-message ${kycMessage.tone}`}>{kycMessage.text}</div>}
-            </div>
-
-            <div className="admin-quick-card">
+            <div className="admin-quick-card" style={{ maxWidth: 420 }}>
               <div className="admin-quick-card-head">
                 <h3><IconShield style={{ width: 15, height: 15 }} /> Block Control</h3>
                 <p>Block or unblock user account</p>
@@ -998,8 +971,10 @@ export default function AdminDashboard() {
                 <div className="admin-quick-card-head">
                   <h3>Trust Score Logic</h3>
                   <p>
-                    This only adjusts wallet balance — trust score and KYC status are managed separately, from the Trust Score and KYC
-                    Control panels in User Control.
+                    This only adjusts wallet balance. Trust score is auto-set on every approved deposit based on the
+                    user's lifetime total (40% up to Rs3,000, 70% up to Rs10,000, 90% up to Rs17,000, 100% above that),
+                    but can still be fetched and manually increased or decreased from the Trust Score panel in User
+                    Control.
                   </p>
                 </div>
               </div>
@@ -1462,6 +1437,42 @@ export default function AdminDashboard() {
                   >
                     {supportSavingWhatsapp ? "Saving…" : "Save WhatsApp"}
                   </button>
+                </div>
+              </div>
+
+              <div className="admin-settings-card">
+                <div className="admin-settings-card-info">
+                  <h3>Announcement</h3>
+                  <p>Shown to users on the Support page and the Announcement quick-action when enabled.</p>
+                </div>
+                <div className="admin-settings-card-control" style={{ flexDirection: "column", alignItems: "stretch", gap: 10 }}>
+                  <textarea
+                    placeholder="e.g. Scheduled maintenance on Friday 10pm–11pm."
+                    value={announcementInput}
+                    onChange={(e) => setAnnouncementInput(e.target.value)}
+                    disabled={supportSavingAnnouncement}
+                    rows={3}
+                    maxLength={500}
+                    style={{ width: "100%", resize: "vertical", font: "inherit" }}
+                  />
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "space-between" }}>
+                    <select
+                      value={announcementEnabledInput ? "on" : "off"}
+                      onChange={(e) => setAnnouncementEnabledInput(e.target.value === "on")}
+                      disabled={supportSavingAnnouncement}
+                    >
+                      <option value="off">Off</option>
+                      <option value="on">On</option>
+                    </select>
+                    <button
+                      className="admin-btn"
+                      style={{ background: "var(--a-success)", color: "#06190f" }}
+                      onClick={saveAnnouncement}
+                      disabled={supportSavingAnnouncement}
+                    >
+                      {supportSavingAnnouncement ? "Saving…" : "Save Announcement"}
+                    </button>
+                  </div>
                 </div>
               </div>
 

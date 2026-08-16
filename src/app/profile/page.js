@@ -11,7 +11,6 @@ import {
   IconWallet,
   IconDeposit,
   IconWithdraw,
-  IconVip,
   IconGameHistory,
   IconTransaction,
   IconChevronRight,
@@ -95,7 +94,7 @@ export default function ProfilePage() {
           <div className="kk-account-info">
             <div className="kk-account-name">
               {displayName}
-              <span className="kk-vip-badge">{tier}</span>
+              <button type="button" className="kk-vip-badge" onClick={showVipInfo}>{tier}</button>
             </div>
             <button className="kk-uid-pill" onClick={copyUid}>
               UID | {uid}
@@ -138,12 +137,12 @@ export default function ProfilePage() {
             </div>
             <span>Withdraw</span>
           </Link>
-          <button className="kk-action" onClick={showVipInfo}>
+          <Link href="/support" className="kk-action">
             <div className="kk-action-icon" style={{ background: "linear-gradient(160deg,#33d19a,#1a9450)" }}>
-              <IconVip />
+              <IconHeadset />
             </div>
-            <span>VIP</span>
-          </button>
+            <span>Support</span>
+          </Link>
         </div>
       </section>
 
@@ -253,13 +252,13 @@ export default function ProfilePage() {
           </span>
           <span>Feedback</span>
         </button>
-        <button className="kk-quick-action" onClick={() => openDemo("Announcement")}>
+        <Link href="/support" className="kk-quick-action">
           <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#ffb23d,#e8531b)" }}>
             <IconMegaphone />
           </span>
           <span>Announcement</span>
-        </button>
-        <Link href="/legal/contact" className="kk-quick-action">
+        </Link>
+        <Link href="/support" className="kk-quick-action">
           <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#33d19a,#1a9450)" }}>
             <IconHeadset />
           </span>

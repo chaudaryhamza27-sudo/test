@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { heroSlides, navTabs, categories, sections, TAG_ICONS } from "./data";
+import { navTabs, categories, sections, TAG_ICONS } from "./data";
 import BottomNav from "./components/BottomNav";
 import {
   IconEagle,
@@ -16,6 +16,7 @@ import {
   IconFishing,
   IconHome,
   IconPlane,
+  IconVip,
   IconGameAviator,
   IconGameOx,
   IconGameWheel,
@@ -33,6 +34,8 @@ import {
   IconMegaphone,
   IconInfo,
 } from "./icons";
+
+const HERO_BANNERS = ["/gamesall/banner1.webp", "/gamesall/banner2.webp", "/gamesall/banner3.webp"];
 
 const CATEGORY_ICONS = {
   IconHome,
@@ -63,7 +66,7 @@ export default function Home() {
 
   useEffect(() => {
     const t = setInterval(() => {
-      setSlide((s) => (s + 1) % heroSlides.length);
+      setSlide((s) => (s + 1) % HERO_BANNERS.length);
     }, 4000);
     return () => clearInterval(t);
   }, []);
@@ -156,28 +159,33 @@ export default function Home() {
         <section className="kk-hero-row">
           <div className="kk-hero">
             <div className="kk-hero-slider" style={{ transform: `translateX(-${slide * 100}%)` }}>
-              {heroSlides.map((s, i) => (
-                <div key={i} className="kk-hero-slide" style={{ "--a": s.a, "--b": s.b }}>
+              {HERO_BANNERS.map((src) => (
+                <div key={src} className="kk-hero-slide photo" style={{ backgroundImage: `url("${src}")` }}>
                   <div className="kk-hero-copy">
-                    <div className="kk-hero-title">
-                      Join Our Official
-                      <br />
-                      <b>Channel Now!</b>
+                    <div className="kk-hero-kicker">
+                      <IconVip style={{ width: 12, height: 12 }} />
+                      VIP Gaming Lobby
                     </div>
-                    <div className="kk-hero-brand">— PK92 —</div>
-                    <button type="button" className="kk-hero-join-btn" onClick={() => openDemo("Official Channel")}>
-                      <IconPlane style={{ width: 13, height: 13 }} />
-                      Join Now
-                    </button>
-                  </div>
-                  <div className="kk-hero-plane-wrap">
-                    <IconPlane className="kk-hero-plane" />
+                    <div className="kk-hero-title">
+                      Play More
+                      <br />
+                      <b>Win Bigger</b>
+                    </div>
+                    <p className="kk-hero-sub">
+                      New dark royal theme, faster game access, smooth mobile design and premium casino style.
+                    </p>
+                    <div className="kk-hero-actions">
+                      <Link href="/game" className="kk-hero-join-btn primary">
+                        <IconPlane style={{ width: 13, height: 13 }} />
+                        Play Aviator
+                      </Link>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
             <div className="kk-hero-dots">
-              {heroSlides.map((_, i) => (
+              {HERO_BANNERS.map((_, i) => (
                 <div key={i} className={`kk-dot ${i === slide ? "active" : ""}`} />
               ))}
             </div>
@@ -242,7 +250,17 @@ export default function Home() {
                   <>
                     <div className="kk-game-media" style={{ "--a": g.tint[0], "--b": g.tint[1] }}>
                       {g.badge && <span className={`kk-game-badge ${g.badge === "New" ? "new" : ""}`}>{g.badge}</span>}
-                      {GameIcon && <GameIcon className="kk-game-icon" />}
+                      {g.img ? (
+                        <img className="kk-game-thumb" src={g.img} alt={g.name} />
+                      ) : (
+                        GameIcon && <GameIcon className="kk-game-icon" />
+                      )}
+                      {g.playable && (
+                        <span className="kk-game-play">
+                          <IconChevronRight style={{ width: 9, height: 9 }} />
+                          Play
+                        </span>
+                      )}
                     </div>
                     <div className="kk-game-info">
                       <div className="kk-game-name">{g.name}</div>
@@ -284,13 +302,13 @@ export default function Home() {
               </span>
               <span>Language</span>
             </button>
-            <button type="button" className="kk-quick-action" onClick={() => openDemo("Announcement")}>
+            <Link href="/support" className="kk-quick-action">
               <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#ffb23d,#e8531b)" }}>
                 <IconMegaphone />
               </span>
               <span>Announcement</span>
-            </button>
-            <Link href="/legal/contact" className="kk-quick-action">
+            </Link>
+            <Link href="/support" className="kk-quick-action">
               <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#4aa8ff,#1565e8)" }}>
                 <IconHeadset />
               </span>

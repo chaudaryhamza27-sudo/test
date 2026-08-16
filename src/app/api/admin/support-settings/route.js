@@ -40,6 +40,26 @@ export async function PATCH(request) {
     });
   }
 
+  if (typeof body.announcementText === "string") {
+    settings.announcementText = body.announcementText.trim().slice(0, 500);
+    await logActivity({
+      user: admin._id,
+      actorRole: "admin",
+      action: "announcement_updated",
+      message: `Updated the announcement text.`,
+    });
+  }
+
+  if (typeof body.announcementEnabled === "boolean") {
+    settings.announcementEnabled = body.announcementEnabled;
+    await logActivity({
+      user: admin._id,
+      actorRole: "admin",
+      action: "announcement_toggled",
+      message: `${body.announcementEnabled ? "Enabled" : "Disabled"} the announcement.`,
+    });
+  }
+
   if (body.methodKey && typeof body.methodEnabled === "boolean") {
     const method = settings.methods.find((m) => m.key === body.methodKey);
     if (!method) return Response.json({ error: "Unknown payment method." }, { status: 400 });

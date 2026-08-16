@@ -582,7 +582,7 @@ export default function GamePage() {
           <div className="game-trust-card">
             <span className="game-trust-icon"><IconHeadset /></span>
             <b>Need Help?</b>
-            <Link href="/legal/contact">Contact support</Link>
+            <Link href="/support">Contact support</Link>
           </div>
           <div className="game-trust-card">
             <span className="game-trust-icon"><IconGlobe /></span>

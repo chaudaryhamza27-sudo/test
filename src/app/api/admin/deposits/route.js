@@ -1,9 +1,13 @@
 import dbConnect from "../../../../lib/mongodb";
 import Transaction from "../../../../lib/models/Transaction";
+import User from "../../../../lib/models/User";
 import { requireAdmin } from "../../../../lib/auth";
 import { adjustBalance } from "../../../../lib/wallet";
 import { logActivity } from "../../../../lib/activity";
 import { notifyUser } from "../../../../lib/notifications";
+import { computeTrustScore } from "../../../../lib/trustScore";
+
+const DEPOSIT_STATUSES = ["approved", "completed"];
 
 export async function GET() {
   const admin = await requireAdmin();
@@ -58,6 +62,15 @@ export async function PATCH(request) {
       await Transaction.updateOne({ _id: tx._id }, { $set: { status: "pending" }, $unset: { reviewedBy: 1, reviewedAt: 1 } });
       return Response.json({ error: "User not found." }, { status: 404 });
     }
+
+    // Re-baseline trust score from lifetime approved deposits — admin can
+    // still fetch/adjust it by hand afterward from User Control.
+    const depositAgg = await Transaction.aggregate([
+      { $match: { user: tx.user, type: "deposit", status: { $in: DEPOSIT_STATUSES } } },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]);
+    const lifetimeDeposit = depositAgg[0]?.total ?? 0;
+    await User.updateOne({ _id: tx.user }, { $set: { trustScore: computeTrustScore(lifetimeDeposit) } });
   } else if (typeof rejectionReason === "string" && rejectionReason.trim()) {
     // Set the whole meta object (rather than a dotted sub-path) since meta
     // may currently be null, and Mongo can't set a nested path on null.

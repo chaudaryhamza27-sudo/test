@@ -130,7 +130,7 @@ export default function AgencyPage() {
         </div>
 
         <div className="kk-list" style={{ marginTop: 12 }}>
-          <Link href="/legal/contact" className="kk-list-item">
+          <Link href="/support" className="kk-list-item">
             <span className="kk-list-item-icon">
               <IconHeadset />
             </span>
