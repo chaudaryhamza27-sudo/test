@@ -2,6 +2,7 @@ import dbConnect from "../../../../lib/mongodb";
 import Payment from "../../../../lib/models/Payment";
 import { getCurrentUser } from "../../../../lib/auth";
 import { initiatePayment, makeIdentifier, PaybostError } from "../../../../lib/paybost";
+import { isMethodEnabled } from "../../../../lib/supportSettings";
 import {
   validatePaybostAmount,
   countRecentPendingOrders,
@@ -13,6 +14,10 @@ import {
 export async function POST(request) {
   const user = await getCurrentUser();
   if (!user) return Response.json({ error: "Not authenticated." }, { status: 401 });
+
+  if (!(await isMethodEnabled("paybost"))) {
+    return Response.json({ error: "Paybost deposits are currently unavailable." }, { status: 403 });
+  }
 
   const body = await request.json().catch(() => ({}));
   const amountPaisa = validatePaybostAmount(Number(body?.amount));

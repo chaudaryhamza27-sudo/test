@@ -3,7 +3,7 @@ import Transaction from "../../../lib/models/Transaction";
 import { getCurrentUser } from "../../../lib/auth";
 import { logActivity } from "../../../lib/activity";
 
-const MIN_DEPOSIT = 100;
+const MIN_DEPOSIT = 3000;
 const MAX_PROOF_BYTES = 5 * 1024 * 1024; // 5MB
 const ALLOWED_PROOF_TYPES = ["image/jpeg", "image/png", "application/pdf"];
 

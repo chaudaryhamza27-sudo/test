@@ -20,12 +20,12 @@ const NAV_ITEMS = [
   { key: "users", label: "User Control", icon: IconUsers },
   { key: "withdrawals", label: "Withdraws", icon: IconWithdraw },
   { key: "balance", label: "Balance Manager", icon: IconWallet },
-  { key: "cashouts", label: "CashOut", icon: IconTrophy },
-  { key: "deposits", label: "Deposits", icon: IconDeposit },
-  { key: "rounds", label: "Game Rounds", icon: IconHistory },
-  { key: "payments", label: "Payments", icon: IconTransaction },
+  // { key: "cashouts", label: "CashOut", icon: IconTrophy },
+  // { key: "deposits", label: "Deposits", icon: IconDeposit },
+  // { key: "rounds", label: "Game Rounds", icon: IconHistory },
+  // { key: "payments", label: "Payments", icon: IconTransaction },
   { key: "support", label: "Manual Payment", icon: IconHeadset },
-  { key: "audit", label: "Audit Log", icon: IconShield },
+  // { key: "audit", label: "Audit Log", icon: IconShield },
 ];
 
 const PAGE_TITLES = Object.fromEntries(NAV_ITEMS.map((i) => [i.key, i.label]));

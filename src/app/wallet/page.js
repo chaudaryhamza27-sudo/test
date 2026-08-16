@@ -17,8 +17,6 @@ import {
   IconCoinWallet,
 } from "../icons";
 import BottomNav from "../components/BottomNav";
-import PayPalAddFunds from "../components/PayPalAddFunds";
-import PaybostAddFunds from "../components/PaybostAddFunds";
 
 export default function WalletPage() {
   const router = useRouter();
@@ -90,34 +88,20 @@ export default function WalletPage() {
         </section>
 
         <div className="wallet-quickpay-grid">
-          <PayPalAddFunds
-            theme="dark"
-            triggerClassName="wallet-quickpay-btn"
-            triggerLabel={
-              <>
-                <span className="wallet-quickpay-icon" style={{ background: "linear-gradient(160deg,#4aa8ff,#1565e8)" }}>+</span>
-                <span className="wallet-quickpay-text">
-                  <b>Add Funds (PayPal Sandbox)</b>
-                  <span>Add money to your wallet</span>
-                </span>
-              </>
-            }
-            onBalanceChange={setBalance}
-          />
-          <PaybostAddFunds
-            theme="dark"
-            triggerClassName="wallet-quickpay-btn"
-            triggerLabel={
-              <>
-                <span className="wallet-quickpay-icon" style={{ background: "linear-gradient(160deg,#7c5cff,#4a2fd6)" }}>+</span>
-                <span className="wallet-quickpay-text">
-                  <b>Add Funds (Paybost — Test Mode)</b>
-                  <span>Add money using Paybost</span>
-                </span>
-              </>
-            }
-            onBalanceChange={setBalance}
-          />
+          <Link href="/deposit" className="wallet-quickpay-btn" style={{ textDecoration: "none" }}>
+            <span className="wallet-quickpay-icon" style={{ background: "linear-gradient(160deg,#4aa8ff,#1565e8)" }}>+</span>
+            <span className="wallet-quickpay-text">
+              <b>Manual Deposit</b>
+              <span>Add money to your wallet</span>
+            </span>
+          </Link>
+          <Link href="/deposit" className="wallet-quickpay-btn" style={{ textDecoration: "none" }}>
+            <span className="wallet-quickpay-icon" style={{ background: "linear-gradient(160deg,#7c5cff,#4a2fd6)" }}>+</span>
+            <span className="wallet-quickpay-text">
+              <b>Add Funds (Paybost)</b>
+              <span>Add money to your wallet</span>
+            </span>
+          </Link>
         </div>
 
         <div className="kk-section-head" style={{ padding: "18px 16px 8px" }}>

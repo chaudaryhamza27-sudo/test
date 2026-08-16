@@ -23,7 +23,7 @@ const HOW_IT_WORKS = [
 // the whole page to Paybost, and the user is redirected back to this same
 // page afterwards. On mount we check the URL for that return trip and pick
 // up wherever the popup left off.
-export default function PaybostAddFunds({ theme = "dark", triggerClassName, triggerLabel = "Add Funds (Paybost — Test Mode)", onBalanceChange }) {
+export default function PaybostAddFunds({ theme = "dark", triggerClassName, triggerLabel = "Add Funds (Paybost — Test Mode)", onBalanceChange, disabled = false }) {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState(1000);
   const [manualAmount, setManualAmount] = useState("");
@@ -141,7 +141,7 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
 
   return (
     <>
-      <button type="button" className={triggerClassName} onClick={() => setOpen(true)}>
+      <button type="button" className={triggerClassName} onClick={() => setOpen(true)} disabled={disabled}>
         {triggerLabel}
       </button>
 

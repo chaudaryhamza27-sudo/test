@@ -1012,6 +1012,63 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
+
+          <div className="admin-info-section-label" style={{ marginTop: 24, marginBottom: 10 }}>
+            Deposit Requests
+          </div>
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>User ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Number</th>
+                  <th>Payment Method</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deposits.map((d) => (
+                  <tr key={d._id}>
+                    <td>{d.user?.uid || "—"}</td>
+                    <td>{d.user?.name || "—"}</td>
+                    <td>{d.user?.email || "—"}</td>
+                    <td>{d.accountNumber || d.user?.phone || "—"}</td>
+                    <td>{d.method}</td>
+                    <td>Rs {Number(d.amount).toLocaleString()}</td>
+                    <td>
+                      <StatusPill status={d.status} />
+                      {d.status === "rejected" && d.rejectionReason && (
+                        <div style={{ fontSize: 11, opacity: 0.7, marginTop: 4 }}>{d.rejectionReason}</div>
+                      )}
+                    </td>
+                    <td>
+                      {d.status === "pending" && (
+                        <>
+                          <button className="admin-small-btn approve" onClick={() => reviewDeposit(d._id, "approve")}>
+                            Approve
+                          </button>
+                          <button className="admin-small-btn reject" onClick={() => reviewDeposit(d._id, "reject")}>
+                            Reject
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {deposits.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="empty">
+                      No deposit requests yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

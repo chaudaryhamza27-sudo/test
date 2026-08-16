@@ -67,6 +67,11 @@ function BetPanel({ slot, authed, phase, multiplier, roundId, myBet, balance, pl
   const canBet = authed && phase === "WAITING" && !myBet;
   const canCashOut = authed && phase === "RUNNING" && myBet?.status === "placed";
   const insufficientBalance = canBet && balance < amount;
+  // The backend only writes status:"lost" once the round rotates (a few
+  // seconds after the crash, at RESULT_MS) — waiting for that would leave
+  // the button reading "Placed" through the whole crash-result window even
+  // though the round has clearly already ended. Infer it immediately instead.
+  const displayLost = (phase === "CRASHED" || phase === "DONE") && myBet?.status === "placed";
 
   const doPlaceBet = useCallback(
     async (betAmount) => {
@@ -202,15 +207,15 @@ function BetPanel({ slot, authed, phase, multiplier, roundId, myBet, balance, pl
           </button>
         ) : insufficientBalance ? (
           <Link href="/deposit" className="game-place-bet-btn" style={{ textDecoration: "none" }}>
-            Deposit to Play
+            Play
           </Link>
         ) : autoBetOn ? (
           <button type="button" className="game-place-bet-btn armed" disabled>
-            {myBet?.status === "placed" ? "Auto Bet Placed" : "Auto Bet Armed"}
+            {displayLost ? "Lost" : myBet?.status === "placed" ? "Auto Bet Placed" : "Auto Bet Armed"}
           </button>
         ) : (
           <button type="button" className="game-place-bet-btn" onClick={handleBetClick} disabled={!canBet || pending}>
-            {pending ? "…" : myBet?.status === "placed" ? "Placed" : "BET"}
+            {pending ? "…" : displayLost ? "Lost" : myBet?.status === "placed" ? "Placed" : "BET"}
           </button>
         )}
       </div>
@@ -257,7 +262,7 @@ function BetPanel({ slot, authed, phase, multiplier, roundId, myBet, balance, pl
           Won Rs{myBet.payout?.toLocaleString()} at {myBet.cashoutMultiplier?.toFixed(2)}x
         </div>
       )}
-      {myBet?.status === "lost" && (
+      {(myBet?.status === "lost" || displayLost) && (
         <div className="alert alert-danger" style={{ marginTop: 12, justifyContent: "center", textAlign: "center" }}>
           Round crashed — bet lost.
         </div>
@@ -368,19 +373,6 @@ export default function GamePage() {
 
       <AppShellHeader subtitle="Aviator — Simulation" balance={state?.balance ?? 0} showTrustBadges={false} />
 
-      {phase === "WAITING" && (
-        <div className="game-waiting-overlay">
-          <img src="/game/nextround.svg" alt="" className="game-waiting-icon" />
-          <div className="game-waiting-text">Waiting for next round</div>
-          <div className="game-waiting-bar">
-            <div
-              className="game-waiting-bar-fill"
-              style={{ width: `${Math.min(100, Math.max(0, ((WAITING_MS - msLeft) / WAITING_MS) * 100))}%` }}
-            />
-          </div>
-        </div>
-      )}
-
       <main className="content game-page-content" style={{ paddingTop: 14 }}>
         <div className="game-recent-strip-head">Recent Rounds</div>
         <div className="game-history-strip">
@@ -423,6 +415,19 @@ export default function GamePage() {
 
               <GameChart phase={phase} multiplier={multiplier} roundId={state?.roundId} />
               <span className={`game-stage-baseline ${phase === "RUNNING" ? "moving" : ""}`} />
+
+              {phase === "WAITING" && (
+                <div className="game-waiting-badge">
+                  <span className="game-waiting-badge-icon" />
+                  <div className="game-waiting-text">Next Round</div>
+                  <div className="game-waiting-bar">
+                    <div
+                      className="game-waiting-bar-fill"
+                      style={{ width: `${Math.min(100, Math.max(0, ((WAITING_MS - msLeft) / WAITING_MS) * 100))}%` }}
+                    />
+                  </div>
+                </div>
+              )}
               {phase === "RUNNING" && (
                 <div className="game-multiplier running">
                   {multiplier.toFixed(2)}x

@@ -11,7 +11,7 @@ export async function GET() {
 
   await dbConnect();
   const raw = await Transaction.find({ type: "deposit" })
-    .populate("user", "uid phone email")
+    .populate("user", "uid name phone email")
     .sort({ createdAt: -1 })
     .lean();
   // Proof images (up to 5MB each) are fetched on demand via

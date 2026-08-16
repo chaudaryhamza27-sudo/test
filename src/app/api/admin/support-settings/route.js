@@ -1,20 +1,12 @@
-import dbConnect from "../../../../lib/mongodb";
-import SupportSettings from "../../../../lib/models/SupportSettings";
 import { requireAdmin } from "../../../../lib/auth";
 import { logActivity } from "../../../../lib/activity";
-
-async function getOrCreate() {
-  let doc = await SupportSettings.findOne();
-  if (!doc) doc = await SupportSettings.create({});
-  return doc;
-}
+import { getOrCreateSupportSettings } from "../../../../lib/supportSettings";
 
 export async function GET() {
   const admin = await requireAdmin();
   if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
 
-  await dbConnect();
-  const settings = await getOrCreate();
+  const settings = await getOrCreateSupportSettings();
   return Response.json({ settings });
 }
 
@@ -26,8 +18,7 @@ export async function PATCH(request) {
   if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
 
   const body = await request.json().catch(() => ({}));
-  await dbConnect();
-  const settings = await getOrCreate();
+  const settings = await getOrCreateSupportSettings();
 
   if (typeof body.online === "boolean") {
     settings.online = body.online;

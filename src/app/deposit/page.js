@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -13,33 +13,40 @@ import {
 import PaybostAddFunds from "../components/PaybostAddFunds";
 import BottomNav from "../components/BottomNav";
 
-const QUICK_AMOUNTS = [500, 1000, 2500, 5000];
-const MIN_DEPOSIT = 100;
-const MAX_PROOF_BYTES = 5 * 1024 * 1024;
-const ALLOWED_PROOF_TYPES = ["image/jpeg", "image/png", "application/pdf"];
+const QUICK_AMOUNTS = [3000, 5000, 10000, 20000];
+const MIN_DEPOSIT = 3000;
+
+const PAYMENT_METHODS = [
+  { key: "jazzcash", label: "JazzCash", logo: "/game/jazz.png" },
+  { key: "easypaisa", label: "Easypaisa", logo: "/game/esy.png" },
+];
 
 export default function DepositPage() {
   const router = useRouter();
   const [tab, setTab] = useState("manual");
   const [balance, setBalance] = useState(0);
-  const [account, setAccount] = useState(null);
-  const [amount, setAmount] = useState(500);
+  const [amount, setAmount] = useState(3000);
   const [customMode, setCustomMode] = useState(false);
-  const [proof, setProof] = useState(null); // { name, type, dataUri }
-  const [dragOver, setDragOver] = useState(false);
+  const [methods, setMethods] = useState(null); // [{ key, label, enabled }] from admin settings
+  const [selectedMethod, setSelectedMethod] = useState(null);
+  const [senderNumber, setSenderNumber] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [popup, setPopup] = useState(null);
-  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetch("/api/wallet")
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => setBalance(data.balance))
       .catch(() => router.push("/login"));
-    fetch("/api/deposit/account")
+    fetch("/api/support-settings")
       .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then(setAccount)
-      .catch(() => setAccount(null));
+      .then((data) => {
+        const list = data.methods || [];
+        setMethods(list);
+        const firstEnabled = PAYMENT_METHODS.find((m) => list.find((x) => x.key === m.key)?.enabled);
+        if (firstEnabled) setSelectedMethod(firstEnabled.key);
+      })
+      .catch(() => setMethods([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -51,46 +58,39 @@ export default function DepositPage() {
     setCustomMode(false);
   };
 
-  const handleFile = (file) => {
-    if (!file) return;
-    if (!ALLOWED_PROOF_TYPES.includes(file.type)) {
-      openNotice("Please upload a JPG, PNG or PDF file.", "error");
-      return;
-    }
-    if (file.size > MAX_PROOF_BYTES) {
-      openNotice("File is too large — maximum size is 5MB.", "error");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => setProof({ name: file.name, type: file.type, dataUri: reader.result });
-    reader.readAsDataURL(file);
-  };
+  const isMethodEnabled = (key) => methods?.find((m) => m.key === key)?.enabled;
+  const paybostEnabled = isMethodEnabled("paybost");
 
   const handleSubmit = async () => {
     if (!amount || amount < MIN_DEPOSIT) {
       openNotice(`Minimum deposit is Rs${MIN_DEPOSIT}.`, "error");
       return;
     }
-    if (!proof) {
-      openNotice("Please upload your payment proof before submitting.", "error");
+    if (!selectedMethod || !isMethodEnabled(selectedMethod)) {
+      openNotice("Please choose a payment method.", "error");
+      return;
+    }
+    if (!senderNumber.trim()) {
+      openNotice("Please enter the number you sent the payment from.", "error");
       return;
     }
     if (submitting) return;
     setSubmitting(true);
     try {
+      const methodLabel = PAYMENT_METHODS.find((m) => m.key === selectedMethod)?.label || selectedMethod;
       const res = await fetch("/api/deposit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount, method: "Manual Bank Transfer", proofImage: proof.dataUri }),
+        body: JSON.stringify({ amount, method: methodLabel, accountNumber: senderNumber.trim() }),
       });
       const data = await res.json();
       if (!res.ok) {
         openNotice(data.error || "Failed to submit deposit request.", "error");
         return;
       }
-      setProof(null);
+      setSenderNumber("");
       openNotice(
-        `Deposit Request Submitted — Your payment proof has been received and is waiting for admin verification. You'll be notified once it's reviewed.`,
+        `Deposit Request Submitted — Your ${methodLabel} deposit request has been received and is waiting for admin verification. You'll be notified once it's reviewed.`,
         "success"
       );
     } catch {
@@ -136,11 +136,15 @@ export default function DepositPage() {
               <span>Deposit manually</span>
             </span>
           </button>
-          <button className={`deposit-tab ${tab === "paybost" ? "active" : ""}`} onClick={() => setTab("paybost")}>
+          <button
+            className={`deposit-tab ${tab === "paybost" ? "active" : ""} ${!paybostEnabled ? "disabled" : ""}`}
+            onClick={() => paybostEnabled && setTab("paybost")}
+            disabled={!paybostEnabled}
+          >
             <span className="deposit-tab-icon purple">🚀</span>
             <span>
               <b>Add Funds (Paybost)</b>
-              <span>Instant deposit via Paybost</span>
+              <span>{paybostEnabled ? "Instant deposit via Paybost" : "Currently unavailable"}</span>
             </span>
           </button>
         </div>
@@ -188,51 +192,47 @@ export default function DepositPage() {
                 <div className="deposit-step-head">
                   <span className="deposit-step-num">2</span>
                   <div>
-                    <h2>Upload Payment Proof</h2>
-                    <p>Upload screenshot or receipt of your payment</p>
+                    <h2>Payment Method</h2>
+                    <p>Choose one</p>
                   </div>
                 </div>
-                <div
-                  className={`deposit-dropzone ${dragOver ? "drag" : ""}`}
-                  onClick={() => fileInputRef.current?.click()}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setDragOver(true);
-                  }}
-                  onDragLeave={() => setDragOver(false)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setDragOver(false);
-                    handleFile(e.dataTransfer.files?.[0]);
-                  }}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,application/pdf"
-                    style={{ display: "none" }}
-                    onChange={(e) => handleFile(e.target.files?.[0])}
-                  />
-                  {proof ? (
-                    <>
-                      {proof.type.startsWith("image/") ? (
-                        <img src={proof.dataUri} alt="Payment proof preview" className="deposit-proof-preview" />
-                      ) : (
-                        <div className="deposit-proof-file">📄 {proof.name}</div>
-                      )}
-                      <span className="deposit-proof-name">{proof.name} — tap to replace</span>
-                    </>
-                  ) : (
-                    <>
-                      <IconDeposit style={{ width: 26, height: 26, color: "var(--kk-blue)" }} />
-                      <span>
-                        Click to <b>upload</b> or drag and drop
-                      </span>
-                      <span className="deposit-dropzone-hint">JPG, PNG or PDF (Max. 5MB)</span>
-                    </>
-                  )}
+                <div className="deposit-method-grid">
+                  {PAYMENT_METHODS.map((m) => {
+                    const enabled = isMethodEnabled(m.key);
+                    return (
+                      <button
+                        key={m.key}
+                        type="button"
+                        className={`deposit-method-card ${selectedMethod === m.key ? "selected" : ""} ${!enabled ? "disabled" : ""}`}
+                        onClick={() => enabled && setSelectedMethod(m.key)}
+                        disabled={!enabled}
+                      >
+                        <img src={m.logo} alt={m.label} />
+                        <span>{m.label}</span>
+                        {!enabled && <em>Unavailable</em>}
+                      </button>
+                    );
+                  })}
                 </div>
+                {selectedMethod && (
+                  <div className="deposit-number-input-box">
+                    <span>Your {PAYMENT_METHODS.find((m) => m.key === selectedMethod)?.label} Number</span>
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      placeholder="03XXXXXXXXX"
+                      maxLength={15}
+                      value={senderNumber}
+                      onChange={(e) => setSenderNumber(e.target.value)}
+                    />
+                  </div>
+                )}
               </section>
+
+              <button className="deposit-submit-btn" onClick={handleSubmit} disabled={submitting}>
+                {submitting ? "Submitting…" : "Submit Deposit Request"}
+                <IconChevronRight style={{ width: 16, height: 16 }} />
+              </button>
 
               <section className="deposit-step-card">
                 <div className="deposit-step-head">
@@ -242,57 +242,16 @@ export default function DepositPage() {
                   </div>
                 </div>
                 <ul className="deposit-instructions">
-                  <li>Send the exact amount to the account below</li>
-                  <li>Upload clear payment proof</li>
+                  <li>Send the exact amount using your selected payment method</li>
+                  <li>Keep your payment receipt until it's verified</li>
                   <li>Your deposit will be verified within minutes</li>
                 </ul>
               </section>
-
-              <button className="deposit-submit-btn" onClick={handleSubmit} disabled={submitting}>
-                {submitting ? "Submitting…" : "Submit Deposit Request"}
-                <IconChevronRight style={{ width: 16, height: 16 }} />
-              </button>
             </div>
 
             <div className="deposit-side-col">
-              <section className="deposit-info-card">
-                <div className="deposit-info-head">
-                  <span className="deposit-info-icon">🏦</span>
-                  <div>
-                    <h2>Deposit Information</h2>
-                    <p>Send your payment to the account below</p>
-                  </div>
-                </div>
-                <dl className="deposit-info-list">
-                  <div>
-                    <dt>Account Title</dt>
-                    <dd>{account?.accountTitle || "…"}</dd>
-                  </div>
-                  <div>
-                    <dt>Bank Name</dt>
-                    <dd>{account?.bankName || "…"}</dd>
-                  </div>
-                  <div>
-                    <dt>Account Number</dt>
-                    <dd>{account?.accountNumber || "…"}</dd>
-                  </div>
-                  <div>
-                    <dt>IBAN</dt>
-                    <dd>{account?.iban || "…"}</dd>
-                  </div>
-                  <div>
-                    <dt>Branch</dt>
-                    <dd>{account?.branch || "…"}</dd>
-                  </div>
-                  <div>
-                    <dt>Account Type</dt>
-                    <dd>{account?.accountType || "…"}</dd>
-                  </div>
-                </dl>
-              </section>
-
               <div className="alert alert-info">
-                <IconShield style={{ width: 16, height: 16, flexShrink: 0 }} />
+              
                 <span>
                   <b>Note</b> — Make sure to send from your own account. Third-party payments are not accepted.
                 </span>
@@ -319,11 +278,19 @@ export default function DepositPage() {
             <div className="deposit-main-col">
               <section className="deposit-step-card" style={{ textAlign: "center" }}>
                 <h2 style={{ marginBottom: 8 }}>Instant Deposit via Paybost</h2>
-                <p style={{ fontSize: 12.5, color: "var(--kk-muted)", marginBottom: 18 }}>
-                  Credit demo funds instantly through Paybost&apos;s sandbox checkout — running in test mode, still
-                  100% simulated, still no real money.
-                </p>
-                <PaybostAddFunds theme="light" triggerClassName="deposit-submit-btn" triggerLabel="🚀 Add Funds Instantly via Paybost" onBalanceChange={setBalance} />
+                {paybostEnabled ? (
+                  <>
+                    <p style={{ fontSize: 12.5, color: "var(--kk-muted)", marginBottom: 18 }}>
+                      Credit demo funds instantly through Paybost&apos;s sandbox checkout — running in test mode, still
+                      100% simulated, still no real money.
+                    </p>
+                    <PaybostAddFunds theme="light" triggerClassName="deposit-submit-btn" triggerLabel="🚀 Add Funds Instantly via Paybost" onBalanceChange={setBalance} />
+                  </>
+                ) : (
+                  <p style={{ fontSize: 12.5, color: "var(--kk-muted)" }}>
+                    Paybost deposits are currently unavailable. Please use Manual Deposit instead.
+                  </p>
+                )}
               </section>
             </div>
             <div className="deposit-side-col">
