@@ -126,10 +126,17 @@ export function useGameSocket() {
       socket.on("round:waiting", () => setRoundFinishedAt(Date.now()));
 
       socket.on("bet:updated", (payload) => {
-        setState((s) => ({
-          ...(s || {}),
-          myBet: payload.status === null ? null : { ...(s?.myBet || {}), ...payload },
-        }));
+        const slot = payload.slot === 2 ? 2 : 1;
+        setState((s) => {
+          const prevBets = s?.myBets || { 1: null, 2: null };
+          return {
+            ...(s || {}),
+            myBets: {
+              ...prevBets,
+              [slot]: payload.status === null ? null : { ...(prevBets[slot] || {}), ...payload },
+            },
+          };
+        });
       });
 
       socket.on("balance:updated", (payload) => {
@@ -164,26 +171,30 @@ export function useGameSocket() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const placeBet = useCallback((amount, autoCashoutTarget) => {
+  const placeBet = useCallback((amount, autoCashoutTarget, slot = 1) => {
     if (modeRef.current === "socket" && socketRef.current?.connected) {
       return new Promise((resolve) => {
-        socketRef.current.emit("bet:place", { amount, autoCashoutTarget }, (result) => resolve(result));
+        socketRef.current.emit("bet:place", { amount, autoCashoutTarget, slot }, (result) => resolve(result));
       });
     }
     return fetch("/api/game/bet", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount, autoCashoutTarget }),
+      body: JSON.stringify({ amount, autoCashoutTarget, slot }),
     }).then((res) => res.json());
   }, []);
 
-  const cashOut = useCallback(() => {
+  const cashOut = useCallback((slot = 1) => {
     if (modeRef.current === "socket" && socketRef.current?.connected) {
       return new Promise((resolve) => {
-        socketRef.current.emit("bet:cashout", {}, (result) => resolve(result));
+        socketRef.current.emit("bet:cashout", { slot }, (result) => resolve(result));
       });
     }
-    return fetch("/api/game/cashout", { method: "POST" }).then((res) => res.json());
+    return fetch("/api/game/cashout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slot }),
+    }).then((res) => res.json());
   }, []);
 
   return { state, authed, connectionStatus, roundFinishedAt, placeBet, cashOut };

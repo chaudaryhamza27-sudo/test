@@ -88,10 +88,15 @@ io.on("connection", async (socket) => {
     });
 
     if (socket.data.user) {
-      const bet = await GameBet.findOne({ round: round._id, user: socket.data.user._id });
-      socket.emit("bet:updated", bet
-        ? { status: bet.status, amount: bet.amount, cashoutMultiplier: bet.cashoutMultiplier, autoCashoutTarget: bet.autoCashoutTarget, payout: bet.payout }
-        : { status: null });
+      const bets = await GameBet.find({ round: round._id, user: socket.data.user._id });
+      const bySlot = { 1: null, 2: null };
+      for (const bet of bets) bySlot[bet.slot] = bet;
+      for (const slot of [1, 2]) {
+        const bet = bySlot[slot];
+        socket.emit("bet:updated", bet
+          ? { slot, status: bet.status, amount: bet.amount, cashoutMultiplier: bet.cashoutMultiplier, autoCashoutTarget: bet.autoCashoutTarget, payout: bet.payout }
+          : { slot, status: null });
+      }
       socket.emit("balance:updated", { balance: socket.data.user.balance });
     }
   } catch (err) {
@@ -107,10 +112,11 @@ io.on("connection", async (socket) => {
         userId: socket.data.user._id,
         amount: payload?.amount,
         autoCashoutTarget: payload?.autoCashoutTarget,
+        slot: payload?.slot,
       });
       if (result.error) return ack?.({ error: result.error });
       ack?.(result);
-      socket.emit("bet:updated", { status: "placed", amount: result.amount, autoCashoutTarget: payload?.autoCashoutTarget ?? null });
+      socket.emit("bet:updated", { slot: result.slot, status: "placed", amount: result.amount, autoCashoutTarget: payload?.autoCashoutTarget ?? null });
       socket.emit("balance:updated", { balance: result.balance });
     } catch (err) {
       console.error("[socket] bet:place failed", err);
@@ -118,14 +124,14 @@ io.on("connection", async (socket) => {
     }
   });
 
-  socket.on("bet:cashout", async (_payload, ack) => {
+  socket.on("bet:cashout", async (payload, ack) => {
     if (!socket.data.user) return ack?.({ error: "Not authenticated." });
     try {
       await dbConnect();
-      const result = await cashOutBet({ userId: socket.data.user._id });
+      const result = await cashOutBet({ userId: socket.data.user._id, slot: payload?.slot });
       if (result.error) return ack?.({ error: result.error });
       ack?.(result);
-      socket.emit("bet:updated", { status: "cashed_out", cashoutMultiplier: result.multiplier, payout: result.payout });
+      socket.emit("bet:updated", { slot: result.slot, status: "cashed_out", cashoutMultiplier: result.multiplier, payout: result.payout });
       socket.emit("balance:updated", { balance: result.balance });
     } catch (err) {
       console.error("[socket] bet:cashout failed", err);
@@ -160,7 +166,7 @@ async function tick() {
   if (info.phase === "RUNNING") {
     const results = await sweepAutoCashouts({ roundId: round._id, multiplier: info.multiplier });
     for (const r of results) {
-      emitToUser(r.userId, "bet:updated", { status: "cashed_out", cashoutMultiplier: r.multiplier, payout: r.payout });
+      emitToUser(r.userId, "bet:updated", { slot: r.slot, status: "cashed_out", cashoutMultiplier: r.multiplier, payout: r.payout });
       emitToUser(r.userId, "balance:updated", { balance: r.balance });
     }
   }

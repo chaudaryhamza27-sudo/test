@@ -14,15 +14,15 @@ export async function POST(request) {
   if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
 
   const body = await request.json();
-  const { userId, delta, reason } = body || {};
+  const { userId, delta } = body || {};
+  // Optional — the Balance Manager quick panel doesn't collect one, so fall
+  // back to a generic note. The audit log entry and amount are still real.
+  const reason = String(body?.reason || "").trim() || "Manual balance update via admin Balance Manager.";
 
   if (!userId) return Response.json({ error: "userId is required." }, { status: 400 });
   const amount = Number(delta);
   if (!Number.isFinite(amount) || amount === 0) {
     return Response.json({ error: "delta must be a non-zero number." }, { status: 400 });
-  }
-  if (!reason || !String(reason).trim()) {
-    return Response.json({ error: "A reason is required for balance changes." }, { status: 400 });
   }
 
   await dbConnect();

@@ -34,6 +34,7 @@ export async function GET() {
   const [
     totalUsers,
     activeUsers,
+    bannedUsers,
     totalTransactions,
     totalGameRounds,
     pendingDeposits,
@@ -45,6 +46,7 @@ export async function GET() {
   ] = await Promise.all([
     User.countDocuments({}),
     User.countDocuments({ isBanned: false }),
+    User.countDocuments({ isBanned: true }),
     Transaction.countDocuments({}),
     GameRound.countDocuments({}),
     Transaction.countDocuments({ type: "deposit", status: "pending" }),
@@ -71,6 +73,7 @@ export async function GET() {
   return Response.json({
     totalUsers,
     activeUsers,
+    bannedUsers,
     totalTransactions,
     totalGameRounds,
     pendingDeposits,

@@ -33,6 +33,14 @@ export const IconSpeaker = (props) => (
   </svg>
 );
 
+export const IconMusicNote = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M9 18V5l11-2v13" />
+    <circle cx="6" cy="18" r="3" />
+    <circle cx="17" cy="16" r="3" />
+  </svg>
+);
+
 export const IconChevronLeft = (props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <path d="M15 18l-6-6 6-6" />
@@ -356,6 +364,21 @@ export const IconUpload = (props) => (
 export const IconPlane = (props) => (
   <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
     <path d="M21 12.5c0 .4-.3.8-.7.9l-5.6 1.8-2 5.7c-.1.4-.5.6-.9.5-.3-.1-.5-.3-.6-.6l-1-5.9-4.1 1.3-.9 2c-.1.3-.4.5-.7.5-.4 0-.8-.3-.8-.8v-3l-1.5-.5c-.3-.1-.5-.4-.5-.8 0-.3.2-.6.5-.7l1.5-.5V9.2c0-.4.3-.7.8-.7.3 0 .6.2.7.5l.9 2 4.1 1.3 1-5.9c0-.3.3-.6.6-.6.4-.1.8.1.9.5l2 5.7 5.6 1.8c.4.1.7.5.7.9Z" />
+  </svg>
+);
+
+// Original toy-airplane silhouette (swept wings, tail fin, nose propeller) —
+// same shapes as IconGameAviator's category-card art, just collapsed to a
+// single currentColor fill (with the base rotation removed) so GameChart can
+// recolor it per state and rotate it dynamically along the flight path.
+export const IconAviatorPlane = (props) => (
+  <svg viewBox="0 0 48 48" fill="currentColor" {...props}>
+    <path d="M6 24 18 20.5h16l7 3.5-7 3.5H18Z" />
+    <path d="M21 21 30.5 7 35 7 28 21Z" />
+    <path d="M21 27 30.5 41 35 41 28 27Z" opacity=".9" />
+    <path d="M8 24 14.5 20 14.5 28Z" opacity=".85" />
+    <circle cx="33.5" cy="24" r="3.1" opacity=".7" />
+    <path d="M40 21.5 46.5 24 40 26.5Z" opacity=".6" />
   </svg>
 );
 

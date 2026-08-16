@@ -80,9 +80,8 @@ export default function SignupPage() {
         setError(data.error || "Registration failed. Please check your details and try again.");
         return;
       }
-   
-       router.push("/");
-      openNotice("Account created successfully. ");
+      setRedirectHome(true);
+      openNotice("Account created successfully.");
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {

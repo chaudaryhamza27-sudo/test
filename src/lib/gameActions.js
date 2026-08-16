@@ -13,8 +13,11 @@ import { logActivity } from "./activity";
 export const MIN_BET = 10;
 export const MAX_BET = 100000;
 
-// Returns { ok:true, balance, roundId, amount } or { error, status }.
-export async function placeBet({ userId, amount, autoCashoutTarget = null }) {
+// Returns { ok:true, balance, roundId, amount, slot } or { error, status }.
+// `slot` is 1 or 2 — two independent bet panels per user per round (one can
+// be a manual bet, the other an auto-repeating bet, or any combination).
+export async function placeBet({ userId, amount, autoCashoutTarget = null, slot = 1 }) {
+  const parsedSlot = slot === 2 ? 2 : 1;
   const parsedAmount = Number(amount);
   if (!Number.isFinite(parsedAmount) || parsedAmount < MIN_BET || parsedAmount > MAX_BET) {
     return { error: `Bet amount must be between ${MIN_BET} and ${MAX_BET}.`, status: 400 };
@@ -32,7 +35,7 @@ export async function placeBet({ userId, amount, autoCashoutTarget = null }) {
     return { error: "Betting is closed for this round — wait for the next one.", status: 409 };
   }
 
-  const existing = await GameBet.findOne({ round: round._id, user: userId });
+  const existing = await GameBet.findOne({ round: round._id, user: userId, slot: parsedSlot });
   if (existing) {
     return { error: "You already placed a bet on this round.", status: 409 };
   }
@@ -47,12 +50,13 @@ export async function placeBet({ userId, amount, autoCashoutTarget = null }) {
     bet = await GameBet.create({
       round: round._id,
       user: userId,
+      slot: parsedSlot,
       amount: parsedAmount,
       status: "placed",
       autoCashoutTarget: parsedAuto,
     });
   } catch {
-    // Unique index race — someone placed a bet on this round in the same instant. Refund and reject.
+    // Unique index race — someone placed a bet on this round/slot in the same instant. Refund and reject.
     await adjustBalance(userId, parsedAmount);
     return { error: "You already placed a bet on this round.", status: 409 };
   }
@@ -73,34 +77,37 @@ export async function placeBet({ userId, amount, autoCashoutTarget = null }) {
     meta: { roundId: round._id, amount: parsedAmount },
   });
 
-  return { ok: true, balance: updatedUser.balance, roundId: round._id, amount: parsedAmount };
+  return { ok: true, balance: updatedUser.balance, roundId: round._id, amount: parsedAmount, slot: parsedSlot };
 }
 
-// Cashes out the caller's own bet on the currently active round (used by the
-// manual "Cash out" click, over REST or a socket event).
-// Returns { ok:true, multiplier, payout, balance } or { error, status }.
-export async function cashOutBet({ userId }) {
+// Cashes out the caller's own bet (in the given slot) on the currently
+// active round (used by the manual "Cash out" click, over REST or a socket event).
+// Returns { ok:true, multiplier, payout, balance, slot } or { error, status }.
+export async function cashOutBet({ userId, slot = 1 }) {
+  const parsedSlot = slot === 2 ? 2 : 1;
   const round = await getActiveRound();
   const info = getRoundPhase(round);
   if (info.phase !== "RUNNING") {
     return { error: "You can only cash out while the round is running.", status: 409 };
   }
 
-  const result = await claimAndCashOut({ roundId: round._id, userId, multiplier: info.multiplier });
+  const result = await claimAndCashOut({ roundId: round._id, userId, multiplier: info.multiplier, slot: parsedSlot });
   if (!result) {
     return { error: "No active bet to cash out.", status: 409 };
   }
   return { ok: true, ...result };
 }
 
-// Atomically claims a specific placed bet and cashes it out at `multiplier`.
-// Shared by cashOutBet() (self-initiated) and the realtime server's
-// auto-cash-out sweep (server-initiated once a player's target is reached).
-// Returns { multiplier, payout, balance, userId } or null if there was
+// Atomically claims a specific placed bet (round+user+slot) and cashes it
+// out at `multiplier`. Shared by cashOutBet() (self-initiated) and the
+// realtime server's auto-cash-out sweep (server-initiated once a player's
+// target is reached).
+// Returns { multiplier, payout, balance, userId, slot } or null if there was
 // nothing to claim (already resolved, or raced by another request).
-export async function claimAndCashOut({ roundId, userId, multiplier }) {
+export async function claimAndCashOut({ roundId, userId, multiplier, slot = 1 }) {
+  const parsedSlot = slot === 2 ? 2 : 1;
   const bet = await GameBet.findOneAndUpdate(
-    { round: roundId, user: userId, status: "placed" },
+    { round: roundId, user: userId, slot: parsedSlot, status: "placed" },
     { $set: { status: "cashed_out", cashoutMultiplier: multiplier } },
     { new: false }
   );
@@ -127,14 +134,14 @@ export async function claimAndCashOut({ roundId, userId, multiplier }) {
     meta: { roundId, multiplier, payout },
   });
 
-  return { multiplier, payout, balance: updatedUser?.balance ?? null, userId };
+  return { multiplier, payout, balance: updatedUser?.balance ?? null, userId, slot: parsedSlot };
 }
 
 // Called every game-loop tick by the realtime server (RUNNING phase only).
 // Finds every still-placed bet on this round whose auto-cash-out target has
 // been reached or passed, and cashes each one out server-side — the target
 // is enforced here, not trusted from the client. REST-only clients simply
-// never set autoCashoutTarget, so they're unaffected.
+// never set autoCashoutTarget, so they're unaffected. Runs across both slots.
 export async function sweepAutoCashouts({ roundId, multiplier }) {
   const eligible = await GameBet.find({
     round: roundId,
@@ -144,7 +151,7 @@ export async function sweepAutoCashouts({ roundId, multiplier }) {
 
   const results = [];
   for (const bet of eligible) {
-    const result = await claimAndCashOut({ roundId, userId: bet.user, multiplier: bet.autoCashoutTarget });
+    const result = await claimAndCashOut({ roundId, userId: bet.user, multiplier: bet.autoCashoutTarget, slot: bet.slot });
     if (result) results.push(result);
   }
   return results;

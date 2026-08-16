@@ -4,6 +4,41 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import "./admin.css";
 import AdminLayout from "./AdminLayout";
+import { IconUsers, IconShield, IconWallet, IconLockLine, IconX, IconEye, IconEyeOff, IconCheck, IconDocument, IconTrendingUp } from "../icons";
+
+function IconSearch(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m21 21-4.3-4.3" />
+    </svg>
+  );
+}
+
+const AVATAR_COLORS = ["#7c5cff", "#4c8dff", "#22c55e", "#f5b82e", "#ff4d5a", "#14b8a6", "#a855f7"];
+
+function avatarColor(seed) {
+  let hash = 0;
+  for (let i = 0; i < (seed || "").length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  return AVATAR_COLORS[hash % AVATAR_COLORS.length];
+}
+
+function initials(name, uid) {
+  const source = (name || "").trim();
+  if (source) {
+    const parts = source.split(/\s+/);
+    return (parts[0][0] + (parts[1]?.[0] || "")).toUpperCase();
+  }
+  return (uid || "??").slice(0, 2).toUpperCase();
+}
+
+function Avatar({ name, uid, size }) {
+  return (
+    <div className={`admin-avatar ${size === "lg" ? "lg" : ""}`} style={{ background: avatarColor(uid || name || "?") }}>
+      {initials(name, uid)}
+    </div>
+  );
+}
 
 const STATUS_TONE = {
   approved: "success",
@@ -25,6 +60,15 @@ function statusTone(status) {
 }
 function StatusPill({ status }) {
   return <span className={`admin-status-pill tone-${statusTone(status)}`}>{status}</span>;
+}
+
+// Trust score is a 0-100 gauge; these tiers drive the label shown next to it
+// admin-side and the "Account Health" message shown to the user themselves.
+function trustTier(score) {
+  const s = score ?? 50;
+  if (s >= 70) return { label: "Trusted", tone: "success" };
+  if (s >= 30) return { label: "Active", tone: "info" };
+  return { label: "Under Review", tone: "warning" };
 }
 
 function StatCard({ label, value }) {
@@ -75,6 +119,19 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [deposits, setDeposits] = useState([]);
   const [withdrawals, setWithdrawals] = useState([]);
+  const [userStatsModal, setUserStatsModal] = useState(null);
+  const [userSearch, setUserSearch] = useState("");
+  const [banModal, setBanModal] = useState(null); // { user }
+  const [banSubmitting, setBanSubmitting] = useState(false);
+  const [resetBalanceModal, setResetBalanceModal] = useState(null); // { user }
+  const [resetBalanceInput, setResetBalanceInput] = useState("");
+  const [resetBalanceSubmitting, setResetBalanceSubmitting] = useState(false);
+  const [passwordFormModal, setPasswordFormModal] = useState(null); // { user }
+  const [passwordFormValue, setPasswordFormValue] = useState("");
+  const [passwordFormConfirm, setPasswordFormConfirm] = useState("");
+  const [passwordFormShow, setPasswordFormShow] = useState(false);
+  const [passwordFormError, setPasswordFormError] = useState("");
+  const [passwordFormSubmitting, setPasswordFormSubmitting] = useState(false);
   const [overview, setOverview] = useState(null);
   const [rounds, setRounds] = useState([]);
   const [roundsPage, setRoundsPage] = useState(1);
@@ -91,14 +148,33 @@ export default function AdminDashboard() {
   const [error, setError] = useState("");
   const [proofModal, setProofModal] = useState(null);
 
-  // Balance Manager
-  const [balanceSearch, setBalanceSearch] = useState("");
-  const [selectedBalanceUser, setSelectedBalanceUser] = useState(null);
+  // Balance Manager — email lookup + add/deduct amount, same quick-panel
+  // pattern as the KYC/Block/Trust Score panels in User Control.
+  const [balanceEmail, setBalanceEmail] = useState("");
   const [balanceDeltaInput, setBalanceDeltaInput] = useState("");
-  const [balanceReason, setBalanceReason] = useState("");
   const [balanceSubmitting, setBalanceSubmitting] = useState(false);
   const [balanceError, setBalanceError] = useState("");
   const [balanceSuccess, setBalanceSuccess] = useState("");
+
+  // User Control quick panels — KYC / Block / Trust Score, all by email lookup
+  const [kycEmail, setKycEmail] = useState("");
+  const [kycSubmitting, setKycSubmitting] = useState(false);
+  const [kycMessage, setKycMessage] = useState(null); // { tone, text }
+  const [blockEmail, setBlockEmail] = useState("");
+  const [blockSubmitting, setBlockSubmitting] = useState(false);
+  const [blockMessage, setBlockMessage] = useState(null);
+  const [trustEmail, setTrustEmail] = useState("");
+  const [trustAmount, setTrustAmount] = useState("");
+  const [trustSubmitting, setTrustSubmitting] = useState(false);
+  const [trustMessage, setTrustMessage] = useState(null);
+
+  // Manual Payment (Support & Methods) — content/config only, no gateway APIs
+  const [supportSettings, setSupportSettings] = useState(null);
+  const [supportOnlineInput, setSupportOnlineInput] = useState("online");
+  const [supportSavingOnline, setSupportSavingOnline] = useState(false);
+  const [whatsappInput, setWhatsappInput] = useState("");
+  const [supportSavingWhatsapp, setSupportSavingWhatsapp] = useState(false);
+  const [methodToggling, setMethodToggling] = useState(null);
 
   // CashOut
   const [cashouts, setCashouts] = useState([]);
@@ -191,6 +267,82 @@ export default function AdminDashboard() {
     loadPayments();
   }, [checking, tab, loadPayments]);
 
+  const loadSupportSettings = useCallback(() => {
+    fetch("/api/admin/support-settings")
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => {
+        setSupportSettings(data.settings);
+        setSupportOnlineInput(data.settings.online ? "online" : "offline");
+        setWhatsappInput(data.settings.whatsappNumber || "");
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (checking || tab !== "support") return;
+    loadSupportSettings();
+  }, [checking, tab, loadSupportSettings]);
+
+  const saveSupportOnline = async () => {
+    setSupportSavingOnline(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/support-settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ online: supportOnlineInput === "online" }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to update support status.");
+        return;
+      }
+      setSupportSettings(data.settings);
+    } finally {
+      setSupportSavingOnline(false);
+    }
+  };
+
+  const saveWhatsapp = async () => {
+    setSupportSavingWhatsapp(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/support-settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ whatsappNumber: whatsappInput }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to update WhatsApp number.");
+        return;
+      }
+      setSupportSettings(data.settings);
+    } finally {
+      setSupportSavingWhatsapp(false);
+    }
+  };
+
+  const toggleMethod = async (method) => {
+    setMethodToggling(method.key);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/support-settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ methodKey: method.key, methodEnabled: !method.enabled }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to update payment method.");
+        return;
+      }
+      setSupportSettings(data.settings);
+    } finally {
+      setMethodToggling(null);
+    }
+  };
+
   const loadCashouts = useCallback(() => {
     setCashoutsLoading(true);
     const params = new URLSearchParams({ page: String(cashoutsPage) });
@@ -274,60 +426,122 @@ export default function AdminDashboard() {
     loadAll();
   };
 
-  const toggleBan = async (userId, isBanned) => {
+  const submitBan = async () => {
+    if (!banModal) return;
+    setBanSubmitting(true);
     setError("");
-    const res = await fetch("/api/admin/users", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, isBanned }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setError(data.error || "Failed to update user.");
-      return;
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: banModal.user._id, isBanned: !banModal.user.isBanned }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to update user.");
+        return;
+      }
+      setBanModal(null);
+      loadAll();
+    } finally {
+      setBanSubmitting(false);
     }
-    loadAll();
   };
 
-  const resetBalance = async (userId) => {
-    const input = window.prompt("Set new demo balance (Rs):", "10000");
-    if (input === null) return;
-    const balance = Number(input);
+  const submitResetBalance = async () => {
+    if (!resetBalanceModal) return;
+    const balance = Number(resetBalanceInput);
     if (!Number.isFinite(balance) || balance < 0) {
       setError("Enter a valid non-negative number.");
       return;
     }
+    setResetBalanceSubmitting(true);
     setError("");
-    const res = await fetch("/api/admin/users", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, balance }),
-    });
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: resetBalanceModal.user._id, balance }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to update balance.");
+        return;
+      }
+      setResetBalanceModal(null);
+      loadAll();
+    } finally {
+      setResetBalanceSubmitting(false);
+    }
+  };
+
+  const viewUserStats = async (userId) => {
+    setError("");
+    setUserStatsModal({ loading: true });
+    const res = await fetch(`/api/admin/users/${userId}/stats`);
     const data = await res.json();
     if (!res.ok) {
-      setError(data.error || "Failed to update balance.");
+      setError(data.error || "Failed to load user details.");
+      setUserStatsModal(null);
       return;
     }
-    loadAll();
+    setUserStatsModal(data);
+  };
+
+  const passwordRequirements = [
+    { key: "len", label: "At least 8 characters", test: (v) => v.length >= 8 },
+    { key: "num", label: "Include a number", test: (v) => /[0-9]/.test(v) },
+    { key: "letter", label: "Include a letter", test: (v) => /[a-zA-Z]/.test(v) },
+  ];
+
+  const submitPasswordReset = async () => {
+    if (!passwordFormModal) return;
+    setPasswordFormError("");
+    const unmet = passwordRequirements.find((r) => !r.test(passwordFormValue));
+    if (unmet) {
+      setPasswordFormError("Password doesn't meet the requirements below.");
+      return;
+    }
+    if (passwordFormValue !== passwordFormConfirm) {
+      setPasswordFormError("Passwords don't match.");
+      return;
+    }
+    setPasswordFormSubmitting(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: passwordFormModal.user._id, newPassword: passwordFormValue }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setPasswordFormError(data.error || "Failed to reset password.");
+        return;
+      }
+      setPasswordFormModal(null);
+      setPasswordFormValue("");
+      setPasswordFormConfirm("");
+      loadAll();
+    } finally {
+      setPasswordFormSubmitting(false);
+    }
   };
 
   const submitBalanceAdjust = async () => {
-    if (!selectedBalanceUser) return;
-    const delta = Number(balanceDeltaInput);
     setBalanceError("");
     setBalanceSuccess("");
+    const target = findUserByEmail(balanceEmail);
+    if (!target) {
+      setBalanceError("No user found with that email.");
+      return;
+    }
+    const delta = Number(balanceDeltaInput);
     if (!Number.isFinite(delta) || delta === 0) {
       setBalanceError("Enter a non-zero amount (use a negative number to deduct).");
       return;
     }
-    if (!balanceReason.trim()) {
-      setBalanceError("A reason is required.");
-      return;
-    }
     const verb = delta > 0 ? "Credit" : "Debit";
-    const confirmed = window.confirm(
-      `${verb} Rs${Math.abs(delta).toLocaleString()} ${delta > 0 ? "to" : "from"} ${selectedBalanceUser.uid}'s balance?\n\nReason: ${balanceReason}`
-    );
+    const confirmed = window.confirm(`${verb} Rs${Math.abs(delta).toLocaleString()} ${delta > 0 ? "to" : "from"} ${target.uid}'s balance?`);
     if (!confirmed) return;
 
     setBalanceSubmitting(true);
@@ -335,22 +549,128 @@ export default function AdminDashboard() {
       const res = await fetch("/api/admin/balance-adjust", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: selectedBalanceUser._id, delta, reason: balanceReason }),
+        body: JSON.stringify({ userId: target._id, delta }),
       });
       const data = await res.json();
       if (!res.ok) {
         setBalanceError(data.error || "Failed to adjust balance.");
         return;
       }
-      setSelectedBalanceUser(data.user);
       setBalanceDeltaInput("");
-      setBalanceReason("");
       setBalanceSuccess(`Balance updated to Rs${Number(data.user.balance).toLocaleString()}.`);
       loadAll();
     } catch {
       setBalanceError("Something went wrong. Please try again.");
     } finally {
       setBalanceSubmitting(false);
+    }
+  };
+
+  const findUserByEmail = (email) => {
+    const q = email.trim().toLowerCase();
+    if (!q) return null;
+    return users.find((u) => u.email?.toLowerCase() === q) || null;
+  };
+
+  const submitKyc = async (action) => {
+    setKycMessage(null);
+    const target = findUserByEmail(kycEmail);
+    if (!target) {
+      setKycMessage({ tone: "error", text: "No user found with that email." });
+      return;
+    }
+    setKycSubmitting(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: target._id, kycApproved: action === "approve" }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setKycMessage({ tone: "error", text: data.error || "Failed to update KYC status." });
+        return;
+      }
+      setKycMessage({ tone: "success", text: `KYC ${action === "approve" ? "approved" : "removed"} for ${target.uid}.` });
+      loadAll();
+    } catch {
+      setKycMessage({ tone: "error", text: "Something went wrong. Please try again." });
+    } finally {
+      setKycSubmitting(false);
+    }
+  };
+
+  const submitBlock = async (action) => {
+    setBlockMessage(null);
+    const target = findUserByEmail(blockEmail);
+    if (!target) {
+      setBlockMessage({ tone: "error", text: "No user found with that email." });
+      return;
+    }
+    if (target.role === "admin") {
+      setBlockMessage({ tone: "error", text: "Cannot block another admin." });
+      return;
+    }
+    setBlockSubmitting(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: target._id, isBanned: action === "block" }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setBlockMessage({ tone: "error", text: data.error || "Failed to update account status." });
+        return;
+      }
+      setBlockMessage({ tone: "success", text: `${target.uid} ${action === "block" ? "blocked" : "unblocked"}.` });
+      loadAll();
+    } catch {
+      setBlockMessage({ tone: "error", text: "Something went wrong. Please try again." });
+    } finally {
+      setBlockSubmitting(false);
+    }
+  };
+
+  const fetchTrustScore = () => {
+    const target = findUserByEmail(trustEmail);
+    if (!target) {
+      setTrustMessage({ tone: "error", text: "No user found with that email." });
+      return;
+    }
+    setTrustMessage({ tone: "success", text: `${target.uid}'s current trust score is ${target.trustScore ?? 50}%.` });
+  };
+
+  const adjustTrustScore = async (direction) => {
+    setTrustMessage(null);
+    const target = findUserByEmail(trustEmail);
+    if (!target) {
+      setTrustMessage({ tone: "error", text: "No user found with that email." });
+      return;
+    }
+    const amount = Number(trustAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setTrustMessage({ tone: "error", text: "Enter a positive amount." });
+      return;
+    }
+    setTrustSubmitting(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: target._id, trustScoreDelta: direction * amount }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setTrustMessage({ tone: "error", text: data.error || "Failed to update trust score." });
+        return;
+      }
+      setTrustMessage({ tone: "success", text: `${target.uid}'s trust score is now ${data.user.trustScore}%.` });
+      loadAll();
+    } catch {
+      setTrustMessage({ tone: "error", text: "Something went wrong. Please try again." });
+    } finally {
+      setTrustSubmitting(false);
     }
   };
 
@@ -363,17 +683,7 @@ export default function AdminDashboard() {
     return <div className="admin-root admin-loading-screen">Loading admin panel…</div>;
   }
 
-  const filteredBalanceUsers = balanceSearch.trim()
-    ? users.filter((u) => {
-        const q = balanceSearch.trim().toLowerCase();
-        return (
-          u.uid?.toLowerCase().includes(q) ||
-          u.email?.toLowerCase().includes(q) ||
-          u.phone?.toLowerCase().includes(q) ||
-          u.name?.toLowerCase().includes(q)
-        );
-      })
-    : [];
+  const balanceLookupUser = balanceEmail.trim() ? findUserByEmail(balanceEmail) : null;
 
   return (
     <AdminLayout active={tab} onNavigate={setTab} onLogout={logout}>
@@ -391,6 +701,7 @@ export default function AdminDashboard() {
               <div className="admin-stats-grid">
                 <StatCard label="Total Users" value={overview.totalUsers} />
                 <StatCard label="Active Users" value={overview.activeUsers} />
+                <StatCard label="Banned Users" value={overview.bannedUsers} />
                 <StatCard label="Demo Deposits" value={`Rs ${overview.totalDeposits.toLocaleString()}`} />
                 <StatCard label="Demo Withdrawals" value={`Rs ${overview.totalWithdrawals.toLocaleString()}`} />
                 <StatCard label="Total Transactions" value={overview.totalTransactions} />
@@ -416,12 +727,95 @@ export default function AdminDashboard() {
 
       {tab === "users" && (
         <div>
-          <PageHead title="User Control" sub={`${users.length} registered users`} />
+          <div className="admin-page-head">
+            <div>
+              <h1>User Control</h1>
+              <p>{users.length} registered users</p>
+            </div>
+            <div className="admin-page-search">
+              <IconSearch />
+              <input placeholder="Search by name, email or UID…" value={userSearch} onChange={(e) => setUserSearch(e.target.value)} />
+            </div>
+          </div>
+
+          <div className="admin-quick-grid">
+            <div className="admin-quick-card">
+              <div className="admin-quick-card-head">
+                <h3><IconDocument style={{ width: 15, height: 15 }} /> KYC Control</h3>
+                <p>Approve or remove KYC by email</p>
+              </div>
+              <div className="admin-quick-divider" />
+              <div className="admin-quick-field">
+                <label>User Email</label>
+                <input type="email" placeholder="user@example.com" value={kycEmail} onChange={(e) => setKycEmail(e.target.value)} disabled={kycSubmitting} />
+              </div>
+              <div className="admin-quick-actions">
+                <button className="admin-btn success" onClick={() => submitKyc("approve")} disabled={kycSubmitting || !kycEmail.trim()}>
+                  Add KYC
+                </button>
+                <button className="admin-btn danger" onClick={() => submitKyc("remove")} disabled={kycSubmitting || !kycEmail.trim()}>
+                  Remove KYC
+                </button>
+              </div>
+              {kycMessage && <div className={`admin-quick-message ${kycMessage.tone}`}>{kycMessage.text}</div>}
+            </div>
+
+            <div className="admin-quick-card">
+              <div className="admin-quick-card-head">
+                <h3><IconShield style={{ width: 15, height: 15 }} /> Block Control</h3>
+                <p>Block or unblock user account</p>
+              </div>
+              <div className="admin-quick-divider" />
+              <div className="admin-quick-field">
+                <label>User Email</label>
+                <input type="email" placeholder="user@example.com" value={blockEmail} onChange={(e) => setBlockEmail(e.target.value)} disabled={blockSubmitting} />
+              </div>
+              <div className="admin-quick-actions">
+                <button className="admin-btn danger" onClick={() => submitBlock("block")} disabled={blockSubmitting || !blockEmail.trim()}>
+                  Block
+                </button>
+                <button className="admin-btn success" onClick={() => submitBlock("unblock")} disabled={blockSubmitting || !blockEmail.trim()}>
+                  Unblock
+                </button>
+              </div>
+              {blockMessage && <div className={`admin-quick-message ${blockMessage.tone}`}>{blockMessage.text}</div>}
+            </div>
+          </div>
+
+          <div className="admin-quick-card" style={{ marginBottom: 16 }}>
+            <div className="admin-quick-card-head">
+              <h3><IconTrendingUp style={{ width: 15, height: 15 }} /> Trust Score</h3>
+              <p>Fetch, increase or decrease user trust score</p>
+            </div>
+            <div className="admin-quick-divider" />
+            <div className="admin-quick-row">
+              <div className="admin-quick-field">
+                <label>User Email</label>
+                <input type="email" placeholder="user@example.com" value={trustEmail} onChange={(e) => setTrustEmail(e.target.value)} disabled={trustSubmitting} />
+              </div>
+              <div className="admin-quick-field">
+                <label>Amount</label>
+                <input type="number" min="1" placeholder="Amount" value={trustAmount} onChange={(e) => setTrustAmount(e.target.value)} disabled={trustSubmitting} />
+              </div>
+            </div>
+            <div className="admin-quick-actions">
+              <button className="admin-btn dark" onClick={fetchTrustScore} disabled={!trustEmail.trim()}>
+                Fetch
+              </button>
+              <button className="admin-btn success" onClick={() => adjustTrustScore(1)} disabled={trustSubmitting || !trustEmail.trim() || !trustAmount}>
+                Increase
+              </button>
+              <button className="admin-btn warning" onClick={() => adjustTrustScore(-1)} disabled={trustSubmitting || !trustEmail.trim() || !trustAmount}>
+                Decrease
+              </button>
+            </div>
+            {trustMessage && <div className={`admin-quick-message ${trustMessage.tone}`}>{trustMessage.text}</div>}
+          </div>
+
           <div className="admin-table-wrap">
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>UID</th>
                   <th>Name</th>
                   <th>Phone</th>
                   <th>Email</th>
@@ -433,35 +827,48 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {users.map((u) => (
-                  <tr key={u._id}>
-                    <td>{u.uid}</td>
-                    <td>{u.name || "—"}</td>
-                    <td>{u.phone || "—"}</td>
-                    <td>{u.email || "—"}</td>
-                    <td>Rs {Number(u.balance).toLocaleString()}</td>
-                    <td>{u.role}</td>
-                    <td>
-                      <span className={`admin-status-pill tone-${u.isBanned ? "danger" : "success"}`}>{u.isBanned ? "Banned" : "Active"}</span>
-                    </td>
-                    <td>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : "—"}</td>
-                    <td>
-                      {u.role !== "admin" && (
-                        <>
-                          <button className="admin-small-btn" onClick={() => toggleBan(u._id, !u.isBanned)}>
-                            {u.isBanned ? "Unban" : "Ban"}
+                {users
+                  .filter((u) => {
+                    const q = userSearch.trim().toLowerCase();
+                    if (!q) return true;
+                    return (
+                      u.uid?.toLowerCase().includes(q) ||
+                      u.name?.toLowerCase().includes(q) ||
+                      u.email?.toLowerCase().includes(q) ||
+                      u.phone?.toLowerCase().includes(q)
+                    );
+                  })
+                  .map((u) => (
+                    <tr key={u._id}>
+                      <td>
+                        <div className="admin-name-cell">
+                          <Avatar name={u.name} uid={u.uid} />
+                          <div>
+                            <b>{u.name || "—"}</b>
+                            <div style={{ fontSize: 10.5, color: "var(--a-muted)" }}>{u.uid}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>{u.phone || "—"}</td>
+                      <td>{u.email || "—"}</td>
+                      <td style={{ color: "var(--a-success)", fontWeight: 800 }}>Rs {Number(u.balance).toLocaleString()}</td>
+                      <td>{u.role}</td>
+                      <td>
+                        <span className={`admin-status-pill tone-${u.isBanned ? "danger" : "success"}`}>{u.isBanned ? "Banned" : "Active"}</span>
+                      </td>
+                      <td>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : "—"}</td>
+                      <td>
+                        {u.role !== "admin" && (
+                          <button className="admin-small-btn" onClick={() => viewUserStats(u._id)}>
+                            Details
                           </button>
-                          <button className="admin-small-btn" onClick={() => resetBalance(u._id)}>
-                            Reset balance
-                          </button>
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                        )}
+                      </td>
+                    </tr>
+                  ))}
                 {users.length === 0 && (
                   <tr>
-                    <td colSpan={9} className="empty">
+                    <td colSpan={8} className="empty">
                       No users yet.
                     </td>
                   </tr>
@@ -526,113 +933,85 @@ export default function AdminDashboard() {
 
       {tab === "balance" && (
         <div>
-          <PageHead title="Balance Manager" sub="Search a user, then credit or debit their demo balance with a reason. Every change is audit-logged." />
+          <PageHead title="Balance Manager" sub="Fetch balance and add/deduct amount" />
 
-          <div className="admin-search-row">
-            <input
-              placeholder="Search by UID, name, email or phone…"
-              value={balanceSearch}
-              onChange={(e) => setBalanceSearch(e.target.value)}
-            />
-          </div>
-
-          {balanceSearch.trim() && !selectedBalanceUser && (
-            <div style={{ marginBottom: 20 }}>
-              {filteredBalanceUsers.length === 0 ? (
-                <div className="admin-table-wrap" style={{ padding: 24, textAlign: "center", color: "var(--a-muted)" }}>
-                  No matching users.
-                </div>
-              ) : (
-                filteredBalanceUsers.slice(0, 8).map((u) => (
-                  <div
-                    key={u._id}
-                    className="admin-user-result"
-                    onClick={() => {
-                      setSelectedBalanceUser(u);
-                      setBalanceError("");
-                      setBalanceSuccess("");
-                    }}
-                  >
-                    <div>
-                      <b>{u.uid}</b>
-                      <span>
-                        {u.name || "—"} · {u.email || u.phone || "—"}
-                      </span>
-                    </div>
-                    <div className="admin-balance-value">Rs {Number(u.balance).toLocaleString()}</div>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-
-          {selectedBalanceUser && (
-            <div className="admin-card">
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                <div>
-                  <b style={{ fontSize: 15 }}>{selectedBalanceUser.uid}</b>
-                  <div style={{ fontSize: 12, color: "var(--a-muted)", marginTop: 2 }}>
-                    {selectedBalanceUser.name || "—"} · {selectedBalanceUser.email || selectedBalanceUser.phone || "—"}
-                  </div>
-                </div>
-                <button
-                  className="admin-small-btn"
-                  onClick={() => {
-                    setSelectedBalanceUser(null);
-                    setBalanceSearch("");
+          <div className="admin-balance-grid">
+            <div className="admin-quick-card">
+              <div className="admin-quick-card-head">
+                <h3><IconWallet style={{ width: 15, height: 15 }} /> Balance Manager</h3>
+                <p>Fetch balance and add/deduct amount</p>
+              </div>
+              <div className="admin-quick-divider" />
+              <div className="admin-quick-field">
+                <label>User Email</label>
+                <input
+                  type="email"
+                  placeholder="user@example.com"
+                  value={balanceEmail}
+                  onChange={(e) => {
+                    setBalanceEmail(e.target.value);
                     setBalanceError("");
                     setBalanceSuccess("");
                   }}
-                >
-                  Change user
-                </button>
+                  disabled={balanceSubmitting}
+                />
               </div>
-
-              <div style={{ marginBottom: 18 }}>
-                <span style={{ fontSize: 11, color: "var(--a-muted)", textTransform: "uppercase", letterSpacing: 0.4 }}>Current balance</span>
-                <div className="admin-balance-value" style={{ fontSize: 24, marginTop: 4 }}>
-                  Rs {Number(selectedBalanceUser.balance).toLocaleString()}
-                </div>
-              </div>
-
-              <div className="admin-modal-field">
-                <label>Amount (Rs) — negative to deduct</label>
+              <div className="admin-quick-field">
+                <label>Amount</label>
                 <input
                   type="number"
-                  placeholder="e.g. 500 or -500"
+                  placeholder="Use + amount to add, - amount to deduct"
                   value={balanceDeltaInput}
                   onChange={(e) => setBalanceDeltaInput(e.target.value)}
                   disabled={balanceSubmitting}
                 />
-              </div>
-              <div className="admin-modal-field">
-                <label>Reason (required, shown in audit log)</label>
-                <input
-                  placeholder="e.g. Compensation for a bug, manual correction…"
-                  value={balanceReason}
-                  onChange={(e) => setBalanceReason(e.target.value)}
-                  disabled={balanceSubmitting}
-                />
+                <span className="admin-quick-hint-text">Example: 100 to add balance, -100 to deduct.</span>
               </div>
 
-              {balanceError && <div className="admin-banner-error">{balanceError}</div>}
-              {balanceSuccess && (
-                <div className="admin-banner-error" style={{ background: "var(--a-success-bg)", borderColor: "rgba(34,197,94,.3)", color: "#c9f7d9" }}>
-                  {balanceSuccess}
-                </div>
-              )}
+              {balanceError && <div className="admin-quick-message error">{balanceError}</div>}
+              {balanceSuccess && <div className="admin-quick-message success">{balanceSuccess}</div>}
 
-              <button className="admin-small-btn approve" style={{ padding: "10px 18px", fontSize: 12.5 }} onClick={submitBalanceAdjust} disabled={balanceSubmitting}>
-                {balanceSubmitting ? "Submitting…" : "Apply balance change"}
+              <button
+                className="admin-btn primary"
+                style={{ width: "100%", marginTop: 6 }}
+                onClick={submitBalanceAdjust}
+                disabled={balanceSubmitting || !balanceEmail.trim() || !balanceDeltaInput}
+              >
+                {balanceSubmitting ? "Updating…" : "$ Update Balance"}
               </button>
             </div>
-          )}
 
-          {!balanceSearch.trim() && !selectedBalanceUser && (
-            <div className="admin-table-wrap" style={{ padding: 40, textAlign: "center", color: "var(--a-muted)" }}>
-              Search for a user above to manage their balance.
+            <div className="admin-balance-info-col">
+              <div className="admin-quick-hint-box">
+                {balanceLookupUser ? (
+                  <>
+                    Current balance for <b>{balanceLookupUser.uid}</b>: <b>Rs {Number(balanceLookupUser.balance).toLocaleString()}</b>
+                  </>
+                ) : balanceEmail.trim() ? (
+                  "No user found with that email."
+                ) : (
+                  "Enter a user's email to check their current balance."
+                )}
+              </div>
+
+              <div className="admin-quick-card">
+                <div className="admin-quick-card-head">
+                  <h3>Trust Score Logic</h3>
+                  <p>
+                    This only adjusts wallet balance — trust score and KYC status are managed separately, from the Trust Score and KYC
+                    Control panels in User Control.
+                  </p>
+                </div>
+              </div>
+
+              <div className="admin-quick-card">
+                <div className="admin-quick-card-head">
+                  <h3>Notification</h3>
+                  <p>The user gets a real in-app notification with the amount immediately after a successful update.</p>
+                </div>
+              </div>
             </div>
-          )}
+          </div>
         </div>
       )}
 
@@ -982,6 +1361,79 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {tab === "support" && (
+        <div>
+          <PageHead
+            title="Manual Payment"
+            sub="Support status, contact number, and which deposit methods are advertised as available. Content only — no payment gateway is connected."
+          />
+
+          {!supportSettings ? (
+            <div className="admin-table-wrap" style={{ padding: 40, textAlign: "center", color: "var(--a-muted)" }}>
+              Loading…
+            </div>
+          ) : (
+            <>
+              <div className="admin-settings-card">
+                <div className="admin-settings-card-info">
+                  <h3>Support Status</h3>
+                  <p>Shown to users as your support team's online/offline status.</p>
+                </div>
+                <div className="admin-settings-card-control">
+                  <select value={supportOnlineInput} onChange={(e) => setSupportOnlineInput(e.target.value)} disabled={supportSavingOnline}>
+                    <option value="online">Online</option>
+                    <option value="offline">Offline</option>
+                  </select>
+                  <button className="admin-btn primary" onClick={saveSupportOnline} disabled={supportSavingOnline}>
+                    {supportSavingOnline ? "Saving…" : "Save Support"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="admin-settings-card">
+                <div className="admin-settings-card-info">
+                  <h3>WhatsApp Support Number</h3>
+                  <p>Shown to users as the contact number for support.</p>
+                </div>
+                <div className="admin-settings-card-control">
+                  <input placeholder="923001234567" value={whatsappInput} onChange={(e) => setWhatsappInput(e.target.value)} disabled={supportSavingWhatsapp} />
+                  <button
+                    className="admin-btn"
+                    style={{ background: "var(--a-success)", color: "#06190f" }}
+                    onClick={saveWhatsapp}
+                    disabled={supportSavingWhatsapp}
+                  >
+                    {supportSavingWhatsapp ? "Saving…" : "Save WhatsApp"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="admin-info-section-label" style={{ marginBottom: 10 }}>
+                Advertised Deposit Methods
+              </div>
+              <div className="admin-methods-grid">
+                {supportSettings.methods.map((m) => (
+                  <button
+                    key={m.key}
+                    type="button"
+                    className="admin-method-toggle"
+                    onClick={() => toggleMethod(m)}
+                    disabled={methodToggling === m.key}
+                  >
+                    <b>{m.label}</b>
+                    <span className={`admin-method-pill ${m.enabled ? "on" : "off"}`}>{methodToggling === m.key ? "…" : m.enabled ? "ON" : "OFF"}</span>
+                  </button>
+                ))}
+              </div>
+              <p className="admin-modal-note" style={{ marginTop: 14 }}>
+                This only controls which method names are shown as available on the deposit page — no payment gateway, API key, or real transaction
+                capability is connected to any of these.
+              </p>
+            </>
+          )}
+        </div>
+      )}
+
       {tab === "audit" && (
         <div>
           <PageHead title="Audit Log" sub="Every admin and system action, in order." />
@@ -1027,6 +1479,329 @@ export default function AdminDashboard() {
             <button disabled={auditPage >= auditTotalPages} onClick={() => setAuditPage((p) => Math.min(auditTotalPages, p + 1))}>
               Next
             </button>
+          </div>
+        </div>
+      )}
+
+      {userStatsModal && (
+        <div className="admin-modal-backdrop" onClick={() => setUserStatsModal(null)}>
+          <div className="admin-modal-v2" onClick={(e) => e.stopPropagation()}>
+            {userStatsModal.loading ? (
+              <div className="admin-modal-v2-body">
+                <p className="admin-modal-note">Loading…</p>
+              </div>
+            ) : (
+              <>
+                <div className="admin-modal-v2-head">
+                  <div className="admin-modal-v2-icon tone-info">
+                    <IconUsers />
+                  </div>
+                  <div>
+                    <h3>User Details</h3>
+                    <p>Complete information about this user</p>
+                  </div>
+                  <button className="admin-modal-v2-close" onClick={() => setUserStatsModal(null)}>
+                    <IconX />
+                  </button>
+                </div>
+                <div className="admin-modal-v2-body">
+                  <div className="admin-modal-user-row">
+                    <Avatar name={userStatsModal.user.name} uid={userStatsModal.user.uid} size="lg" />
+                    <div>
+                      <b>
+                        {userStatsModal.user.name || userStatsModal.user.uid}{" "}
+                        <span className="admin-status-pill tone-success" style={{ marginLeft: 6 }}>
+                          Active
+                        </span>
+                      </b>
+                      <span>User ID: {userStatsModal.user.uid}</span>
+                    </div>
+                  </div>
+
+                  <div className="admin-info-section">
+                    <div className="admin-info-section-label">Contact</div>
+                    <div className="admin-info-row">
+                      <span className="label">Email</span>
+                      <span className="value">{userStatsModal.user.email || "—"}</span>
+                    </div>
+                    <div className="admin-info-row">
+                      <span className="label">Phone</span>
+                      <span className="value">{userStatsModal.user.phone || "—"}</span>
+                    </div>
+                  </div>
+
+                  <div className="admin-info-section">
+                    <div className="admin-info-section-label">Account activity</div>
+                    <div className="admin-info-highlight">
+                      <span className="label">Current balance</span>
+                      <span className="value" style={{ color: "var(--a-accent)" }}>
+                        Rs {Number(userStatsModal.user.balance).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="admin-info-row">
+                      <span className="label">Total deposited</span>
+                      <span className="value">Rs {Number(userStatsModal.totalDeposited).toLocaleString()}</span>
+                    </div>
+                    <div className="admin-info-row">
+                      <span className="label">Total withdrawn</span>
+                      <span className="value">Rs {Number(userStatsModal.totalWithdrawn).toLocaleString()}</span>
+                    </div>
+                    <div className="admin-info-row">
+                      <span className="label">Total wagered</span>
+                      <span className="value">Rs {Number(userStatsModal.totalWagered).toLocaleString()}</span>
+                    </div>
+                    <div className="admin-info-row">
+                      <span className="label">Total won</span>
+                      <span className="value" style={{ color: "var(--a-success)" }}>
+                        Rs {Number(userStatsModal.totalWon).toLocaleString()} ({userStatsModal.betsWon})
+                      </span>
+                    </div>
+                    <div className="admin-info-row">
+                      <span className="label">Total lost</span>
+                      <span className="value" style={{ color: "var(--a-danger)" }}>
+                        Rs {Number(userStatsModal.totalLost).toLocaleString()} ({userStatsModal.betsLost})
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="admin-info-section">
+                    <div className="admin-info-section-label">Trust & Verification</div>
+                    <div className="admin-info-row">
+                      <span className="label">KYC status</span>
+                      <span className={`admin-status-pill tone-${userStatsModal.user.kycApproved ? "success" : "warning"}`}>
+                        {userStatsModal.user.kycApproved ? "Verified" : "Not verified"}
+                      </span>
+                    </div>
+                    <div className="admin-info-row">
+                      <span className="label">Trust score</span>
+                      <span className="value">
+                        {userStatsModal.user.trustScore ?? 50}%{" "}
+                        <span className={`admin-status-pill tone-${trustTier(userStatsModal.user.trustScore).tone}`} style={{ marginLeft: 4 }}>
+                          {trustTier(userStatsModal.user.trustScore).label}
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="admin-modal-v2-actions">
+                  <button
+                    className="admin-btn danger"
+                    onClick={() => {
+                      const u = users.find((x) => x.uid === userStatsModal.user.uid);
+                      setUserStatsModal(null);
+                      if (u) setBanModal({ user: u });
+                    }}
+                  >
+                    Ban User
+                  </button>
+                  <button
+                    className="admin-btn primary"
+                    onClick={() => {
+                      const u = users.find((x) => x.uid === userStatsModal.user.uid);
+                      setUserStatsModal(null);
+                      if (u) {
+                        setResetBalanceInput(String(u.balance));
+                        setResetBalanceModal({ user: u });
+                      }
+                    }}
+                  >
+                    Reset Balance
+                  </button>
+                  <button
+                    className="admin-btn ghost"
+                    onClick={() => {
+                      const u = users.find((x) => x.uid === userStatsModal.user.uid);
+                      setUserStatsModal(null);
+                      if (u) {
+                        setPasswordFormValue("");
+                        setPasswordFormConfirm("");
+                        setPasswordFormError("");
+                        setPasswordFormModal({ user: u });
+                      }
+                    }}
+                  >
+                    Reset Password
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {banModal && (
+        <div className="admin-modal-backdrop" onClick={() => !banSubmitting && setBanModal(null)}>
+          <div className="admin-modal-v2" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-v2-head">
+              <div className="admin-modal-v2-icon tone-danger">
+                <IconShield />
+              </div>
+              <div>
+                <h3>{banModal.user.isBanned ? "Unban User?" : "Ban User?"}</h3>
+                <p>{banModal.user.isBanned ? "Restore this user's access." : "You are about to suspend this user."}</p>
+              </div>
+              <button className="admin-modal-v2-close" onClick={() => setBanModal(null)}>
+                <IconX />
+              </button>
+            </div>
+            <div className="admin-modal-v2-body">
+              <div className="admin-info-row">
+                <span className="label">Name</span>
+                <span className="value">{banModal.user.name || "—"}</span>
+              </div>
+              <div className="admin-info-row">
+                <span className="label">Email</span>
+                <span className="value">{banModal.user.email || "—"}</span>
+              </div>
+              <div className="admin-info-row">
+                <span className="label">Role</span>
+                <span className="value">{banModal.user.role}</span>
+              </div>
+              {!banModal.user.isBanned && (
+                <div className="admin-warn-box tone-danger" style={{ marginTop: 14 }}>
+                  The user will no longer be able to access the application until they are unbanned.
+                </div>
+              )}
+            </div>
+            <div className="admin-modal-v2-actions">
+              <button className="admin-btn ghost" onClick={() => setBanModal(null)} disabled={banSubmitting}>
+                Cancel
+              </button>
+              <button className="admin-btn danger" onClick={submitBan} disabled={banSubmitting}>
+                {banSubmitting ? "Working…" : banModal.user.isBanned ? "Unban User" : "Ban User"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {resetBalanceModal && (
+        <div className="admin-modal-backdrop" onClick={() => !resetBalanceSubmitting && setResetBalanceModal(null)}>
+          <div className="admin-modal-v2" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-v2-head">
+              <div className="admin-modal-v2-icon tone-violet">
+                <IconWallet />
+              </div>
+              <div>
+                <h3>Reset User Balance?</h3>
+                <p>Set this user&apos;s balance to a new value.</p>
+              </div>
+              <button className="admin-modal-v2-close" onClick={() => setResetBalanceModal(null)}>
+                <IconX />
+              </button>
+            </div>
+            <div className="admin-modal-v2-body">
+              <div className="admin-info-row">
+                <span className="label">Name</span>
+                <span className="value">{resetBalanceModal.user.name || resetBalanceModal.user.uid}</span>
+              </div>
+              <div className="admin-info-row">
+                <span className="label">Current balance</span>
+                <span className="value">Rs {Number(resetBalanceModal.user.balance).toLocaleString()}</span>
+              </div>
+              <div className="admin-password-field">
+                <label>New balance (Rs)</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={resetBalanceInput}
+                  onChange={(e) => setResetBalanceInput(e.target.value)}
+                  disabled={resetBalanceSubmitting}
+                  style={{ paddingRight: 12 }}
+                />
+              </div>
+              <div className="admin-warn-box tone-warning">This action cannot be undone. The user&apos;s current balance will be permanently reset.</div>
+            </div>
+            <div className="admin-modal-v2-actions">
+              <button className="admin-btn ghost" onClick={() => setResetBalanceModal(null)} disabled={resetBalanceSubmitting}>
+                Cancel
+              </button>
+              <button className="admin-btn primary" onClick={submitResetBalance} disabled={resetBalanceSubmitting}>
+                {resetBalanceSubmitting ? "Working…" : "Reset Balance"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {passwordFormModal && (
+        <div className="admin-modal-backdrop" onClick={() => !passwordFormSubmitting && setPasswordFormModal(null)}>
+          <div className="admin-modal-v2" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-v2-head">
+              <div className="admin-modal-v2-icon tone-violet">
+                <IconLockLine />
+              </div>
+              <div>
+                <h3>Reset Password</h3>
+                <p>Set a new password for this user.</p>
+              </div>
+              <button className="admin-modal-v2-close" onClick={() => setPasswordFormModal(null)}>
+                <IconX />
+              </button>
+            </div>
+            <div className="admin-modal-v2-body">
+              <div className="admin-info-row">
+                <span className="label">User</span>
+                <span className="value">{passwordFormModal.user.name || passwordFormModal.user.uid}</span>
+              </div>
+              <div className="admin-info-row">
+                <span className="label">Email</span>
+                <span className="value">{passwordFormModal.user.email || passwordFormModal.user.phone || "—"}</span>
+              </div>
+
+              <div className="admin-password-field" style={{ marginTop: 16 }}>
+                <label>New Password</label>
+                <input
+                  type={passwordFormShow ? "text" : "password"}
+                  placeholder="Enter new password"
+                  value={passwordFormValue}
+                  onChange={(e) => setPasswordFormValue(e.target.value)}
+                  disabled={passwordFormSubmitting}
+                />
+                <button type="button" className="admin-password-toggle" onClick={() => setPasswordFormShow((v) => !v)} aria-label="Toggle visibility">
+                  {passwordFormShow ? <IconEyeOff /> : <IconEye />}
+                </button>
+              </div>
+              <div className="admin-password-field">
+                <label>Confirm New Password</label>
+                <input
+                  type={passwordFormShow ? "text" : "password"}
+                  placeholder="Confirm new password"
+                  value={passwordFormConfirm}
+                  onChange={(e) => setPasswordFormConfirm(e.target.value)}
+                  disabled={passwordFormSubmitting}
+                />
+              </div>
+
+              <div className="admin-info-section-label" style={{ marginTop: 4 }}>
+                Password Requirements
+              </div>
+              <div className="admin-requirements">
+                {passwordRequirements.map((r) => {
+                  const met = r.test(passwordFormValue);
+                  return (
+                    <div key={r.key} className={`admin-requirement ${met ? "met" : ""}`}>
+                      {met ? <IconCheck /> : <IconX />}
+                      {r.label}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {passwordFormError && (
+                <div className="admin-warn-box tone-danger" style={{ marginTop: 10 }}>
+                  {passwordFormError}
+                </div>
+              )}
+            </div>
+            <div className="admin-modal-v2-actions">
+              <button className="admin-btn ghost" onClick={() => setPasswordFormModal(null)} disabled={passwordFormSubmitting}>
+                Cancel
+              </button>
+              <button className="admin-btn primary" onClick={submitPasswordReset} disabled={passwordFormSubmitting}>
+                {passwordFormSubmitting ? "Resetting…" : "Reset Password"}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -10,11 +10,11 @@ export async function GET() {
   const info = getRoundPhase(round);
   const user = await getCurrentUser();
 
-  let myBet = null;
+  let myBets = { 1: null, 2: null };
   if (user) {
-    const bet = await GameBet.findOne({ round: round._id, user: user._id });
-    if (bet) {
-      myBet = {
+    const bets = await GameBet.find({ round: round._id, user: user._id });
+    for (const bet of bets) {
+      myBets[bet.slot] = {
         amount: bet.amount,
         status: bet.status,
         cashoutMultiplier: bet.cashoutMultiplier,
@@ -38,6 +38,6 @@ export async function GET() {
     waitingEndsAt: info.waitingEndsAt ?? null,
     now: Date.now(),
     balance: user ? user.balance : null,
-    myBet,
+    myBets,
   });
 }

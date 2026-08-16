@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { IconPlane } from "../icons";
+import { IconAviatorPlane } from "../icons";
 
 const VB_W = 800;
 const VB_H = 260;
@@ -72,12 +72,12 @@ export default function GameChart({ phase, multiplier, roundId }) {
       <svg viewBox={`0 0 ${VB_W} ${VB_H}`} preserveAspectRatio="none" className="game-chart-svg">
         <defs>
           <linearGradient id="gcLine" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#7c5cff" stopOpacity=".35" />
-            <stop offset="100%" stopColor="#c4b5fd" stopOpacity="1" />
+            <stop offset="0%" stopColor="#e9203a" stopOpacity=".45" />
+            <stop offset="100%" stopColor="#ff5c72" stopOpacity="1" />
           </linearGradient>
           <linearGradient id="gcFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#7c5cff" stopOpacity=".32" />
-            <stop offset="100%" stopColor="#7c5cff" stopOpacity="0" />
+            <stop offset="0%" stopColor="#e9203a" stopOpacity=".38" />
+            <stop offset="100%" stopColor="#e9203a" stopOpacity="0" />
           </linearGradient>
         </defs>
 
@@ -111,7 +111,19 @@ export default function GameChart({ phase, multiplier, roundId }) {
           className={`game-chart-plane ${phase === "CRASHED" || phase === "DONE" ? "crashed" : ""}`}
           style={{ left: `${(planeX / VB_W) * 100}%`, top: `${(planeY / VB_H) * 100}%`, transform: `translate(-50%,-50%) rotate(${angle}deg)` }}
         >
-          <IconPlane />
+          {/* Drop your own plane artwork at public/game/plane.png — this path
+              picks it up automatically. Falls back to the built-in SVG icon
+              if the file isn't there yet, so the page never shows a broken image. */}
+          <img
+            src="/game/plane.png"
+            alt=""
+            
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+              e.currentTarget.nextElementSibling.style.display = "block";
+            }}
+          />
+          <IconAviatorPlane style={{ display: "none" }} />
           <span className="game-chart-plane-trail" />
         </div>
       )}

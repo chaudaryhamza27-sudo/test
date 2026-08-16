@@ -14,7 +14,7 @@ export async function POST(request) {
 
   await dbConnect();
 
-  const result = await placeBet({ userId: user._id, amount: body?.amount, autoCashoutTarget: body?.autoCashoutTarget });
+  const result = await placeBet({ userId: user._id, amount: body?.amount, autoCashoutTarget: body?.autoCashoutTarget, slot: body?.slot });
   if (result.error) return Response.json({ error: result.error }, { status: result.status });
 
   return Response.json(result);

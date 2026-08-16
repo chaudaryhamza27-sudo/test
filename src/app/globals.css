@@ -118,6 +118,10 @@ a{text-decoration:none;color:inherit}
      triad instead of the light kk-page family's dark-navy-on-white values. */
   --text:#F5F7FF; --text-muted:#8D98AE; --text-faint:#5C6478;
   --border:rgba(255,255,255,.10); --border-strong:rgba(255,255,255,.18);
+  /* Same fix, extended to surfaces — without this, shared components like
+     ProfileMenu's dropdown (--surface) rendered light-theme white-on-white
+     dark-on-dark text here, reading as washed-out/greyed-out. */
+  --surface:#101728; --surface-hover:#182034; --surface-sunken:#0b1120;
   min-height:100vh;padding-bottom:118px;position:relative;max-width:480px;width:100%;align-self:center;
   background:var(--void);color:var(--text);
 }
@@ -126,6 +130,9 @@ a{text-decoration:none;color:inherit}
 .g1{top:90px;left:-120px;background:var(--pink)}
 .g2{right:-140px;top:360px;background:var(--cyan)}
 .g3{bottom:20px;left:30%;background:var(--violet)}
+.game-red-theme .g1{background:#e9203a}
+.game-red-theme .g2{background:#ff4d5a}
+.game-red-theme .g3{background:#8f1120}
 
 .topbar{
   position:sticky;top:0;height:86px;padding:14px 15px 10px;
@@ -343,6 +350,12 @@ a{text-decoration:none;color:inherit}
 
 /* Profile dropdown (shared header control) */
 .profile-dropdown{padding:6px}
+.profile-menu-user{padding:12px 10px;margin-bottom:4px;border-bottom:1px solid var(--border);text-align:center}
+.profile-menu-user b{display:block;font-size:13px;font-weight:800;color:var(--text);word-break:break-all}
+.profile-menu-user span{display:block;font-size:11px;color:var(--text-muted);margin-top:3px;letter-spacing:.3px}
+.profile-menu-toggle-row{display:flex;align-items:center;gap:10px;padding:9px 8px;font-size:13px;font-weight:700;color:var(--text)}
+.profile-menu-toggle-row svg{width:16px;height:16px;color:var(--text-muted);flex-shrink:0}
+.profile-menu-toggle-row span{flex:1}
 .profile-menu-item{display:flex;align-items:center;gap:10px;width:100%;padding:10px 8px;border-radius:10px;background:none;border:0;cursor:pointer;font-size:13px;font-weight:700;color:var(--text);text-decoration:none}
 .profile-menu-item:hover{background:var(--surface-hover)}
 .profile-menu-item svg{width:16px;height:16px;color:var(--text-muted);flex-shrink:0}
@@ -493,7 +506,11 @@ a{text-decoration:none;color:inherit}
 .game-history-chip.low{color:#ffb3b3;border-color:rgba(255,92,92,.35);background:rgba(255,92,92,.10)}
 .game-history-chip.high{color:#9dffce;border-color:rgba(55,245,154,.35);background:rgba(55,245,154,.10)}
 
-.game-mode-badge{background:rgba(124,92,255,.16);color:#b9a6ff;font-size:10px;letter-spacing:.3px}
+/* Scoped red accent for the Aviator page only — never touches the shared
+   --gold/--violet/--cyan tokens the Deposit/Withdraw pages also read. */
+.game-red-theme{--game-red:#e9203a;--game-red-dim:#b3172c;--game-red-glow:rgba(233,32,58,.5)}
+
+.game-mode-badge{background:rgba(233,32,58,.16);color:#ff8a97;font-size:10px;letter-spacing:.3px}
 
 .game-stage{
   position:relative;margin:0 14px 16px;height:220px;border-radius:28px;overflow:hidden;
@@ -514,24 +531,40 @@ a{text-decoration:none;color:inherit}
 
 /* Fixed 26px box regardless of the chart's own scale/zoom — the plane can
    never grow beyond this, which is what keeps it "always small" per spec. */
-.game-chart-plane{position:absolute;width:26px;height:26px;color:#fff;pointer-events:none;z-index:2;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45));transition:left .08s linear,top .08s linear}
+.game-chart-plane{position:absolute;width:46px;height:46px;color:#e9203a;pointer-events:none;z-index:2;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45));transition:left .08s linear,top .08s linear}
 .game-chart-plane svg{width:100%;height:100%;display:block}
+.game-chart-plane img{width:100%;height:100%;display:block;object-fit:contain}
 .game-chart-plane.crashed{color:#ff5c5c;filter:grayscale(.35) drop-shadow(0 0 12px rgba(255,92,92,.55))}
-.game-chart-plane-trail{position:absolute;top:50%;right:100%;transform:translateY(-50%);width:30px;height:3px;border-radius:2px;background:linear-gradient(90deg,transparent,rgba(199,178,255,.5));pointer-events:none}
+.game-chart-plane.crashed img{filter:grayscale(.7) brightness(.85)}
+.game-chart-plane-trail{position:absolute;top:50%;right:100%;transform:translateY(-50%);width:30px;height:3px;border-radius:2px;background:linear-gradient(90deg,transparent,rgba(233,32,58,.5));pointer-events:none}
 
 .game-stage-baseline{position:absolute;left:16px;right:16px;bottom:9px;height:2px;z-index:1;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.3) 1.4px,transparent 1.4px);background-size:12px 2px;background-repeat:repeat-x}
 .game-stage-baseline.moving{animation:gameBaselineMove .9s linear infinite}
 @keyframes gameBaselineMove{from{background-position:0 0}to{background-position:-12px 0}}
 
 .game-multiplier{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);z-index:2;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:40px;font-weight:900;color:#fff;text-shadow:0 4px 18px rgba(0,0,0,.5);pointer-events:none}
-.game-multiplier.waiting{font-size:21px;color:var(--gold)}
-.game-multiplier.running{color:var(--green);font-size:44px}
+.game-multiplier.waiting{font-size:21px;color:#ff5c72}
+.game-multiplier.running{color:#fff;font-size:44px;text-shadow:0 0 34px rgba(233,32,58,.55),0 4px 18px rgba(0,0,0,.5)}
 .game-multiplier.crashed{color:#ff5c5c;font-size:26px}
 .game-phase-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
 .game-countdown{font-size:34px;font-weight:900}
 .game-flying-status{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
 .game-flying-status .dot{width:6px;height:6px;border-radius:999px;background:var(--green);box-shadow:0 0 8px rgba(55,245,154,.7);animation:gameFlyPulse 1.1s ease-in-out infinite}
 @keyframes gameFlyPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+
+.game-waiting-overlay{
+  position:fixed;inset:0;left:50%;transform:translateX(-50%);max-width:480px;width:100%;
+  z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center;
+  background:
+    repeating-conic-gradient(from 0deg at 50% 8%, rgba(255,255,255,.05) 0deg 3deg, transparent 3deg 11deg),
+    radial-gradient(ellipse at 50% -5%, rgba(233,32,58,.22), transparent 55%),
+    #05070d;
+}
+.game-waiting-icon{width:76px;height:76px;object-fit:contain;filter:drop-shadow(0 0 18px rgba(233,32,58,.55));animation:gameWaitingPulse 1.8s ease-in-out infinite}
+@keyframes gameWaitingPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.08);opacity:.85}}
+.game-waiting-text{font-family:Georgia,"Times New Roman",serif;font-size:26px;font-weight:700;color:#fff;letter-spacing:.5px;line-height:1.3;max-width:300px;text-shadow:0 4px 18px rgba(0,0,0,.5)}
+.game-waiting-bar{width:70%;max-width:240px;height:4px;border-radius:999px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:2px}
+.game-waiting-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#e9203a,#ff5c72);transition:width .1s linear}
 
 .game-login-note{margin:0 14px 16px;padding:14px 16px;border-radius:18px;background:rgba(40,231,255,.08);border:1px solid rgba(40,231,255,.18);color:#d7f6ff;font-size:12.5px;text-align:center}
 .game-login-note a{color:var(--cyan);font-weight:800}
@@ -577,28 +610,50 @@ a{text-decoration:none;color:inherit}
 .game-table .win{color:var(--green)}
 .game-table-empty{padding:32px 14px;text-align:center;color:var(--muted);font-size:12.5px}
 
-.game-bet-panel{margin:0 14px;padding:18px;border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.035));border:1px solid rgba(255,255,255,.10);box-shadow:var(--shadow)}
-@media(min-width:960px){.game-bet-panel{margin:0}}
-.game-bet-panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.game-bet-panel h2{font-size:16px;font-weight:800;margin-bottom:0;text-transform:uppercase;letter-spacing:.3px}
-.game-bet-panel-head .badge-pill{background:rgba(124,92,255,.16);color:#b9a6ff;font-size:10px}
-.game-field-label{font-size:11px;font-weight:800;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.3px}
-.game-amount-row{display:flex;gap:8px;align-items:center}
-.game-amount-input-wrap{flex:1;position:relative;display:flex;align-items:center}
-.game-amount-input-wrap .coin-icon{position:absolute;left:6px;width:32px;height:32px}
-.game-amount-input-wrap input{width:100%;height:48px;padding-left:44px;border-radius:16px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.10);color:var(--text);font-size:15px;font-weight:800}
-.game-step-btn{flex-shrink:0;width:44px;height:48px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);color:var(--text);font-size:12px;font-weight:800;cursor:pointer}
-.game-step-btn:hover{background:rgba(255,255,255,.10)}
+.game-bet-panel-head{display:flex;align-items:center;justify-content:space-between;margin:0 14px 12px}
+@media(min-width:960px){.game-bet-panel-head{margin:0 0 12px}}
+.game-bet-panel-head h2{font-size:16px;font-weight:800;margin-bottom:0;text-transform:uppercase;letter-spacing:.3px}
+.game-bet-panel-head .badge-pill{background:rgba(233,32,58,.16);color:#ff8a97;font-size:10px}
 
-.game-quick-amounts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
-.game-quick-btn{height:36px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);color:var(--text);font-size:12px;font-weight:800;cursor:pointer}
-.game-quick-btn.active{background:rgba(245,184,46,.12);border-color:var(--gold);color:var(--gold)}
+/* Two independent bet panels side by side — one manual, one auto, or any mix. */
+.game-bet-panels-row{display:flex;flex-direction:column;gap:10px;margin:0 14px 4px}
+@media(min-width:960px){.game-bet-panels-row{margin:0 0 4px}}
 
-.game-auto-row{display:flex;align-items:center;gap:8px}
-.game-auto-row input{flex:1;height:48px;padding:0 14px;border-radius:16px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.10);color:var(--text);font-size:15px;font-weight:800}
+.game-bet-panel{flex:1;min-width:0;padding:14px;border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.035));border:1px solid rgba(255,255,255,.10);box-shadow:var(--shadow)}
 
-.game-place-bet-btn{width:100%;height:54px;margin-top:16px;border:0;border-radius:18px;color:#1a0614;font-size:15px;font-weight:900;background:linear-gradient(135deg,var(--gold),#ff9b3d);box-shadow:0 16px 34px rgba(255,182,66,.28);cursor:pointer}
+.game-bet-tabs{display:flex;background:rgba(0,0,0,.32);border-radius:999px;padding:3px;margin-bottom:10px}
+.game-bet-tabs button{flex:1;padding:6px 0;border:0;border-radius:999px;background:none;font-size:11px;font-weight:800;color:var(--muted);cursor:pointer;text-align:center}
+.game-bet-tabs button.active{background:rgba(255,255,255,.14);color:#fff}
+
+.game-bet-main-row{display:flex;gap:8px;align-items:stretch}
+.game-bet-amount-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+
+.game-amount-pill{display:flex;align-items:center;height:38px;border-radius:999px;background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.10);padding:0 3px}
+.game-amount-pill input{flex:1;min-width:0;width:0;background:none;border:0;text-align:center;color:var(--text);font-size:13px;font-weight:800}
+.game-amount-step{flex-shrink:0;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.08);border:0;color:var(--text);font-size:15px;font-weight:900;line-height:1;cursor:pointer;display:grid;place-items:center}
+.game-amount-step:hover{background:rgba(255,255,255,.14)}
+.game-amount-step:disabled{opacity:.4;cursor:not-allowed}
+
+.game-quick-amounts{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.game-quick-btn{height:28px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);color:var(--text);font-size:10.5px;font-weight:800;cursor:pointer}
+.game-quick-btn.active{background:rgba(233,32,58,.14);border-color:var(--game-red,#e9203a);color:#ff8a97}
+.game-quick-btn:disabled{opacity:.4;cursor:not-allowed}
+
+.game-place-bet-btn{flex:0 0 40%;width:auto;height:auto;margin-top:0;border:0;border-radius:16px;color:#062a12;font-size:12.5px;font-weight:900;line-height:1.15;background:linear-gradient(180deg,#3ddc35,#189e18);box-shadow:0 12px 26px rgba(34,197,94,.3);cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px}
 .game-place-bet-btn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+.game-place-bet-btn.armed{background:rgba(255,255,255,.08);color:var(--muted);box-shadow:none}
+
+.game-auto-controls{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;gap:10px}
+.game-auto-toggle-row{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;color:var(--text)}
+.game-auto-toggle-row span{flex:1}
+.game-auto-target-input{width:56px;height:28px;border-radius:9px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.10);color:var(--text);text-align:center;font-size:11.5px;font-weight:800}
+.game-auto-target-input:disabled{opacity:.4}
+
+.game-toggle{flex-shrink:0;width:36px;height:20px;border-radius:999px;background:rgba(255,255,255,.14);border:0;position:relative;cursor:pointer;padding:0}
+.game-toggle .game-toggle-knob{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .15s ease}
+.game-toggle.on{background:var(--game-red,#e9203a)}
+.game-toggle.on .game-toggle-knob{left:18px}
+
 .game-limits-note{margin-top:10px;text-align:center;font-size:11px;color:var(--muted)}
 
 .game-recent-panel{margin:0 14px;padding:16px;border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.09)}
@@ -985,6 +1040,17 @@ a{text-decoration:none;color:inherit}
 .kk-refresh-btn svg{width:17px;height:17px}
 
 .kk-account-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
+
+/* Account Health — trust-score readout, admin-adjustable via User Control's
+   Trust Score panel. Deliberately its own dark card (like .kk-wallet-banner)
+   rather than the light kk-page surface, matching the reference design. */
+.kk-trust-card{margin:14px 16px 0;padding:18px 20px;border-radius:18px;background:linear-gradient(160deg,#1b1030,#0c0a1c);color:#fff;border:1px solid rgba(255,255,255,.08)}
+.kk-trust-head{display:flex;align-items:center;justify-content:space-between}
+.kk-trust-head span{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:800;color:#fff}
+.kk-trust-head b{font-size:20px;font-weight:900;color:#33d19a}
+.kk-trust-bar{height:8px;border-radius:999px;background:rgba(255,255,255,.12);margin:12px 0 10px;overflow:hidden}
+.kk-trust-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#33d19a,#4aa8ff,#7c5cff)}
+.kk-trust-card p{font-size:11.5px;color:rgba(255,255,255,.65);font-weight:600}
 
 .kk-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 16px 0}
 .kk-info-card{background:var(--surface);border-radius:16px;box-shadow:var(--kk-shadow);padding:14px;display:flex;gap:10px;align-items:flex-start;cursor:pointer;border:1px solid var(--border);text-align:left}

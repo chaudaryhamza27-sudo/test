@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { IconAccount, IconWallet, IconTransaction, IconShield, IconChevronRight } from "../icons";
+import { IconAccount, IconWallet, IconTransaction, IconShield, IconChevronRight, IconSpeaker, IconMusicNote } from "../icons";
+import { useSound } from "./SoundProvider";
 
 // Shared header profile control — click to open, click outside to close.
 // Same interaction pattern as NotificationBell, reused here so both
@@ -11,7 +12,17 @@ import { IconAccount, IconWallet, IconTransaction, IconShield, IconChevronRight 
 export default function ProfileMenu() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [user, setUser] = useState(null);
   const boxRef = useRef(null);
+  const { soundOn, musicOn, toggleSound, toggleMusic } = useSound();
+
+  useEffect(() => {
+    if (!open || user) return;
+    fetch("/api/auth/me")
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => setUser(data.user))
+      .catch(() => {});
+  }, [open, user]);
 
   useEffect(() => {
     const onClickOutside = (e) => {
@@ -35,6 +46,38 @@ export default function ProfileMenu() {
 
       {open && (
         <div className="notif-dropdown profile-dropdown">
+          {user && (
+            <div className="profile-menu-user">
+              <b>{user.email || user.phone || `Player #${user.uid}`}</b>
+              <span>USER ID : {user.uid}</span>
+            </div>
+          )}
+
+          <div className="profile-menu-toggle-row">
+            <IconSpeaker />
+            <span>Sound</span>
+            <button
+              type="button"
+              className={`game-toggle ${soundOn ? "on" : ""}`}
+              onClick={toggleSound}
+              aria-label="Toggle sound effects"
+            >
+              <span className="game-toggle-knob" />
+            </button>
+          </div>
+          <div className="profile-menu-toggle-row">
+            <IconMusicNote />
+            <span>Music</span>
+            <button
+              type="button"
+              className={`game-toggle ${musicOn ? "on" : ""}`}
+              onClick={toggleMusic}
+              aria-label="Toggle background music"
+            >
+              <span className="game-toggle-knob" />
+            </button>
+          </div>
+
           <Link href="/profile" className="profile-menu-item" onClick={() => setOpen(false)}>
             <IconAccount />
             <span>Profile</span>

@@ -13,6 +13,8 @@ export async function GET() {
       balance: user.balance,
       role: user.role,
       inviteCode: user.inviteCode,
+      kycApproved: user.kycApproved,
+      trustScore: user.trustScore,
       lastLoginAt: user.lastLoginAt,
     },
   });

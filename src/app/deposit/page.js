@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   IconChevronLeft,
   IconChevronRight,
@@ -18,6 +19,7 @@ const MAX_PROOF_BYTES = 5 * 1024 * 1024;
 const ALLOWED_PROOF_TYPES = ["image/jpeg", "image/png", "application/pdf"];
 
 export default function DepositPage() {
+  const router = useRouter();
   const [tab, setTab] = useState("manual");
   const [balance, setBalance] = useState(0);
   const [account, setAccount] = useState(null);
@@ -33,11 +35,12 @@ export default function DepositPage() {
     fetch("/api/wallet")
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => setBalance(data.balance))
-      .catch(() => {});
+      .catch(() => router.push("/login"));
     fetch("/api/deposit/account")
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then(setAccount)
       .catch(() => setAccount(null));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const openNotice = (msg, tone = "info") => setPopup({ msg, tone });

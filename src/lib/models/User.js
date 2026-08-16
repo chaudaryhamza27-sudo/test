@@ -12,6 +12,8 @@ const UserSchema = new mongoose.Schema(
     referredBy: { type: String, default: null },
     role: { type: String, enum: ["user", "admin"], default: "user" },
     isBanned: { type: Boolean, default: false },
+    kycApproved: { type: Boolean, default: false },
+    trustScore: { type: Number, default: 50, min: 0, max: 100 },
     lastLoginAt: { type: Date, default: null },
   },
   { timestamps: true }

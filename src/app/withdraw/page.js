@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import BottomNav from "../components/BottomNav";
 import AppShellHeader from "../components/AppShellHeader";
 
@@ -12,10 +13,17 @@ const methodOptions = [
 ];
 
 export default function WithdrawPage() {
+  const router = useRouter();
   const [amount, setAmount] = useState(500);
   const [method, setMethod] = useState("mobile-wallet");
   const [account, setAccount] = useState("");
   const [popup, setPopup] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .catch(() => router.push("/login"));
+  }, [router]);
 
   const openNotice = (msg, tone = "info") => setPopup({ msg, tone });
   const closeNotice = () => setPopup(null);

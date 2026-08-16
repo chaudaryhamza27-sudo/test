@@ -18,10 +18,14 @@ import {
 import { useGameSocket } from "./useGameSocket";
 import AppShellHeader from "../components/AppShellHeader";
 import GameChart from "./GameChart";
+import { useSound } from "../components/SoundProvider";
 
 const QUICK_AMOUNTS = [100, 500, 1000, 5000];
 const MIN_BET = 10;
 const MAX_BET = 100000;
+// Betting window length — must match WAITING_MS in src/lib/gameEngine.js
+// (server-authoritative; this is only used client-side to draw the progress bar).
+const WAITING_MS = 6000;
 
 const TABS = [
   { key: "mine", label: "My Bets", icon: IconWallet, endpoint: "/api/game/my-history", authOnly: true },
@@ -43,22 +47,238 @@ function timeAgo(dateStr) {
 const money = (n) => Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const mult = (n) => `${Number(n ?? 0).toFixed(2)}x`;
 
+// One of the two independent bet panels (slot 1 / slot 2). Each manages its
+// own amount, tab, and auto-bet/auto-cash-out settings, and calls the shared
+// placeBet/cashOut functions from useGameSocket tagged with its own slot —
+// the backend tracks up to one GameBet per (round, user, slot), so both
+// panels can have a live bet in the same round at the same time.
+function BetPanel({ slot, authed, phase, multiplier, roundId, myBet, balance, placeBetFn, cashOutFn }) {
+  const { playTone } = useSound();
+  const [tab, setTab] = useState("bet");
+  const [amount, setAmount] = useState(100);
+  const [autoBetOn, setAutoBetOn] = useState(false);
+  const [autoCashOutOn, setAutoCashOutOn] = useState(false);
+  const [autoCashOutTarget, setAutoCashOutTarget] = useState(2);
+  const [pending, setPending] = useState(false);
+  const [notice, setNotice] = useState("");
+  const autoCashoutFiredRef = useRef(null); // roundId already auto-cashed-out
+  const autoBetFiredRef = useRef(null); // roundId already auto-bet
+
+  const canBet = authed && phase === "WAITING" && !myBet;
+  const canCashOut = authed && phase === "RUNNING" && myBet?.status === "placed";
+  const insufficientBalance = canBet && balance < amount;
+
+  const doPlaceBet = useCallback(
+    async (betAmount) => {
+      setPending(true);
+      setNotice("");
+      try {
+        const result = await placeBetFn(betAmount, autoCashOutOn ? autoCashOutTarget : null, slot);
+        if (result?.error) {
+          setNotice(result.error);
+          return;
+        }
+        playTone("bet");
+      } catch {
+        setNotice("Something went wrong. Please try again.");
+      } finally {
+        setPending(false);
+      }
+    },
+    [placeBetFn, autoCashOutOn, autoCashOutTarget, slot, playTone]
+  );
+
+  const doCashOut = useCallback(async () => {
+    setNotice("");
+    try {
+      const result = await cashOutFn(slot);
+      if (result?.error) {
+        if (!/no active bet/i.test(result.error)) setNotice(result.error);
+        return;
+      }
+      playTone("cashout");
+    } catch {
+      setNotice("Something went wrong. Please try again.");
+    } finally {
+      setPending(false);
+    }
+  }, [cashOutFn, slot, playTone]);
+
+  // Client-side auto cash-out safety net — the realtime server already
+  // enforces this server-side once connected; this mainly matters for the
+  // REST polling fallback, which has nothing watching the multiplier server-side.
+  useEffect(() => {
+    if (!autoCashOutOn) return;
+    const target = Number(autoCashOutTarget);
+    const reached =
+      phase === "RUNNING" &&
+      myBet?.status === "placed" &&
+      target > 1 &&
+      multiplier >= target &&
+      !pending &&
+      autoCashoutFiredRef.current !== roundId;
+    if (reached) {
+      autoCashoutFiredRef.current = roundId;
+      setPending(true);
+      doCashOut();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, multiplier, myBet?.status, autoCashOutOn, autoCashOutTarget, roundId]);
+
+  // Auto Bet — re-places the same amount at the start of every new WAITING
+  // round while armed, until the toggle is switched off.
+  useEffect(() => {
+    if (!autoBetOn || !authed) return;
+    if (phase === "WAITING" && !myBet && !pending && autoBetFiredRef.current !== roundId) {
+      autoBetFiredRef.current = roundId;
+      doPlaceBet(amount);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoBetOn, authed, phase, myBet, roundId, amount]);
+
+  const halveAmount = () => setAmount((a) => Math.max(MIN_BET, Math.floor((Number(a) || 0) / 2)));
+  const doubleAmount = () => setAmount((a) => Math.min(MAX_BET, Math.max(MIN_BET, (Number(a) || 0) * 2)));
+
+  const handleBetClick = () => {
+    if (pending || !canBet || autoBetOn) return;
+    doPlaceBet(amount);
+  };
+  const handleCashOutClick = () => {
+    if (pending) return;
+    setPending(true);
+    doCashOut();
+  };
+
+  const fieldsDisabled = !canBet || autoBetOn;
+
+  return (
+    <div className="game-bet-panel">
+      <div className="game-bet-tabs">
+        <button type="button" className={tab === "bet" ? "active" : ""} onClick={() => setTab("bet")}>
+          Bet
+        </button>
+        <button type="button" className={tab === "auto" ? "active" : ""} onClick={() => setTab("auto")}>
+          Auto
+        </button>
+      </div>
+
+      <div className="game-bet-main-row">
+        <div className="game-bet-amount-col">
+          <div className="game-amount-pill">
+            <button type="button" className="game-amount-step" onClick={halveAmount} disabled={fieldsDisabled} aria-label="Decrease amount">
+              −
+            </button>
+            <input
+              type="number"
+              min={MIN_BET}
+              max={MAX_BET}
+              value={amount}
+              onChange={(e) => setAmount(Number(e.target.value) || 0)}
+              disabled={fieldsDisabled}
+            />
+            <button type="button" className="game-amount-step" onClick={doubleAmount} disabled={fieldsDisabled} aria-label="Increase amount">
+              +
+            </button>
+          </div>
+
+          <div className="game-quick-amounts">
+            {QUICK_AMOUNTS.map((v) => (
+              <button
+                key={v}
+                type="button"
+                className={`game-quick-btn ${amount === v ? "active" : ""}`}
+                onClick={() => setAmount(v)}
+                disabled={fieldsDisabled}
+              >
+                {v.toLocaleString()}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {canCashOut ? (
+          <button type="button" className="game-place-bet-btn game-cashout-btn" onClick={handleCashOutClick} disabled={pending}>
+            Cash Out {(myBet.amount * multiplier).toFixed(0)}
+          </button>
+        ) : insufficientBalance ? (
+          <Link href="/deposit" className="game-place-bet-btn" style={{ textDecoration: "none" }}>
+            Deposit to Play
+          </Link>
+        ) : autoBetOn ? (
+          <button type="button" className="game-place-bet-btn armed" disabled>
+            {myBet?.status === "placed" ? "Auto Bet Placed" : "Auto Bet Armed"}
+          </button>
+        ) : (
+          <button type="button" className="game-place-bet-btn" onClick={handleBetClick} disabled={!canBet || pending}>
+            {pending ? "…" : myBet?.status === "placed" ? "Placed" : "BET"}
+          </button>
+        )}
+      </div>
+
+      {tab === "auto" && (
+        <div className="game-auto-controls">
+          <div className="game-auto-toggle-row">
+            <span>Auto Bet</span>
+            <button
+              type="button"
+              className={`game-toggle ${autoBetOn ? "on" : ""}`}
+              onClick={() => setAutoBetOn((v) => !v)}
+              aria-label="Toggle Auto Bet"
+            >
+              <span className="game-toggle-knob" />
+            </button>
+          </div>
+          <div className="game-auto-toggle-row">
+            <span>Auto Cash Out</span>
+            <button
+              type="button"
+              className={`game-toggle ${autoCashOutOn ? "on" : ""}`}
+              onClick={() => setAutoCashOutOn((v) => !v)}
+              aria-label="Toggle Auto Cash Out"
+            >
+              <span className="game-toggle-knob" />
+            </button>
+            <input
+              type="number"
+              min="1.01"
+              step="0.01"
+              className="game-auto-target-input"
+              value={autoCashOutTarget}
+              onChange={(e) => setAutoCashOutTarget(Number(e.target.value) || 1.01)}
+              disabled={!autoCashOutOn}
+            />
+          </div>
+        </div>
+      )}
+
+      {notice && <div className="deposit-alert" style={{ marginTop: 12 }}>{notice}</div>}
+      {myBet?.status === "cashed_out" && (
+        <div className="alert alert-success" style={{ marginTop: 12, justifyContent: "center", textAlign: "center" }}>
+          Won Rs{myBet.payout?.toLocaleString()} at {myBet.cashoutMultiplier?.toFixed(2)}x
+        </div>
+      )}
+      {myBet?.status === "lost" && (
+        <div className="alert alert-danger" style={{ marginTop: 12, justifyContent: "center", textAlign: "center" }}>
+          Round crashed — bet lost.
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function GamePage() {
   const router = useRouter();
   const { state, authed, roundFinishedAt, placeBet: socketPlaceBet, cashOut: socketCashOut } = useGameSocket();
+  const { playTone } = useSound();
+  const crashSoundRoundRef = useRef(null);
   const [history, setHistory] = useState([]);
   const [showAllRecent, setShowAllRecent] = useState(false);
-  const [amount, setAmount] = useState(100);
-  const [autoCashout, setAutoCashout] = useState(2);
-  const [pending, setPending] = useState(false);
-  const [notice, setNotice] = useState("");
   const [tab, setTab] = useState("mine");
   const [tableItems, setTableItems] = useState([]);
   const [tableLoading, setTableLoading] = useState(true);
   const [showGrid, setShowGrid] = useState(true);
   const [copied, setCopied] = useState(false);
   const stageRef = useRef(null);
-  const autoFiredRef = useRef(null);
 
   // The Aviator game requires an account — anonymous spectating was removed.
   // `authed` is `null` until the first auth check resolves (socket connect or
@@ -101,90 +321,21 @@ export default function GamePage() {
     if (!roundFinishedAt) return;
     loadHistory();
     loadTab(tab);
-    autoFiredRef.current = null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roundFinishedAt]);
-
-  const placeBet = async () => {
-    if (pending) return;
-    setPending(true);
-    setNotice("");
-    try {
-      const result = await socketPlaceBet(amount, autoCashout > 0 ? autoCashout : null);
-      if (result?.error) {
-        setNotice(result.error);
-        return;
-      }
-      autoFiredRef.current = null;
-    } catch {
-      setNotice("Something went wrong. Please try again.");
-    } finally {
-      setPending(false);
-    }
-  };
-
-  // Shared by the manual "Cash out" button and the auto cash-out safety-net
-  // watcher below. When connected via socket, the realtime-server already
-  // enforces autoCashoutTarget server-side (see gameActions.sweepAutoCashouts) —
-  // this client watcher mainly matters for the REST polling fallback, where
-  // nothing is continuously watching the multiplier on the server's behalf.
-  const doCashOut = useCallback(async () => {
-    setNotice("");
-    try {
-      const result = await socketCashOut();
-      if (result?.error) {
-        // Ignore "nothing to cash out" — most likely the server's own
-        // auto-cash-out sweep already claimed it a tick earlier.
-        if (!/no active bet/i.test(result.error)) setNotice(result.error);
-        return;
-      }
-    } catch {
-      setNotice("Something went wrong. Please try again.");
-    } finally {
-      setPending(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const phase = state?.phase || "WAITING";
   const multiplier = state?.multiplier || 1;
   const msLeft = state?.waitingEndsAt ? Math.max(0, state.waitingEndsAt - Date.now()) : 0;
-  const myBet = state?.myBet;
+  const myBets = state?.myBets || { 1: null, 2: null };
   const balance = Number(state?.balance ?? 0);
-  const canBet = authed && phase === "WAITING" && !myBet;
-  const canCashOut = authed && phase === "RUNNING" && myBet?.status === "placed";
-  const insufficientBalance = canBet && balance < amount;
 
-  // Client-side auto cash-out: fires the real cash-out request the moment the
-  // polled multiplier crosses the target, same API path as the manual button.
-  // autoFiredRef prevents firing more than once per round.
   useEffect(() => {
-    const target = Number(autoCashout);
-    const reached =
-      phase === "RUNNING" &&
-      myBet?.status === "placed" &&
-      target > 0 &&
-      multiplier >= target &&
-      !pending &&
-      autoFiredRef.current !== state?.roundId;
-
-    if (reached) {
-      autoFiredRef.current = state?.roundId;
-      setPending(true);
-      doCashOut();
+    if (phase === "CRASHED" && state?.roundId && crashSoundRoundRef.current !== state.roundId) {
+      crashSoundRoundRef.current = state.roundId;
+      playTone("crash");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, multiplier, myBet?.status, autoCashout, state?.roundId]);
-
-  const handleCashOutClick = () => {
-    if (pending) return;
-    setPending(true);
-    doCashOut();
-  };
-
-  const halveAmount = () => setAmount((a) => Math.max(MIN_BET, Math.floor((Number(a) || 0) / 2)));
-  const doubleAmount = () => setAmount((a) => Math.min(MAX_BET, Math.max(MIN_BET, (Number(a) || 0) * 2)));
-  const adjustAuto = (delta) => setAutoCashout((v) => Math.max(1.01, Math.round(((Number(v) || 1) + delta) * 100) / 100));
+  }, [phase, state?.roundId, playTone]);
 
   const copyRoundId = () => {
     if (!state?.roundId) return;
@@ -210,12 +361,25 @@ export default function GamePage() {
   const showStatusCol = tab !== "top";
 
   return (
-    <div className="app-shell no-bottom-nav">
+    <div className="app-shell no-bottom-nav game-red-theme">
       <div className="app-glow g1" />
       <div className="app-glow g2" />
       <div className="app-glow g3" />
 
       <AppShellHeader subtitle="Aviator — Simulation" balance={state?.balance ?? 0} showTrustBadges={false} />
+
+      {phase === "WAITING" && (
+        <div className="game-waiting-overlay">
+          <img src="/game/nextround.svg" alt="" className="game-waiting-icon" />
+          <div className="game-waiting-text">Waiting for next round</div>
+          <div className="game-waiting-bar">
+            <div
+              className="game-waiting-bar-fill"
+              style={{ width: `${Math.min(100, Math.max(0, ((WAITING_MS - msLeft) / WAITING_MS) * 100))}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       <main className="content game-page-content" style={{ paddingTop: 14 }}>
         <div className="game-recent-strip-head">Recent Rounds</div>
@@ -259,13 +423,6 @@ export default function GamePage() {
 
               <GameChart phase={phase} multiplier={multiplier} roundId={state?.roundId} />
               <span className={`game-stage-baseline ${phase === "RUNNING" ? "moving" : ""}`} />
-
-              {phase === "WAITING" && (
-                <div className="game-multiplier waiting">
-                  <span className="game-phase-label">Next round in</span>
-                  <span className="game-countdown">{(msLeft / 1000).toFixed(1)}s</span>
-                </div>
-              )}
               {phase === "RUNNING" && (
                 <div className="game-multiplier running">
                   {multiplier.toFixed(2)}x
@@ -288,100 +445,39 @@ export default function GamePage() {
             )}
 
             {authed && (
-              <section className="game-bet-panel">
+              <>
                 <div className="game-bet-panel-head">
                   <h2>Place Your Bet</h2>
                   <span className="badge-pill">Demo Mode</span>
                 </div>
-
-                <div className="game-field-label">Bet Amount (Rs)</div>
-                <div className="game-amount-row">
-                  <div className="game-amount-input-wrap">
-                    <div className="coin-icon">🪙</div>
-                    <input
-                      type="number"
-                      min={MIN_BET}
-                      max={MAX_BET}
-                      value={amount}
-                      onChange={(e) => setAmount(Number(e.target.value) || 0)}
-                      disabled={!canBet}
-                    />
-                  </div>
-                  <button className="game-step-btn" onClick={halveAmount} disabled={!canBet} aria-label="Halve amount">
-                    ½
-                  </button>
-                  <button className="game-step-btn" onClick={doubleAmount} disabled={!canBet} aria-label="Double amount">
-                    x2
-                  </button>
-                </div>
-
-                <div className="game-quick-amounts">
-                  {QUICK_AMOUNTS.map((v) => (
-                    <button
-                      key={v}
-                      className={`game-quick-btn ${amount === v ? "active" : ""}`}
-                      onClick={() => setAmount(v)}
-                      disabled={!canBet}
-                    >
-                      {v.toLocaleString()}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="game-field-label" style={{ marginTop: 16 }}>
-                  Auto Cash-Out (x)
-                </div>
-                <div className="game-auto-row">
-                  <button className="game-step-btn" onClick={() => adjustAuto(-0.1)} aria-label="Decrease auto cash-out">
-                    −
-                  </button>
-                  <input
-                    type="number"
-                    min="1.01"
-                    step="0.01"
-                    value={autoCashout}
-                    onChange={(e) => setAutoCashout(Number(e.target.value) || 0)}
+                <div className="game-bet-panels-row">
+                  <BetPanel
+                    slot={1}
+                    authed={authed}
+                    phase={phase}
+                    multiplier={multiplier}
+                    roundId={state?.roundId}
+                    myBet={myBets[1]}
+                    balance={balance}
+                    placeBetFn={socketPlaceBet}
+                    cashOutFn={socketCashOut}
                   />
-                  <button className="game-step-btn" onClick={() => adjustAuto(0.1)} aria-label="Increase auto cash-out">
-                    +
-                  </button>
+                  <BetPanel
+                    slot={2}
+                    authed={authed}
+                    phase={phase}
+                    multiplier={multiplier}
+                    roundId={state?.roundId}
+                    myBet={myBets[2]}
+                    balance={balance}
+                    placeBetFn={socketPlaceBet}
+                    cashOutFn={socketCashOut}
+                  />
                 </div>
-
-                {notice && <div className="deposit-alert" style={{ marginTop: 14 }}>{notice}</div>}
-
-                {myBet ? (
-                  <div
-                    className={`alert ${myBet.status === "cashed_out" ? "alert-success" : myBet.status === "lost" ? "alert-danger" : "alert-info"}`}
-                    style={{ marginTop: 14, justifyContent: "center", textAlign: "center" }}
-                  >
-                    {myBet.status === "placed" && <span>Bet placed: Rs{myBet.amount.toLocaleString()} — good luck!</span>}
-                    {myBet.status === "cashed_out" && (
-                      <span>
-                        You won! Cashed out at {myBet.cashoutMultiplier?.toFixed(2)}x for Rs{myBet.payout?.toLocaleString()}
-                      </span>
-                    )}
-                    {myBet.status === "lost" && <span>Round crashed — bet lost.</span>}
-                  </div>
-                ) : null}
-
-                {canCashOut ? (
-                  <button className="game-place-bet-btn game-cashout-btn" onClick={handleCashOutClick} disabled={pending}>
-                    💸 Cash out {(myBet.amount * multiplier).toFixed(0)}
-                  </button>
-                ) : insufficientBalance ? (
-                  <Link href="/deposit" className="game-place-bet-btn" style={{ textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    💰 Deposit to Play — Balance Rs{balance.toLocaleString()}
-                  </Link>
-                ) : (
-                  <button className="game-place-bet-btn" onClick={placeBet} disabled={!canBet || pending}>
-                    🚀 {pending ? "Placing…" : `Place Bet — Rs${amount ? Number(amount).toLocaleString() : 0}`}
-                  </button>
-                )}
-
                 <div className="game-limits-note">
                   Min Bet: Rs{MIN_BET} &nbsp;|&nbsp; Max Bet: Rs{MAX_BET.toLocaleString()}
                 </div>
-              </section>
+              </>
             )}
 
             <section className="game-bets-panel">

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   IconChevronLeft,
   IconChevronRight,
@@ -20,6 +21,7 @@ import PayPalAddFunds from "../components/PayPalAddFunds";
 import PaybostAddFunds from "../components/PaybostAddFunds";
 
 export default function WalletPage() {
+  const router = useRouter();
   const [balance, setBalance] = useState(0);
   const [stats, setStats] = useState(null);
   const [hidden, setHidden] = useState(false);
@@ -28,11 +30,12 @@ export default function WalletPage() {
     fetch("/api/wallet")
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => setBalance(data.balance))
-      .catch(() => {});
+      .catch(() => router.push("/login"));
     fetch("/api/wallet/stats")
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then(setStats)
       .catch(() => setStats(null));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const money = (n) => `Rs${Number(n ?? 0).toLocaleString()}`;
