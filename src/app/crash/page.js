@@ -55,7 +55,7 @@ const mult = (n) => `${Number(n ?? 0).toFixed(2)}x`;
 function BetPanel({ slot, authed, phase, multiplier, roundId, myBet, balance, placeBetFn, cashOutFn }) {
   const { playTone } = useSound();
   const [tab, setTab] = useState("bet");
-  const [amount, setAmount] = useState(100);
+  const [amount, setAmount] = useState(MIN_BET);
   const [autoBetOn, setAutoBetOn] = useState(false);
   const [autoCashOutOn, setAutoCashOutOn] = useState(false);
   const [autoCashOutTarget, setAutoCashOutTarget] = useState(2);

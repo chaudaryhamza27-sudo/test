@@ -34,6 +34,13 @@ export default function DepositPage() {
   const [popup, setPopup] = useState(null);
 
   useEffect(() => {
+    // Paybost redirects back here with ?paybost=success|cancelled — that
+    // popup is owned by <PaybostAddFunds>, which only mounts on the Paybost
+    // tab, so jump there first or the redirect silently does nothing.
+    if (new URLSearchParams(window.location.search).has("paybost")) setTab("paybost");
+  }, []);
+
+  useEffect(() => {
     fetch("/api/wallet")
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => setBalance(data.balance))

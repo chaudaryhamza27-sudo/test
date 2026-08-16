@@ -15,7 +15,7 @@ export default function BottomNav() {
     pathname.startsWith("/withdraw") ||
     pathname.startsWith("/transactions");
   const isProfile = pathname === "/profile";
-  const isGame = pathname === "/game";
+  const isGame = pathname === "/crash";
 
   return (
     <nav className="bottom-nav">
@@ -29,7 +29,7 @@ export default function BottomNav() {
         <span>Activity</span>
       </Link>
 
-      <Link href="/game" className={`center-btn ${isGame ? "active" : ""}`}>
+      <Link href="/crash" className={`center-btn ${isGame ? "active" : ""}`}>
         <IconGame />
       </Link>
 

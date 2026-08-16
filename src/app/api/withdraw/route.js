@@ -1,8 +1,13 @@
 import dbConnect from "../../../lib/mongodb";
 import Transaction from "../../../lib/models/Transaction";
 import { getCurrentUser } from "../../../lib/auth";
-import { adjustBalance } from "../../../lib/wallet";
+import { adjustBalance, getWithdrawEligibility } from "../../../lib/wallet";
 import { logActivity } from "../../../lib/activity";
+
+const ELIGIBILITY_MESSAGES = {
+  pending_deposit: "Your deposit is still pending verification. You can withdraw once it's approved.",
+  no_deposit: "Withdrawal is available after your first deposit is verified. Please make a deposit first.",
+};
 
 const MIN_WITHDRAW = 500;
 
@@ -31,6 +36,11 @@ export async function POST(request) {
   }
 
   await dbConnect();
+
+  const eligibility = await getWithdrawEligibility(user._id);
+  if (!eligibility.eligible) {
+    return Response.json({ error: ELIGIBILITY_MESSAGES[eligibility.reason] }, { status: 403 });
+  }
 
   // Hold the funds immediately via an atomic, balance-guarded decrement so that
   // two concurrent withdraw requests can't both succeed against the same balance.

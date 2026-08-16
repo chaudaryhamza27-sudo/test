@@ -13,5 +13,6 @@ export async function GET() {
     announcementEnabled: settings.announcementEnabled,
     announcementText: settings.announcementText,
     methods: settings.methods.map((m) => ({ key: m.key, label: m.label, enabled: m.enabled })),
+    withdrawMethods: settings.withdrawMethods.map((m) => ({ key: m.key, label: m.label, enabled: m.enabled })),
   });
 }

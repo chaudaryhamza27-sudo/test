@@ -6,7 +6,7 @@ import { logActivity } from "../../../../lib/activity";
 import { notifyUser } from "../../../../lib/notifications";
 import { checkRateLimit, getClientIp } from "../../../../lib/rateLimit";
 
-const STARTER_BALANCE = 10000;
+const STARTER_BALANCE = 0;
 const SIGNUP_MAX_ATTEMPTS = 5;
 const SIGNUP_WINDOW_MS = 60 * 60_000;
 
@@ -77,7 +77,7 @@ export async function POST(request) {
   await notifyUser(user._id, {
     type: "welcome",
     title: "Welcome to the demo!",
-    message: `Your account starts with a simulated balance of Rs${STARTER_BALANCE.toLocaleString()}. No real money is involved.`,
+    message: "Your account starts with a Rs0 balance — make a demo deposit to get started. No real money is involved.",
   });
 
   return Response.json({

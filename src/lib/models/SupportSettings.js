@@ -26,6 +26,24 @@ const SupportSettingsSchema = new mongoose.Schema(
         { key: "paybost", label: "Paybost", enabled: false },
       ],
     },
+    // Independent from `methods` (deposits) — a method can be advertised for
+    // deposits but not withdrawals, or vice versa.
+    withdrawMethods: {
+      type: [
+        {
+          key: String,
+          label: String,
+          enabled: { type: Boolean, default: false },
+        },
+      ],
+      default: [
+        { key: "easypaisa", label: "EasyPaisa", enabled: false },
+        { key: "jazzcash", label: "JazzCash", enabled: false },
+        { key: "sadapay", label: "SadaPay", enabled: false },
+        { key: "trc20", label: "TRC20 (USDT)", enabled: false },
+        { key: "paybost", label: "Paybost", enabled: false },
+      ],
+    },
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   },
   { timestamps: true }

@@ -1041,7 +1041,7 @@
   color: var(--a-muted);
 }
 
-/* ---- User Control quick panels: KYC / Block / Trust Score, by email ---- */
+/* ---- User Control quick panels: Block / Trust Score, by email ---- */
 .admin-quick-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

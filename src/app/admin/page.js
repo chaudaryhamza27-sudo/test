@@ -172,6 +172,7 @@ export default function AdminDashboard() {
   const [whatsappInput, setWhatsappInput] = useState("");
   const [supportSavingWhatsapp, setSupportSavingWhatsapp] = useState(false);
   const [methodToggling, setMethodToggling] = useState(null);
+  const [withdrawMethodToggling, setWithdrawMethodToggling] = useState(null);
   const [announcementInput, setAnnouncementInput] = useState("");
   const [announcementEnabledInput, setAnnouncementEnabledInput] = useState(false);
   const [supportSavingAnnouncement, setSupportSavingAnnouncement] = useState(false);
@@ -365,6 +366,26 @@ export default function AdminDashboard() {
     }
   };
 
+  const toggleWithdrawMethod = async (method) => {
+    setWithdrawMethodToggling(method.key);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/support-settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ withdrawMethodKey: method.key, withdrawMethodEnabled: !method.enabled }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to update withdraw method.");
+        return;
+      }
+      setSupportSettings(data.settings);
+    } finally {
+      setWithdrawMethodToggling(null);
+    }
+  };
+
   const loadCashouts = useCallback(() => {
     setCashoutsLoading(true);
     const params = new URLSearchParams({ page: String(cashoutsPage) });
@@ -554,7 +575,7 @@ export default function AdminDashboard() {
     setBalanceSuccess("");
     const target = findUserByEmail(balanceEmail);
     if (!target) {
-      setBalanceError("No user found with that email.");
+      setBalanceError("No user found with that email, UID, or phone.");
       return;
     }
     const delta = Number(balanceDeltaInput);
@@ -588,17 +609,20 @@ export default function AdminDashboard() {
     }
   };
 
-  const findUserByEmail = (email) => {
-    const q = email.trim().toLowerCase();
+  // Looks a user up by whichever identifier the admin typed — UID, email, or
+  // phone — so one field covers all three instead of requiring an exact
+  // email match.
+  const findUserByEmail = (query) => {
+    const q = query.trim().toLowerCase();
     if (!q) return null;
-    return users.find((u) => u.email?.toLowerCase() === q) || null;
+    return users.find((u) => u.uid?.toLowerCase() === q || u.email?.toLowerCase() === q || u.phone?.toLowerCase() === q) || null;
   };
 
   const submitBlock = async (action) => {
     setBlockMessage(null);
     const target = findUserByEmail(blockEmail);
     if (!target) {
-      setBlockMessage({ tone: "error", text: "No user found with that email." });
+      setBlockMessage({ tone: "error", text: "No user found with that email, UID, or phone." });
       return;
     }
     if (target.role === "admin") {
@@ -629,7 +653,7 @@ export default function AdminDashboard() {
   const fetchTrustScore = () => {
     const target = findUserByEmail(trustEmail);
     if (!target) {
-      setTrustMessage({ tone: "error", text: "No user found with that email." });
+      setTrustMessage({ tone: "error", text: "No user found with that email, UID, or phone." });
       return;
     }
     setTrustMessage({ tone: "success", text: `${target.uid}'s current trust score is ${target.trustScore ?? 50}%.` });
@@ -639,7 +663,7 @@ export default function AdminDashboard() {
     setTrustMessage(null);
     const target = findUserByEmail(trustEmail);
     if (!target) {
-      setTrustMessage({ tone: "error", text: "No user found with that email." });
+      setTrustMessage({ tone: "error", text: "No user found with that email, UID, or phone." });
       return;
     }
     const amount = Number(trustAmount);
@@ -733,15 +757,15 @@ export default function AdminDashboard() {
           </div>
 
           <div className="admin-quick-grid">
-            <div className="admin-quick-card" style={{ maxWidth: 420 }}>
+            <div className="admin-quick-card">
               <div className="admin-quick-card-head">
                 <h3><IconShield style={{ width: 15, height: 15 }} /> Block Control</h3>
                 <p>Block or unblock user account</p>
               </div>
               <div className="admin-quick-divider" />
               <div className="admin-quick-field">
-                <label>User Email</label>
-                <input type="email" placeholder="user@example.com" value={blockEmail} onChange={(e) => setBlockEmail(e.target.value)} disabled={blockSubmitting} />
+                <label>Email / UID / Phone</label>
+                <input type="text" placeholder="Email, UID, or phone" value={blockEmail} onChange={(e) => setBlockEmail(e.target.value)} disabled={blockSubmitting} />
               </div>
               <div className="admin-quick-actions">
                 <button className="admin-btn danger" onClick={() => submitBlock("block")} disabled={blockSubmitting || !blockEmail.trim()}>
@@ -753,36 +777,36 @@ export default function AdminDashboard() {
               </div>
               {blockMessage && <div className={`admin-quick-message ${blockMessage.tone}`}>{blockMessage.text}</div>}
             </div>
-          </div>
 
-          <div className="admin-quick-card" style={{ marginBottom: 16 }}>
-            <div className="admin-quick-card-head">
-              <h3><IconTrendingUp style={{ width: 15, height: 15 }} /> Trust Score</h3>
-              <p>Fetch, increase or decrease user trust score</p>
-            </div>
-            <div className="admin-quick-divider" />
-            <div className="admin-quick-row">
-              <div className="admin-quick-field">
-                <label>User Email</label>
-                <input type="email" placeholder="user@example.com" value={trustEmail} onChange={(e) => setTrustEmail(e.target.value)} disabled={trustSubmitting} />
+            <div className="admin-quick-card">
+              <div className="admin-quick-card-head">
+                <h3><IconTrendingUp style={{ width: 15, height: 15 }} /> Trust Score</h3>
+                <p>Fetch, increase or decrease user trust score</p>
               </div>
-              <div className="admin-quick-field">
-                <label>Amount</label>
-                <input type="number" min="1" placeholder="Amount" value={trustAmount} onChange={(e) => setTrustAmount(e.target.value)} disabled={trustSubmitting} />
+              <div className="admin-quick-divider" />
+              <div className="admin-quick-row">
+                <div className="admin-quick-field">
+                  <label>Email / UID / Phone</label>
+                  <input type="text" placeholder="Email, UID, or phone" value={trustEmail} onChange={(e) => setTrustEmail(e.target.value)} disabled={trustSubmitting} />
+                </div>
+                <div className="admin-quick-field">
+                  <label>Amount</label>
+                  <input type="number" min="1" placeholder="Amount" value={trustAmount} onChange={(e) => setTrustAmount(e.target.value)} disabled={trustSubmitting} />
+                </div>
               </div>
+              <div className="admin-quick-actions">
+                <button className="admin-btn dark" onClick={fetchTrustScore} disabled={!trustEmail.trim()}>
+                  Fetch
+                </button>
+                <button className="admin-btn success" onClick={() => adjustTrustScore(1)} disabled={trustSubmitting || !trustEmail.trim() || !trustAmount}>
+                  Increase
+                </button>
+                <button className="admin-btn warning" onClick={() => adjustTrustScore(-1)} disabled={trustSubmitting || !trustEmail.trim() || !trustAmount}>
+                  Decrease
+                </button>
+              </div>
+              {trustMessage && <div className={`admin-quick-message ${trustMessage.tone}`}>{trustMessage.text}</div>}
             </div>
-            <div className="admin-quick-actions">
-              <button className="admin-btn dark" onClick={fetchTrustScore} disabled={!trustEmail.trim()}>
-                Fetch
-              </button>
-              <button className="admin-btn success" onClick={() => adjustTrustScore(1)} disabled={trustSubmitting || !trustEmail.trim() || !trustAmount}>
-                Increase
-              </button>
-              <button className="admin-btn warning" onClick={() => adjustTrustScore(-1)} disabled={trustSubmitting || !trustEmail.trim() || !trustAmount}>
-                Decrease
-              </button>
-            </div>
-            {trustMessage && <div className={`admin-quick-message ${trustMessage.tone}`}>{trustMessage.text}</div>}
           </div>
 
           <div className="admin-table-wrap">
@@ -859,7 +883,9 @@ export default function AdminDashboard() {
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>User</th>
+                  <th>User ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
                   <th>Amount</th>
                   <th>Method</th>
                   <th>Account</th>
@@ -871,6 +897,8 @@ export default function AdminDashboard() {
                 {withdrawals.map((w) => (
                   <tr key={w._id}>
                     <td>{w.user?.uid || "—"}</td>
+                    <td>{w.user?.name || "—"}</td>
+                    <td>{w.user?.email || "—"}</td>
                     <td>Rs {Number(w.amount).toLocaleString()}</td>
                     <td>{w.method}</td>
                     <td>{w.accountNumber}</td>
@@ -893,7 +921,7 @@ export default function AdminDashboard() {
                 ))}
                 {withdrawals.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="empty">
+                    <td colSpan={8} className="empty">
                       No withdraw requests yet.
                     </td>
                   </tr>
@@ -916,10 +944,10 @@ export default function AdminDashboard() {
               </div>
               <div className="admin-quick-divider" />
               <div className="admin-quick-field">
-                <label>User Email</label>
+                <label>User Email / UID / Phone</label>
                 <input
-                  type="email"
-                  placeholder="user@example.com"
+                  type="text"
+                  placeholder="user@example.com, UID, or phone"
                   value={balanceEmail}
                   onChange={(e) => {
                     setBalanceEmail(e.target.value);
@@ -961,9 +989,9 @@ export default function AdminDashboard() {
                     Current balance for <b>{balanceLookupUser.uid}</b>: <b>Rs {Number(balanceLookupUser.balance).toLocaleString()}</b>
                   </>
                 ) : balanceEmail.trim() ? (
-                  "No user found with that email."
+                  "No user found with that email, UID, or phone."
                 ) : (
-                  "Enter a user's email to check their current balance."
+                  "Enter a user's email, UID, or phone to check their current balance."
                 )}
               </div>
 
@@ -1496,6 +1524,28 @@ export default function AdminDashboard() {
               <p className="admin-modal-note" style={{ marginTop: 14 }}>
                 This only controls which method names are shown as available on the deposit page — no payment gateway, API key, or real transaction
                 capability is connected to any of these.
+              </p>
+
+              <div className="admin-info-section-label" style={{ marginTop: 24, marginBottom: 10 }}>
+                Advertised Withdraw Methods
+              </div>
+              <div className="admin-methods-grid">
+                {supportSettings.withdrawMethods.map((m) => (
+                  <button
+                    key={m.key}
+                    type="button"
+                    className="admin-method-toggle"
+                    onClick={() => toggleWithdrawMethod(m)}
+                    disabled={withdrawMethodToggling === m.key}
+                  >
+                    <b>{m.label}</b>
+                    <span className={`admin-method-pill ${m.enabled ? "on" : "off"}`}>{withdrawMethodToggling === m.key ? "…" : m.enabled ? "ON" : "OFF"}</span>
+                  </button>
+                ))}
+              </div>
+              <p className="admin-modal-note" style={{ marginTop: 14 }}>
+                Independent from the deposit methods above — this controls which method names are shown as available on the withdraw page. No payment
+                gateway, API key, or real payout capability is connected to any of these.
               </p>
             </>
           )}

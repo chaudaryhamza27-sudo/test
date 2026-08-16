@@ -72,6 +72,18 @@ export async function PATCH(request) {
     });
   }
 
+  if (body.withdrawMethodKey && typeof body.withdrawMethodEnabled === "boolean") {
+    const method = settings.withdrawMethods.find((m) => m.key === body.withdrawMethodKey);
+    if (!method) return Response.json({ error: "Unknown withdraw method." }, { status: 400 });
+    method.enabled = body.withdrawMethodEnabled;
+    await logActivity({
+      user: admin._id,
+      actorRole: "admin",
+      action: "withdraw_method_toggled",
+      message: `${body.withdrawMethodEnabled ? "Enabled" : "Disabled"} ${method.label} as an advertised withdraw method.`,
+    });
+  }
+
   settings.updatedBy = admin._id;
   await settings.save();
 

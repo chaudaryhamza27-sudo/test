@@ -5,10 +5,12 @@ import { getCurrentUser } from "../../../../lib/auth";
 const DEPOSIT_STATUSES = ["approved", "completed"];
 
 // Real VIP tier computed from lifetime completed deposits — not a hardcoded badge.
+// VIP starts at the minimum deposit amount (Rs3,000, see MIN_DEPOSIT in
+// /deposit), so the first deposit anyone can make already clears it.
 const TIERS = [
   { name: "Member", min: 0 },
-  { name: "VIP", min: 300 },
-  { name: "Gold", min: 3000 },
+  { name: "VIP", min: 3000 },
+  { name: "Gold", min: 10000 },
   { name: "Platinum", min: 17000 },
 ];
 

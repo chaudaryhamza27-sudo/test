@@ -11,7 +11,7 @@ export async function GET() {
 
   await dbConnect();
   const withdrawals = await Transaction.find({ type: "withdraw" })
-    .populate("user", "uid phone email")
+    .populate("user", "uid name phone email")
     .sort({ createdAt: -1 });
   return Response.json({ withdrawals });
 }

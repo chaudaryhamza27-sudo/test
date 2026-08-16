@@ -162,7 +162,7 @@ export default function ProfilePage() {
       )}
 
       <section className="kk-grid-2">
-        <Link href="/game/history" className="kk-info-card">
+        <Link href="/crash/history" className="kk-info-card">
           <div className="kk-info-icon" style={{ background: "linear-gradient(160deg,#4aa8ff,#1565e8)" }}>
             <IconGameHistory />
           </div>
@@ -213,7 +213,7 @@ export default function ProfilePage() {
             <IconChevronRight />
           </span>
         </Link>
-        <Link href="/game/history" className="kk-list-item">
+        <Link href="/crash/history" className="kk-list-item">
           <span className="kk-list-item-icon">
             <IconChartLine />
           </span>

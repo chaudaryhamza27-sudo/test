@@ -5,8 +5,8 @@ import { IconShield, IconX, IconChevronRight, IconWallet, IconUpload, IconCheck 
 
 // This merchant's Paybost sandbox account only accepts PKR — matches this
 // app's existing Rs-denominated wallet, so 1 PKR (test) == 1 demo credit here.
-const PRESET_AMOUNTS = [1000, 3000, 5000, 10000, 25000, 50000, 75000];
-const MIN_AMOUNT = 100;
+const PRESET_AMOUNTS = [3000, 5000, 10000, 25000, 50000, 75000];
+const MIN_AMOUNT = 3000;
 const MAX_AMOUNT = 100000;
 const POLL_INTERVAL_MS = 2000;
 const POLL_MAX_ATTEMPTS = 15; // ~30s
@@ -25,7 +25,7 @@ const HOW_IT_WORKS = [
 // up wherever the popup left off.
 export default function PaybostAddFunds({ theme = "dark", triggerClassName, triggerLabel = "Add Funds (Paybost — Test Mode)", onBalanceChange, disabled = false }) {
   const [open, setOpen] = useState(false);
-  const [amount, setAmount] = useState(1000);
+  const [amount, setAmount] = useState(3000);
   const [manualAmount, setManualAmount] = useState("");
   const [phase, setPhase] = useState("select"); // select | redirecting | polling | success | cancelled | error
   const [resultMessage, setResultMessage] = useState("");
@@ -157,25 +157,12 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
 
           {phase === "select" && (
             <>
-              <div className="kk-popup-title" style={{ fontSize: 22, marginTop: 12 }}>
+              <div className="kk-popup-title paybost-title">
                 Add Funds via Paybost
               </div>
               <p className={textClass}>Add demo funds instantly using Paybost in test mode.</p>
 
-              <div className="paybost-range-box">
-                <div className="paybost-range-icon">
-                  <IconWallet />
-                </div>
-                <div>
-                  <div className="paybost-range-label">Demo Balance will be added</div>
-                  <div className="paybost-range-value">
-                    Rs{MIN_AMOUNT.toLocaleString()} ~ Rs{MAX_AMOUNT.toLocaleString()}
-                  </div>
-                  <div className="paybost-range-sub">Choose an amount or enter custom value</div>
-                </div>
-              </div>
-
-              <div className="paybost-section-label">Quick Select Amount</div>
+              <div className="paybost-section-label" style={{ marginTop: 14 }}>Quick Select Amount</div>
               <div className="paybost-quick-grid">
                 {PRESET_AMOUNTS.map((v) => (
                   <button
@@ -212,7 +199,7 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
                 />
               </div>
               <div className="paybost-min-max">
-                Minimum Rs{MIN_AMOUNT} &nbsp;|&nbsp; Maximum Rs{MAX_AMOUNT.toLocaleString()}
+                Minimum Rs{MIN_AMOUNT.toLocaleString()} &nbsp;|&nbsp; Maximum Rs{MAX_AMOUNT.toLocaleString()}
               </div>
 
               <div className="paybost-how-card">

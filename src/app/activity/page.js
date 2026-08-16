@@ -56,7 +56,7 @@ const DEFAULT_META = { tag: "Activity", icon: IconActivity, bg: "linear-gradient
 
 const FILTERS = ["All Activity", "Account", "Deposit", "Withdraw", "Aviator", "Wallet", "Security"];
 
-const money = (n) => `₹${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const money = (n) => `Rs${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 // Which field in an activity's `meta` represents a real money amount, and
 // which direction it moved — derived from the same meta objects logActivity()

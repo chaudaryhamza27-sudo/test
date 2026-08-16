@@ -17,6 +17,7 @@ import {
   IconHome,
   IconPlane,
   IconVip,
+  IconWallet,
   IconGameAviator,
   IconGameOx,
   IconGameWheel,
@@ -59,6 +60,7 @@ const GAME_ICONS = {
 export default function Home() {
   const [slide, setSlide] = useState(0);
   const [popup, setPopup] = useState(null);
+  const [rechargeOpen, setRechargeOpen] = useState(false);
   // undefined = auth check still in flight (render nothing in the header
   // slot to avoid a login/register flash before we know); null = logged
   // out; object = logged in.
@@ -82,6 +84,9 @@ export default function Home() {
 
   const openDemo = (name) => setPopup(name);
   const closeDemo = () => setPopup(null);
+
+  const openRecharge = () => setRechargeOpen(true);
+  const closeRecharge = () => setRechargeOpen(false);
 
   const scrollGames = (e, dir) => {
     const row = e.currentTarget.closest("section")?.querySelector(".kk-games");
@@ -175,7 +180,7 @@ export default function Home() {
                       New dark royal theme, faster game access, smooth mobile design and premium casino style.
                     </p>
                     <div className="kk-hero-actions">
-                      <Link href="/game" className="kk-hero-join-btn primary">
+                      <Link href="/crash" className="kk-hero-join-btn primary">
                         <IconPlane style={{ width: 13, height: 13 }} />
                         Play Aviator
                       </Link>
@@ -271,14 +276,14 @@ export default function Home() {
                     </div>
                   </>
                 );
-                return g.href ? (
+                return g.playable ? (
                   <Link className="kk-game-card" key={g.name} href={g.href}>
                     {media}
                   </Link>
                 ) : (
-                  <div className="kk-game-card" key={g.name} onClick={() => openDemo(g.name)}>
+                  <button type="button" className="kk-game-card" key={g.name} onClick={openRecharge}>
                     {media}
-                  </div>
+                  </button>
                 );
               })}
               {!sec.noDetail && (
@@ -380,6 +385,19 @@ export default function Home() {
           <button className="kk-popup-btn" onClick={closeDemo}>
             Got it
           </button>
+        </div>
+      </div>
+
+      <div className={`popup ${rechargeOpen ? "active" : ""}`} onClick={closeRecharge}>
+        <div className="kk-popup-box recharge-popup-box" onClick={(e) => e.stopPropagation()}>
+          <div className="recharge-popup-icon">
+            <IconWallet />
+          </div>
+          <div className="kk-popup-title">Recharge Required</div>
+          <p className="kk-popup-text">Please deposit balance to continue this game.</p>
+          <Link href="/deposit" className="recharge-popup-btn">
+            Recharge Now
+          </Link>
         </div>
       </div>
     </div>

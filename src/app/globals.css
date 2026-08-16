@@ -235,6 +235,13 @@ a{text-decoration:none;color:inherit}
 .popup-text,.kk-popup-text{margin-top:7px;color:var(--text-muted);font-size:13px;line-height:1.6}
 .popup-btn,.kk-popup-btn{margin-top:20px;width:100%;height:50px;border:0;border-radius:var(--r-lg);background:var(--accent);color:#181206;font-size:14px;font-weight:800;cursor:pointer}
 
+.recharge-popup-box{background:linear-gradient(160deg,#241047,#150a28);border-color:rgba(255,255,255,.10)}
+.recharge-popup-box .kk-popup-title{color:#fff8ef}
+.recharge-popup-box .kk-popup-text{color:#b9a8ce}
+.recharge-popup-icon{width:72px;height:72px;margin:0 auto 16px;border-radius:22px;display:grid;place-items:center;background:linear-gradient(135deg,#ffb23d,#ff3d81);color:#1a0614;box-shadow:0 14px 30px rgba(255,61,129,.30)}
+.recharge-popup-icon svg{width:30px;height:30px}
+.recharge-popup-btn{margin-top:20px;width:100%;height:50px;border:0;border-radius:var(--r-lg);background:linear-gradient(135deg,#28e7ff,#7c3cff);color:#fff;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+
 /* --- Core reusable components --- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;padding:0 18px;border-radius:var(--r-lg);border:1px solid transparent;font-size:14px;font-weight:700;cursor:pointer;transition:.15s}
 .btn-primary{background:var(--accent);color:#181206}
@@ -267,6 +274,10 @@ a{text-decoration:none;color:inherit}
 .alert-success{background:var(--success-bg);border-color:rgba(34,197,94,.3);color:#c9f7d9}
 .alert-danger{background:var(--danger-bg);border-color:rgba(240,74,94,.3);color:#ffd7dc}
 .alert-info{background:var(--info-bg);border-color:rgba(76,141,255,.3);color:#d7e6ff}
+/* .alert-info's light text is only readable on the dark app-shell surfaces
+   it was designed for — on the light kk-page surfaces (deposit/wallet/
+   withdraw) it was rendering near-invisible near-white-on-near-white. */
+.kk-page .alert-info{color:var(--link)}
 .alert-neutral{background:rgba(255,255,255,.06);border-color:var(--border);color:var(--text-muted)}
 .alert-warning{background:var(--warning-bg);border-color:rgba(232,172,66,.35);color:#ffe6ac}
 .deposit-alert{display:flex;gap:10px;align-items:flex-start;margin:0 14px 14px;padding:12px 14px;border-radius:var(--r-md);font-size:12.5px;line-height:1.5;background:var(--info-bg);border:1px solid rgba(76,141,255,.3);color:#d7e6ff}
@@ -368,6 +379,14 @@ a{text-decoration:none;color:inherit}
   background:var(--bg-raised);border-top:1px solid var(--border);
   box-shadow:0 -6px 24px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:space-around;z-index:950;
 }
+/* The bar itself is decorative-only for clicks — only its actual icon/link
+   children are interactive. Without this, a scrolled-up card (e.g. a
+   section's "Detail" tile, which lands in the same rightmost column as the
+   Account link) can hand its click to whichever nav item happens to sit in
+   that unused strip of the fixed bar, even though the tap wasn't on that
+   icon at all. */
+.bottom-nav{pointer-events:none}
+.bottom-nav > *{pointer-events:auto}
 .nav-link{min-width:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--text-faint);font-size:10px;font-weight:600;background:none;border:0;cursor:pointer}
 .nav-link svg{width:21px;height:21px}
 .nav-link.active{color:var(--kk-blue)}
@@ -455,40 +474,40 @@ a{text-decoration:none;color:inherit}
 /* Paybost's own wider modal (the detailed "how it works" version) — a
    distinct max-width and quick-amount grid from the shared 400px one above,
    which PayPal still uses. */
-.paybost-modal{max-width:720px !important;text-align:left;position:relative;padding-top:44px}
-.paybost-close-btn{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:var(--surface-hover);border:0;color:var(--text-muted);display:grid;place-items:center;cursor:pointer}
-.paybost-close-btn svg{width:15px;height:15px}
-.paybost-modal-badge{display:flex;align-items:center;justify-content:center;gap:6px;width:max-content;margin:0 auto;padding:7px 16px;border-radius:999px;background:rgba(232,172,66,.12);border:1px solid rgba(232,172,66,.4);color:var(--warning);font-size:11px;font-weight:800;letter-spacing:.3px}
+.paybost-modal{max-width:440px !important;text-align:left;position:relative;padding:36px 20px 20px;max-height:88vh;overflow-y:auto}
+.paybost-close-btn{position:absolute;top:14px;right:14px;width:28px;height:28px;border-radius:50%;background:var(--surface-hover);border:0;color:var(--text-muted);display:grid;place-items:center;cursor:pointer}
+.paybost-close-btn svg{width:14px;height:14px}
+.paybost-modal-badge{display:flex;align-items:center;justify-content:center;gap:5px;width:max-content;margin:0 auto;padding:5px 12px;border-radius:999px;background:rgba(232,172,66,.12);border:1px solid rgba(232,172,66,.4);color:var(--warning);font-size:9.5px;font-weight:800;letter-spacing:.3px}
 .paybost-modal-badge .dot{opacity:.5}
 .paybost-modal .kk-popup-title,.paybost-modal .popup-title{text-align:center}
-.paybost-modal .kk-popup-text,.paybost-modal .popup-text{text-align:center}
+.paybost-modal .kk-popup-text,.paybost-modal .popup-text{text-align:center;font-size:12px;margin-top:4px}
+.paybost-title{font-size:17px;margin-top:10px}
 
-.paybost-range-box{display:flex;align-items:center;gap:14px;margin-top:16px;padding:16px;border-radius:16px;background:var(--info-bg);border:1px solid rgba(76,141,255,.3);text-align:left}
-.paybost-range-icon{width:48px;height:48px;border-radius:50%;background:rgba(76,141,255,.18);color:var(--link);display:grid;place-items:center;flex-shrink:0}
-.paybost-range-icon svg{width:22px;height:22px}
-.paybost-range-label{font-size:11px;font-weight:800;color:var(--warning)}
-.paybost-range-value{font-size:20px;font-weight:900;color:var(--text);margin-top:2px}
-.paybost-range-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
+.paybost-section-label{margin-top:14px;margin-bottom:6px;font-size:11.5px;font-weight:800;color:var(--text)}
+.paybost-quick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
 
-.paybost-section-label{margin-top:16px;margin-bottom:8px;font-size:12.5px;font-weight:800;color:var(--text)}
-.paybost-quick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.paybost-amount-pill{height:40px;border-radius:12px;background:var(--surface-sunken);border:1px solid var(--border);color:var(--text);font-size:12px;font-weight:800;cursor:pointer}
+.paybost-amount-pill.active{background:var(--info-bg);border-color:var(--link);color:var(--link)}
 
-.paybost-custom-row{display:flex;align-items:center;gap:8px;height:48px;padding:0 14px;border-radius:14px;background:var(--surface-sunken);border:1px solid var(--border)}
-.paybost-rs-prefix{font-size:14px;font-weight:800;color:var(--link)}
-.paybost-custom-input2{flex:1;background:none;border:0;outline:none;color:var(--text);font-size:15px;font-weight:700}
-.paybost-min-max{margin-top:8px;font-size:11px;color:var(--text-faint)}
+.paybost-custom-row{display:flex;align-items:center;gap:8px;height:42px;padding:0 12px;border-radius:12px;background:var(--surface-sunken);border:1px solid var(--border)}
+.paybost-rs-prefix{font-size:13px;font-weight:800;color:var(--link)}
+.paybost-custom-input2{flex:1;background:none;border:0;outline:none;color:var(--text);font-size:13.5px;font-weight:700}
+.paybost-min-max{margin-top:6px;font-size:10.5px;color:var(--text-faint)}
 
-.paybost-how-card{margin-top:18px;padding:16px;border-radius:16px;background:var(--surface-sunken);border:1px solid var(--border)}
-.paybost-how-head{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--text);margin-bottom:16px}
-.paybost-how-steps{display:grid;grid-template-columns:repeat(2,1fr);gap:20px 10px}
-.paybost-how-step{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px}
-.paybost-how-icon{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:16px;margin-bottom:6px}
-.paybost-how-icon svg{width:18px;height:18px}
-.paybost-how-step b{font-size:11.5px;font-weight:800;color:var(--text)}
-.paybost-how-step span{font-size:10px;color:var(--text-muted);line-height:1.3}
+.paybost-how-card{margin-top:14px;padding:12px;border-radius:14px;background:var(--surface-sunken);border:1px solid var(--border)}
+.paybost-how-head{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:800;color:var(--text);margin-bottom:12px}
+.paybost-how-steps{display:grid;grid-template-columns:repeat(2,1fr);gap:14px 8px}
+.paybost-how-step{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px}
+.paybost-how-icon{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:13px;margin-bottom:4px}
+.paybost-how-icon svg{width:15px;height:15px}
+.paybost-how-step b{font-size:10.5px;font-weight:800;color:var(--text)}
+.paybost-how-step span{font-size:9px;color:var(--text-muted);line-height:1.25}
 .paybost-how-arrow{display:none}
 
-.paybost-cancel-btn{width:100%;margin-top:10px;height:46px;border-radius:14px;background:none;border:1px solid var(--border);color:var(--text-muted);font-size:13px;font-weight:700;cursor:pointer}
+.paybost-cancel-btn{width:100%;margin-top:8px;height:42px;border-radius:12px;background:none;border:1px solid var(--border);color:var(--text-muted);font-size:12.5px;font-weight:700;cursor:pointer}
+
+.paybost-modal .alert{padding:10px 12px;font-size:11px}
+.paybost-modal .deposit-submit-btn{height:46px;font-size:13px;border-radius:14px}
 
 /* --- PayPal Sandbox add-funds modal --- */
 .paypal-sandbox-badge,.demo-payment-badge{
@@ -793,12 +812,14 @@ a{text-decoration:none;color:inherit}
 .kk-arrow-btn svg{width:14px;height:14px}
 
 .kk-games{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 16px 10px}
+.kk-games .kk-game-card:only-child{grid-column:1/-1}
+.kk-games .kk-game-card:only-child .kk-game-media{height:170px}
 .kk-game-card{min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--kk-shadow);cursor:pointer;transition:transform .18s}
 .kk-game-card:active{transform:scale(.97)}
 .kk-game-media{height:88px;position:relative;display:grid;place-items:center;background:linear-gradient(160deg,var(--a,#2f6fe0),var(--b,#123a8f))}
 .kk-game-media:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.20),transparent 55%)}
 .kk-game-icon{position:relative;z-index:1;width:46px;height:46px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}
-.kk-game-thumb{position:relative;z-index:1;width:100%;height:100%;object-fit:cover}
+.kk-game-thumb{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:cover}
 .kk-game-badge{position:absolute;top:7px;left:7px;z-index:2;padding:3px 8px;border-radius:999px;font-size:9px;font-weight:900;letter-spacing:.3px;background:var(--danger);color:#fff}
 .kk-game-badge.new{background:var(--success)}
 .kk-game-play{position:absolute;bottom:7px;right:7px;z-index:2;display:flex;align-items:center;gap:3px;padding:4px 8px;border-radius:999px;background:var(--kk-blue-grad);color:#fff;font-size:9.5px;font-weight:900;box-shadow:0 4px 10px rgba(0,0,0,.35)}
