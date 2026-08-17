@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 
 const SoundContext = createContext(null);
 
@@ -27,6 +28,11 @@ export function SoundProvider({ children }) {
   const [ready, setReady] = useState(false);
   const audioCtxRef = useRef(null);
   const musicElRef = useRef(null);
+  const pathname = usePathname();
+  // Background music is a game-page feature — it should never keep playing
+  // once you've navigated away to Wallet/Profile/etc. `musicOn` is still the
+  // user's saved preference either way, this just gates actual playback.
+  const onGamePage = pathname?.startsWith("/crash");
 
   useEffect(() => {
     setSoundOn(localStorage.getItem(SOUND_KEY) === "1");
@@ -45,7 +51,7 @@ export function SoundProvider({ children }) {
   useEffect(() => {
     if (!ready) return;
     localStorage.setItem(MUSIC_KEY, musicOn ? "1" : "0");
-    if (musicOn) {
+    if (musicOn && onGamePage) {
       // Created lazily, only on first actual use — an unconditional `new
       // Audio(src)` fetches eagerly on mount even while the toggle is off.
       if (!musicElRef.current) {
@@ -63,7 +69,7 @@ export function SoundProvider({ children }) {
     } else {
       musicElRef.current?.pause();
     }
-  }, [musicOn, ready]);
+  }, [musicOn, onGamePage, ready]);
 
   // Browsers block audio-with-sound autoplay before any user gesture — so
   // when music is on (including the first-visit default) but still paused
@@ -71,7 +77,7 @@ export function SoundProvider({ children }) {
   useEffect(() => {
     if (!ready) return;
     const tryResume = () => {
-      if (musicOn && musicElRef.current?.paused) musicElRef.current.play().catch(() => {});
+      if (musicOn && onGamePage && musicElRef.current?.paused) musicElRef.current.play().catch(() => {});
     };
     document.addEventListener("pointerdown", tryResume);
     document.addEventListener("keydown", tryResume);
@@ -79,7 +85,7 @@ export function SoundProvider({ children }) {
       document.removeEventListener("pointerdown", tryResume);
       document.removeEventListener("keydown", tryResume);
     };
-  }, [musicOn, ready]);
+  }, [musicOn, onGamePage, ready]);
 
   const playTone = useCallback(
     (name) => {
