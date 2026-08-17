@@ -29,7 +29,7 @@ export default function BottomNav() {
         <span>Activity</span>
       </Link>
 
-      <Link href="/crash" className={`center-btn ${isGame ? "active" : ""}`}>
+      <Link href="/profile" className={`center-btn ${isGame ? "active" : ""}`}>
         <IconGame />
       </Link>
 

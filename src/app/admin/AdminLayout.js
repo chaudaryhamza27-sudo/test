@@ -13,6 +13,7 @@ import {
   IconShield,
   IconLogout,
   IconHeadset,
+  IconRefresh,
 } from "../icons";
 
 const NAV_ITEMS = [
@@ -38,7 +39,7 @@ function HamburgerIcon(props) {
   );
 }
 
-export default function AdminLayout({ active, onNavigate, onLogout, children }) {
+export default function AdminLayout({ active, onNavigate, onLogout, onRefreshTab, refreshingTab, children }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const go = (key) => {
@@ -69,15 +70,31 @@ export default function AdminLayout({ active, onNavigate, onLogout, children }) 
 
           <nav className="admin-nav">
             {NAV_ITEMS.map((item) => (
-              <button
-                key={item.key}
-                type="button"
-                className={`admin-nav-item ${active === item.key ? "active" : ""}`}
-                onClick={() => go(item.key)}
-              >
-                <item.icon />
-                {item.label}
-              </button>
+              <div key={item.key} className="admin-nav-row">
+                <button
+                  type="button"
+                  className={`admin-nav-item ${active === item.key ? "active" : ""}`}
+                  onClick={() => go(item.key)}
+                >
+                  <item.icon />
+                  {item.label}
+                </button>
+                {onRefreshTab && (
+                  <button
+                    type="button"
+                    className="admin-nav-refresh"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRefreshTab(item.key);
+                    }}
+                    disabled={refreshingTab === item.key}
+                    aria-label={`Refresh ${item.label}`}
+                    title={`Refresh ${item.label}`}
+                  >
+                    <IconRefresh className={refreshingTab === item.key ? "spinning" : ""} />
+                  </button>
+                )}
+              </div>
             ))}
           </nav>
 

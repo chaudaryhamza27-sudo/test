@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import "./admin.css";
 import AdminLayout from "./AdminLayout";
-import { IconUsers, IconShield, IconWallet, IconLockLine, IconX, IconEye, IconEyeOff, IconCheck, IconTrendingUp } from "../icons";
+import { IconUsers, IconShield, IconWallet, IconLockLine, IconX, IconEye, IconEyeOff, IconCheck, IconTrendingUp, IconRefresh } from "../icons";
 
 function IconSearch(props) {
   return (
@@ -100,14 +100,28 @@ function BarChart({ data, valueKey, color, formatValue }) {
   );
 }
 
-function PageHead({ title, sub, badge }) {
+function PageHead({ title, sub, badge, onRefresh, refreshing }) {
   return (
     <div className="admin-page-head">
       <div>
         <h1>{title}</h1>
         {sub && <p>{sub}</p>}
       </div>
-      {badge && <span className="admin-demo-badge">EDUCATIONAL DEMO · SIMULATION MODE · NO REAL MONEY</span>}
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {badge && <span className="admin-demo-badge">EDUCATIONAL DEMO · SIMULATION MODE · NO REAL MONEY</span>}
+        {onRefresh && (
+          <button
+            type="button"
+            className="admin-refresh-btn"
+            onClick={onRefresh}
+            disabled={refreshing}
+            aria-label="Refresh"
+            title="Refresh"
+          >
+            <IconRefresh className={refreshing ? "spinning" : ""} />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -147,6 +161,18 @@ export default function AdminDashboard() {
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState("");
   const [proofModal, setProofModal] = useState(null);
+  // Key of whichever tab's refresh is currently in flight — tracked by key
+  // (not a bool) so the sidebar can show a spinner on the right row even
+  // when that tab isn't the one currently open.
+  const [refreshingTab, setRefreshingTab] = useState("");
+  const refreshTab = async (key, fn) => {
+    setRefreshingTab(key);
+    try {
+      await fn();
+    } finally {
+      setRefreshingTab("");
+    }
+  };
 
   // Balance Manager — email lookup + add/deduct amount, same quick-panel
   // pattern as the Block/Trust Score panels in User Control.
@@ -227,13 +253,17 @@ export default function AdminDashboard() {
     })();
   }, [loadAll]);
 
-  useEffect(() => {
-    if (checking || tab !== "dashboard") return;
-    fetch("/api/admin/overview")
+  const loadOverview = useCallback(() => {
+    return fetch("/api/admin/overview")
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then(setOverview)
       .catch(() => {});
-  }, [checking, tab]);
+  }, []);
+
+  useEffect(() => {
+    if (checking || tab !== "dashboard") return;
+    loadOverview();
+  }, [checking, tab, loadOverview]);
 
   useEffect(() => {
     if (checking || tab !== "rounds") return;
@@ -278,7 +308,7 @@ export default function AdminDashboard() {
   }, [checking, tab, loadPayments]);
 
   const loadSupportSettings = useCallback(() => {
-    fetch("/api/admin/support-settings")
+    return fetch("/api/admin/support-settings")
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => {
         setSupportSettings(data.settings);
@@ -730,13 +760,35 @@ export default function AdminDashboard() {
   const balanceLookupUser = balanceEmail.trim() ? findUserByEmail(balanceEmail) : null;
   const trustLookupUser = trustEmail.trim() ? findUserByEmail(trustEmail) : null;
 
+  // Lets the sidebar refresh a tab's data directly, without switching to it
+  // first — same loaders the in-page refresh buttons use.
+  const TAB_REFRESHERS = {
+    dashboard: loadOverview,
+    users: loadAll,
+    withdrawals: loadAll,
+    balance: loadAll,
+    support: loadSupportSettings,
+  };
+
   return (
-    <AdminLayout active={tab} onNavigate={setTab} onLogout={logout}>
+    <AdminLayout
+      active={tab}
+      onNavigate={setTab}
+      onLogout={logout}
+      onRefreshTab={(key) => TAB_REFRESHERS[key] && refreshTab(key, TAB_REFRESHERS[key])}
+      refreshingTab={refreshingTab}
+    >
       {error && <div className="admin-banner-error">{error}</div>}
 
       {tab === "dashboard" && (
         <div>
-          <PageHead title="Dashboard" sub="Live stats pulled from the real database." badge />
+          <PageHead
+            title="Dashboard"
+            sub="Live stats pulled from the real database."
+            badge
+            onRefresh={() => refreshTab("dashboard", loadOverview)}
+            refreshing={refreshingTab === "dashboard"}
+          />
           {!overview ? (
             <div className="admin-table-wrap" style={{ padding: 40, textAlign: "center", color: "var(--a-muted)" }}>
               Loading overview…
@@ -777,9 +829,21 @@ export default function AdminDashboard() {
               <h1>User Control</h1>
               <p>{users.length} registered users</p>
             </div>
-            <div className="admin-page-search">
-              <IconSearch />
-              <input placeholder="Search by name, email or UID…" value={userSearch} onChange={(e) => setUserSearch(e.target.value)} />
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div className="admin-page-search">
+                <IconSearch />
+                <input placeholder="Search by name, email or UID…" value={userSearch} onChange={(e) => setUserSearch(e.target.value)} />
+              </div>
+              <button
+                type="button"
+                className="admin-refresh-btn"
+                onClick={() => refreshTab("users", loadAll)}
+                disabled={refreshingTab === "users"}
+                aria-label="Refresh"
+                title="Refresh"
+              >
+                <IconRefresh className={refreshingTab === "users" ? "spinning" : ""} />
+              </button>
             </div>
           </div>
 
@@ -920,7 +984,12 @@ export default function AdminDashboard() {
 
       {tab === "withdrawals" && (
         <div>
-          <PageHead title="Withdraws" sub={`${withdrawals.length} withdrawal requests`} />
+          <PageHead
+            title="Withdraws"
+            sub={`${withdrawals.length} withdrawal requests`}
+            onRefresh={() => refreshTab("withdrawals", loadAll)}
+            refreshing={refreshingTab === "withdrawals"}
+          />
           <div className="admin-table-wrap">
             <table className="admin-table">
               <thead>
@@ -983,7 +1052,12 @@ export default function AdminDashboard() {
 
       {tab === "balance" && (
         <div>
-          <PageHead title="Balance Manager" sub="Fetch balance and add/deduct amount" />
+          <PageHead
+            title="Balance Manager"
+            sub="Fetch balance and add/deduct amount"
+            onRefresh={() => refreshTab("balance", loadAll)}
+            refreshing={refreshingTab === "balance"}
+          />
 
           <div className="admin-balance-grid">
             <div className="admin-quick-card">
@@ -1478,6 +1552,8 @@ export default function AdminDashboard() {
           <PageHead
             title="Manual Payment"
             sub="Support status, contact number, and which deposit methods are advertised as available. Content only — no payment gateway is connected."
+            onRefresh={() => refreshTab("support", loadSupportSettings)}
+            refreshing={refreshingTab === "support"}
           />
 
           {!supportSettings ? (
