@@ -92,6 +92,15 @@ export default function WithdrawPage() {
 
   const isMethodEnabled = (key) => methods?.find((m) => m.key === key)?.enabled;
   const paybostEnabled = isMethodEnabled("paybost");
+  // Manual Withdraw isn't a single toggle in admin — it's "on" whenever at
+  // least one of its underlying methods (JazzCash/Easypaisa) is advertised,
+  // same rule the Paybost tab already follows off its own single toggle.
+  const manualEnabled = methods === null || PAYMENT_METHODS.some((m) => isMethodEnabled(m.key));
+
+  useEffect(() => {
+    if (methods !== null && !manualEnabled && paybostEnabled && tab === "manual") setTab("paybost");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [methods, manualEnabled, paybostEnabled]);
 
   const handleSubmit = async () => {
     if (banned) {
@@ -248,13 +257,17 @@ export default function WithdrawPage() {
         </section>
 
         <div className="deposit-tabs">
-          <button className={`deposit-tab ${tab === "manual" ? "active" : ""}`} onClick={() => setTab("manual")}>
+          <button
+            className={`deposit-tab ${tab === "manual" ? "active" : ""} ${!manualEnabled ? "disabled" : ""}`}
+            onClick={() => manualEnabled && setTab("manual")}
+            disabled={!manualEnabled}
+          >
             <span className="deposit-tab-icon blue">
               <IconWithdraw />
             </span>
             <span>
               <b>Manual Withdraw</b>
-              <span>Withdraw manually</span>
+              <span>{manualEnabled ? "Withdraw manually" : "Currently unavailable"}</span>
             </span>
           </button>
           <button
