@@ -94,10 +94,10 @@ export default function AgencyPage() {
           </div>
         </section>
 
-        <button type="button" className="kk-qr-btn" onClick={() => openDemo("Download QR Code")}>
+        {/* <button type="button" className="kk-qr-btn" onClick={() => openDemo("Download QR Code")}>
           <IconQr />
           Download QR Code
-        </button>
+        </button> */}
 
         <div className="kk-list" style={{ marginTop: 16 }}>
           <button className="kk-list-item" onClick={() => copy("code", user?.inviteCode)} disabled={!user?.inviteCode}>

@@ -1006,6 +1006,12 @@
   padding: 11px 14px;
   font-size: 13px;
 }
+.admin-saved-tick {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--a-success);
+}
 
 .admin-methods-grid {
   display: grid;

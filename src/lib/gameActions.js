@@ -26,7 +26,7 @@ export async function placeBet({ userId, amount, autoCashoutTarget = null, slot 
   let parsedAuto = null;
   if (autoCashoutTarget !== null && autoCashoutTarget !== undefined && autoCashoutTarget !== "") {
     const n = Number(autoCashoutTarget);
-    if (Number.isFinite(n) && n > 1) parsedAuto = Math.round(n * 100) / 100;
+    if (Number.isFinite(n) && n >= 1) parsedAuto = Math.round(n * 100) / 100;
   }
 
   const round = await getActiveRound();

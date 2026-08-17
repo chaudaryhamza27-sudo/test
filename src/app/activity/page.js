@@ -30,8 +30,8 @@ const ACTION_LABELS = {
   withdraw_rejected: "Withdrawal rejected",
   game_bet_placed: "Game bet placed",
   game_cashout: "Game cash-out",
-  account_banned: "Account disabled",
-  account_unbanned: "Account re-enabled",
+  account_banned: "Withdrawals restricted",
+  account_unbanned: "Withdrawals re-enabled",
   balance_adjusted: "Balance updated",
 };
 

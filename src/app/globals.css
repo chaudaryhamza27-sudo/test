@@ -667,8 +667,14 @@ a{text-decoration:none;color:inherit}
 .game-auto-controls{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;gap:10px}
 .game-auto-toggle-row{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;color:var(--text)}
 .game-auto-toggle-row span{flex:1}
-.game-auto-target-input{width:56px;height:28px;border-radius:9px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.10);color:var(--text);text-align:center;font-size:11.5px;font-weight:800}
-.game-auto-target-input:disabled{opacity:.4}
+.game-auto-target-pill{display:flex;align-items:center;height:44px;min-width:140px;border-radius:999px;background:#14151d;border:1px solid rgba(255,255,255,.08);padding:0 6px;box-shadow:0 10px 20px rgba(0,0,0,.35)}
+.game-auto-target-pill:has(.game-auto-target-input:disabled){opacity:.4}
+.game-auto-target-input{flex:0 0 60px;width:80px;background:none;border:0;color:#fff;text-align:center;font-size:16px;font-weight:900;caret-color:#fff;-moz-appearance:textfield;appearance:textfield}
+.game-auto-target-input::-webkit-outer-spin-button,
+.game-auto-target-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.game-auto-target-step{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:transparent;border:1.5px solid rgba(255,255,255,.18);color:var(--text);font-size:17px;font-weight:900;line-height:1;cursor:pointer;display:grid;place-items:center}
+.game-auto-target-step:hover{background:rgba(255,255,255,.08)}
+.game-auto-target-step:disabled{opacity:.4;cursor:not-allowed}
 
 .game-toggle{flex-shrink:0;width:36px;height:20px;border-radius:999px;background:rgba(255,255,255,.14);border:0;position:relative;cursor:pointer;padding:0}
 .game-toggle .game-toggle-knob{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .15s ease}

@@ -42,7 +42,9 @@ export async function getCurrentUser() {
 
   await dbConnect();
   const user = await User.findById(payload.sub);
-  if (!user || user.isBanned) return null;
+  if (!user) return null;
+  // Banned users stay authenticated and can use the rest of the app — the
+  // ban only gates withdrawals (see POST /api/withdraw), enforced there.
   return user;
 }
 

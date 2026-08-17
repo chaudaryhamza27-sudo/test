@@ -31,8 +31,6 @@ import {
   IconStar,
   IconHeadset,
   IconCheck,
-  IconGlobe,
-  IconMegaphone,
   IconInfo,
 } from "./icons";
 
@@ -301,18 +299,6 @@ export default function Home() {
         </div>
         <section className="card" style={{ margin: "0 16px", padding: "18px 8px" }}>
           <div className="kk-quick-actions" style={{ padding: "0 8px", justifyContent: "space-between" }}>
-            <button type="button" className="kk-quick-action" onClick={() => openDemo("Language")}>
-              <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#33d19a,#1a9450)" }}>
-                <IconGlobe />
-              </span>
-              <span>Language</span>
-            </button>
-            <Link href="/support" className="kk-quick-action">
-              <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#ffb23d,#e8531b)" }}>
-                <IconMegaphone />
-              </span>
-              <span>Announcement</span>
-            </Link>
             <Link href="/support" className="kk-quick-action">
               <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#4aa8ff,#1565e8)" }}>
                 <IconHeadset />
@@ -340,7 +326,7 @@ export default function Home() {
           <div className="kk-footer-badges">
             <span className="kk-footer-badge"><IconShield />Fair Play Audited</span>
             <span className="kk-footer-badge"><IconLockLine />SSL Secured</span>
-            <span className="kk-footer-badge"><IconStar />Demo Credits Only</span>
+            {/* <span className="kk-footer-badge"><IconStar />Demo Credits Only</span> */}
             <span className="kk-footer-badge"><IconHeadset />24/7 Support</span>
           </div>
 
@@ -366,10 +352,10 @@ export default function Home() {
             </li>
           </ul>
 
-          <div className="kk-footer-warning">
+          {/* <div className="kk-footer-warning">
             Gambling can be addictive — please play responsibly. <b>PK92</b> only simulates
             access for users aged 18 and above.
-          </div>
+          </div> */}
         </footer>
       </main>
 

@@ -176,6 +176,11 @@ export default function AdminDashboard() {
   const [announcementInput, setAnnouncementInput] = useState("");
   const [announcementEnabledInput, setAnnouncementEnabledInput] = useState(false);
   const [supportSavingAnnouncement, setSupportSavingAnnouncement] = useState(false);
+  // Which support-settings card most recently saved successfully — cleared
+  // whenever a new save starts, so it can only ever reflect the latest
+  // outcome. Gives a visible "Saved" confirmation instead of silently
+  // updating state with no feedback if the request actually failed client-side.
+  const [supportSaved, setSupportSaved] = useState("");
 
   // CashOut
   const [cashouts, setCashouts] = useState([]);
@@ -293,6 +298,7 @@ export default function AdminDashboard() {
   const saveSupportOnline = async () => {
     setSupportSavingOnline(true);
     setError("");
+    setSupportSaved("");
     try {
       const res = await fetch("/api/admin/support-settings", {
         method: "PATCH",
@@ -305,6 +311,9 @@ export default function AdminDashboard() {
         return;
       }
       setSupportSettings(data.settings);
+      setSupportSaved("online");
+    } catch {
+      setError("Something went wrong saving support status. Please try again.");
     } finally {
       setSupportSavingOnline(false);
     }
@@ -313,6 +322,7 @@ export default function AdminDashboard() {
   const saveWhatsapp = async () => {
     setSupportSavingWhatsapp(true);
     setError("");
+    setSupportSaved("");
     try {
       const res = await fetch("/api/admin/support-settings", {
         method: "PATCH",
@@ -325,6 +335,10 @@ export default function AdminDashboard() {
         return;
       }
       setSupportSettings(data.settings);
+      setWhatsappInput(data.settings.whatsappNumber || "");
+      setSupportSaved("whatsapp");
+    } catch {
+      setError("Something went wrong saving the WhatsApp number. Please try again.");
     } finally {
       setSupportSavingWhatsapp(false);
     }
@@ -333,6 +347,7 @@ export default function AdminDashboard() {
   const saveAnnouncement = async () => {
     setSupportSavingAnnouncement(true);
     setError("");
+    setSupportSaved("");
     try {
       const res = await fetch("/api/admin/support-settings", {
         method: "PATCH",
@@ -345,6 +360,9 @@ export default function AdminDashboard() {
         return;
       }
       setSupportSettings(data.settings);
+      setSupportSaved("announcement");
+    } catch {
+      setError("Something went wrong saving the announcement. Please try again.");
     } finally {
       setSupportSavingAnnouncement(false);
     }
@@ -365,6 +383,8 @@ export default function AdminDashboard() {
         return;
       }
       setSupportSettings(data.settings);
+    } catch {
+      setError("Something went wrong updating that method. Please try again.");
     } finally {
       setMethodToggling(null);
     }
@@ -385,6 +405,8 @@ export default function AdminDashboard() {
         return;
       }
       setSupportSettings(data.settings);
+    } catch {
+      setError("Something went wrong updating that method. Please try again.");
     } finally {
       setWithdrawMethodToggling(null);
     }
@@ -706,6 +728,7 @@ export default function AdminDashboard() {
   }
 
   const balanceLookupUser = balanceEmail.trim() ? findUserByEmail(balanceEmail) : null;
+  const trustLookupUser = trustEmail.trim() ? findUserByEmail(trustEmail) : null;
 
   return (
     <AdminLayout active={tab} onNavigate={setTab} onLogout={logout}>
@@ -788,6 +811,14 @@ export default function AdminDashboard() {
                 <p>Fetch, increase or decrease user trust score</p>
               </div>
               <div className="admin-quick-divider" />
+              {trustLookupUser && (
+                <div className="admin-quick-message success" style={{ marginBottom: 10 }}>
+                  Current: {trustLookupUser.trustScore ?? 50}%{" "}
+                  <span className={`admin-status-pill tone-${trustTier(trustLookupUser.trustScore).tone}`} style={{ marginLeft: 4 }}>
+                    {trustTier(trustLookupUser.trustScore).label}
+                  </span>
+                </div>
+              )}
               <div className="admin-quick-row">
                 <div className="admin-quick-field">
                   <label>Email / UID / Phone</label>
@@ -821,6 +852,7 @@ export default function AdminDashboard() {
                   <th>Phone</th>
                   <th>Email</th>
                   <th>Balance</th>
+                  <th>Trust Score</th>
                   <th>Role</th>
                   <th>Status</th>
                   <th>Last Login</th>
@@ -853,6 +885,12 @@ export default function AdminDashboard() {
                       <td>{u.phone || "—"}</td>
                       <td>{u.email || "—"}</td>
                       <td style={{ color: "var(--a-success)", fontWeight: 800 }}>Rs {Number(u.balance).toLocaleString()}</td>
+                      <td>
+                        {u.trustScore ?? 50}%{" "}
+                        <span className={`admin-status-pill tone-${trustTier(u.trustScore).tone}`} style={{ marginLeft: 4 }}>
+                          {trustTier(u.trustScore).label}
+                        </span>
+                      </td>
                       <td>{u.role}</td>
                       <td>
                         <span className={`admin-status-pill tone-${u.isBanned ? "danger" : "success"}`}>{u.isBanned ? "Banned" : "Active"}</span>
@@ -869,7 +907,7 @@ export default function AdminDashboard() {
                   ))}
                 {users.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="empty">
+                    <td colSpan={9} className="empty">
                       No users yet.
                     </td>
                   </tr>
@@ -903,7 +941,14 @@ export default function AdminDashboard() {
                     <td>{w.user?.uid || "—"}</td>
                     <td>{w.user?.name || "—"}</td>
                     <td>{w.user?.email || "—"}</td>
-                    <td>Rs {Number(w.amount).toLocaleString()}</td>
+                    <td>
+                      Rs {Number(w.amount).toLocaleString()}
+                      {w.meta?.highValue && (
+                        <span className="admin-small-btn" style={{ marginLeft: 6, cursor: "default", background: "rgba(232,172,66,.16)", color: "#e8ac42" }}>
+                          Priority Review
+                        </span>
+                      )}
+                    </td>
                     <td>{w.method}</td>
                     <td>{w.accountNumber}</td>
                     <td>
@@ -1053,7 +1098,10 @@ export default function AdminDashboard() {
                       )}
                     </td>
                     <td>
-                      {d.status === "pending" && (
+                      {/* Balance Manager above now handles crediting a user's
+                          account directly, so the approve/reject actions here
+                          are disabled — this table is informational only. */}
+                      {/* {d.status === "pending" && (
                         <>
                           <button className="admin-small-btn approve" onClick={() => reviewDeposit(d._id, "approve")}>
                             Approve
@@ -1062,7 +1110,7 @@ export default function AdminDashboard() {
                             Reject
                           </button>
                         </>
-                      )}
+                      )} */}
                     </td>
                   </tr>
                 ))}
@@ -1444,13 +1492,21 @@ export default function AdminDashboard() {
                   <p>Shown to users as your support team's online/offline status.</p>
                 </div>
                 <div className="admin-settings-card-control">
-                  <select value={supportOnlineInput} onChange={(e) => setSupportOnlineInput(e.target.value)} disabled={supportSavingOnline}>
+                  <select
+                    value={supportOnlineInput}
+                    onChange={(e) => {
+                      setSupportOnlineInput(e.target.value);
+                      setSupportSaved("");
+                    }}
+                    disabled={supportSavingOnline}
+                  >
                     <option value="online">Online</option>
                     <option value="offline">Offline</option>
                   </select>
                   <button className="admin-btn primary" onClick={saveSupportOnline} disabled={supportSavingOnline}>
                     {supportSavingOnline ? "Saving…" : "Save Support"}
                   </button>
+                  {supportSaved === "online" && <span className="admin-saved-tick">Saved ✓</span>}
                 </div>
               </div>
 
@@ -1460,7 +1516,15 @@ export default function AdminDashboard() {
                   <p>Shown to users as the contact number for support.</p>
                 </div>
                 <div className="admin-settings-card-control">
-                  <input placeholder="923001234567" value={whatsappInput} onChange={(e) => setWhatsappInput(e.target.value)} disabled={supportSavingWhatsapp} />
+                  <input
+                    placeholder="923001234567"
+                    value={whatsappInput}
+                    onChange={(e) => {
+                      setWhatsappInput(e.target.value);
+                      setSupportSaved("");
+                    }}
+                    disabled={supportSavingWhatsapp}
+                  />
                   <button
                     className="admin-btn"
                     style={{ background: "var(--a-success)", color: "#06190f" }}
@@ -1469,6 +1533,7 @@ export default function AdminDashboard() {
                   >
                     {supportSavingWhatsapp ? "Saving…" : "Save WhatsApp"}
                   </button>
+                  {supportSaved === "whatsapp" && <span className="admin-saved-tick">Saved ✓</span>}
                 </div>
               </div>
 
@@ -1481,7 +1546,10 @@ export default function AdminDashboard() {
                   <textarea
                     placeholder="e.g. Scheduled maintenance on Friday 10pm–11pm."
                     value={announcementInput}
-                    onChange={(e) => setAnnouncementInput(e.target.value)}
+                    onChange={(e) => {
+                      setAnnouncementInput(e.target.value);
+                      setSupportSaved("");
+                    }}
                     disabled={supportSavingAnnouncement}
                     rows={3}
                     maxLength={500}
@@ -1490,7 +1558,10 @@ export default function AdminDashboard() {
                   <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "space-between" }}>
                     <select
                       value={announcementEnabledInput ? "on" : "off"}
-                      onChange={(e) => setAnnouncementEnabledInput(e.target.value === "on")}
+                      onChange={(e) => {
+                        setAnnouncementEnabledInput(e.target.value === "on");
+                        setSupportSaved("");
+                      }}
                       disabled={supportSavingAnnouncement}
                     >
                       <option value="off">Off</option>
@@ -1504,6 +1575,7 @@ export default function AdminDashboard() {
                     >
                       {supportSavingAnnouncement ? "Saving…" : "Save Announcement"}
                     </button>
+                    {supportSaved === "announcement" && <span className="admin-saved-tick">Saved ✓</span>}
                   </div>
                 </div>
               </div>
@@ -1781,7 +1853,7 @@ export default function AdminDashboard() {
               </div>
               {!banModal.user.isBanned && (
                 <div className="admin-warn-box tone-danger" style={{ marginTop: 14 }}>
-                  The user will no longer be able to access the application until they are unbanned.
+                  The user can keep using the app normally, but withdrawals will be blocked until they are unbanned.
                 </div>
               )}
             </div>

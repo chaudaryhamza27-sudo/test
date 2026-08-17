@@ -198,10 +198,20 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
                   onChange={handleManualChange}
                 />
               </div>
+
               <div className="paybost-min-max">
                 Minimum Rs{MIN_AMOUNT.toLocaleString()} &nbsp;|&nbsp; Maximum Rs{MAX_AMOUNT.toLocaleString()}
               </div>
-
+              <button
+                type="button"
+                className="deposit-submit-btn"
+                style={{ marginTop: 16, width: "95%" }}
+                disabled={!amount || amount < MIN_AMOUNT || amount > MAX_AMOUNT}
+                onClick={handlePay}
+              >
+                🚀 Pay Rs{amount || 0} with Paybost
+                <IconChevronRight style={{ width: 16, height: 16 }} />
+              </button>
               <div className="paybost-how-card">
                 <div className="paybost-how-head">
                   <IconShield style={{ width: 15, height: 15, color: "var(--link)" }} />
@@ -229,16 +239,7 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
                 </span>
               </div>
 
-              <button
-                type="button"
-                className="deposit-submit-btn"
-                style={{ marginTop: 16, width: "100%" }}
-                disabled={!amount || amount < MIN_AMOUNT || amount > MAX_AMOUNT}
-                onClick={handlePay}
-              >
-                🚀 Pay Rs{amount || 0} with Paybost
-                <IconChevronRight style={{ width: 16, height: 16 }} />
-              </button>
+              
               <button type="button" className="paybost-cancel-btn" onClick={close}>
                 Cancel
               </button>

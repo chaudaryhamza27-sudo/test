@@ -15,6 +15,7 @@ export async function GET() {
       inviteCode: user.inviteCode,
       kycApproved: user.kycApproved,
       trustScore: user.trustScore,
+      isBanned: user.isBanned,
       lastLoginAt: user.lastLoginAt,
     },
   });

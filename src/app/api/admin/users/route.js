@@ -85,10 +85,10 @@ export async function PATCH(request) {
     });
     await notifyUser(user._id, {
       type: isBanned ? "account_banned" : "account_unbanned",
-      title: isBanned ? "Account disabled" : "Account re-enabled",
+      title: isBanned ? "Withdrawals restricted" : "Withdrawals re-enabled",
       message: isBanned
-        ? "Your account has been disabled by an administrator."
-        : "Your account has been re-enabled.",
+        ? "An administrator has restricted withdrawals on your account. Contact support for help."
+        : "Withdrawal access has been restored on your account.",
     });
   }
   if (typeof kycApproved === "boolean" && kycApproved !== user.kycApproved) {

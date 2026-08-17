@@ -58,7 +58,10 @@ function BetPanel({ slot, authed, phase, multiplier, roundId, myBet, balance, pl
   const [amount, setAmount] = useState(MIN_BET);
   const [autoBetOn, setAutoBetOn] = useState(false);
   const [autoCashOutOn, setAutoCashOutOn] = useState(false);
-  const [autoCashOutTarget, setAutoCashOutTarget] = useState(2);
+  // Kept as a string while the field is being edited so an in-progress edit
+  // (e.g. clearing "2" to type "3") doesn't get clobbered mid-keystroke by a
+  // forced fallback to the minimum — normalization only happens on blur.
+  const [autoCashOutTarget, setAutoCashOutTarget] = useState("2");
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState("");
   const autoCashoutFiredRef = useRef(null); // roundId already auto-cashed-out
@@ -78,7 +81,7 @@ function BetPanel({ slot, authed, phase, multiplier, roundId, myBet, balance, pl
       setPending(true);
       setNotice("");
       try {
-        const result = await placeBetFn(betAmount, autoCashOutOn ? autoCashOutTarget : null, slot);
+        const result = await placeBetFn(betAmount, autoCashOutOn ? Number(autoCashOutTarget) : null, slot);
         if (result?.error) {
           setNotice(result.error);
           return;
@@ -118,7 +121,7 @@ function BetPanel({ slot, authed, phase, multiplier, roundId, myBet, balance, pl
     const reached =
       phase === "RUNNING" &&
       myBet?.status === "placed" &&
-      target > 1 &&
+      target >= 1 &&
       multiplier >= target &&
       !pending &&
       autoCashoutFiredRef.current !== roundId;
@@ -143,6 +146,11 @@ function BetPanel({ slot, authed, phase, multiplier, roundId, myBet, balance, pl
 
   const halveAmount = () => setAmount((a) => Math.max(MIN_BET, Math.floor((Number(a) || 0) / 2)));
   const doubleAmount = () => setAmount((a) => Math.min(MAX_BET, Math.max(MIN_BET, (Number(a) || 0) * 2)));
+
+  const stepAutoCashOutTarget = (delta) =>
+    setAutoCashOutTarget((v) => Math.max(1, Number((Number(v) || 1) + delta)).toFixed(2));
+  const normalizeAutoCashOutTarget = () =>
+    setAutoCashOutTarget((v) => Math.max(1, Number(v) || 1).toFixed(2));
 
   const handleBetClick = () => {
     if (pending || !canBet || autoBetOn) return;
@@ -207,7 +215,7 @@ function BetPanel({ slot, authed, phase, multiplier, roundId, myBet, balance, pl
           </button>
         ) : insufficientBalance ? (
           <Link href="/deposit" className="game-place-bet-btn" style={{ textDecoration: "none" }}>
-            Play
+            Deposit
           </Link>
         ) : autoBetOn ? (
           <button type="button" className="game-place-bet-btn armed" disabled>
@@ -243,15 +251,36 @@ function BetPanel({ slot, authed, phase, multiplier, roundId, myBet, balance, pl
             >
               <span className="game-toggle-knob" />
             </button>
-            <input
-              type="number"
-              min="1.01"
-              step="0.01"
-              className="game-auto-target-input"
-              value={autoCashOutTarget}
-              onChange={(e) => setAutoCashOutTarget(Number(e.target.value) || 1.01)}
-              disabled={!autoCashOutOn}
-            />
+            <div className="game-auto-target-pill">
+              <button
+                type="button"
+                className="game-auto-target-step"
+                onClick={() => stepAutoCashOutTarget(-0.1)}
+                disabled={!autoCashOutOn}
+                aria-label="Decrease auto cash out target"
+              >
+                −
+              </button>
+              <input
+                type="number"
+                min="1"
+                step="0.01"
+                className="game-auto-target-input"
+                value={autoCashOutTarget}
+                onChange={(e) => setAutoCashOutTarget(e.target.value)}
+                onBlur={normalizeAutoCashOutTarget}
+                disabled={!autoCashOutOn}
+              />
+              <button
+                type="button"
+                className="game-auto-target-step"
+                onClick={() => stepAutoCashOutTarget(0.1)}
+                disabled={!autoCashOutOn}
+                aria-label="Increase auto cash out target"
+              >
+                +
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -394,7 +423,7 @@ export default function GamePage() {
               <IconCopy />
             </button>
           </div>
-          <span className="badge-pill game-mode-badge">Basic Mode</span>
+          {/* <span className="badge-pill game-mode-badge">Basic Mode</span> */}
           <div className="game-players">
             <span className="dot" />
             {playerCount} {playerCount === 1 ? "player" : "players"} this round
@@ -452,8 +481,8 @@ export default function GamePage() {
             {authed && (
               <>
                 <div className="game-bet-panel-head">
-                  <h2>Place Your Bet</h2>
-                  <span className="badge-pill">Demo Mode</span>
+                  <h2 style={{marginRight:"2px"}}>Place Your Bet</h2>
+                  {/* <span className="badge-pill">Demo Mode</span> */}
                 </div>
                 <div className="game-bet-panels-row">
                   <BetPanel

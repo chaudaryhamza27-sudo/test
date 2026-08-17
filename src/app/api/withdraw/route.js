@@ -10,6 +10,10 @@ const ELIGIBILITY_MESSAGES = {
 };
 
 const MIN_WITHDRAW = 500;
+// Every withdrawal already sits at status:"pending" until an admin approves
+// it — this just flags the larger ones in meta so the admin table can call
+// them out for a closer look, instead of pretending there's a separate gate.
+const LARGE_WITHDRAW_THRESHOLD = 20000;
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -23,6 +27,9 @@ export async function GET() {
 export async function POST(request) {
   const user = await getCurrentUser();
   if (!user) return Response.json({ error: "Not authenticated." }, { status: 401 });
+  if (user.isBanned) {
+    return Response.json({ error: "You've been banned from withdrawing. Please contact support for help.", banned: true }, { status: 403 });
+  }
 
   const body = await request.json();
   const { amount, method, accountNumber } = body || {};
@@ -56,6 +63,7 @@ export async function POST(request) {
     method,
     accountNumber,
     status: "pending",
+    meta: parsedAmount >= LARGE_WITHDRAW_THRESHOLD ? { highValue: true } : null,
   });
 
   await logActivity({

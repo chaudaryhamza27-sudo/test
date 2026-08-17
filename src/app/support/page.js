@@ -25,6 +25,7 @@ export default function SupportPage() {
       .then((data) => setUid(data.user?.uid || null))
       .catch(() => setUid(null));
   }, []);
+  console.log(setSettings,"sl;sjdkljsklkdhskjdh")
 
   const number = settings?.whatsappNumber || "";
   const digits = number.replace(/[^\d]/g, "");

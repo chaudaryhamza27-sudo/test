@@ -222,7 +222,7 @@ export default function ProfilePage() {
             <IconChevronRight />
           </span>
         </Link>
-        <button className="kk-list-item" onClick={() => openDemo("Language")}>
+        {/* <button className="kk-list-item" onClick={() => openDemo("Language")}>
           <span className="kk-list-item-icon">
             <IconGlobe />
           </span>
@@ -233,14 +233,14 @@ export default function ProfilePage() {
           <span className="chev">
             <IconChevronRight />
           </span>
-        </button>
+        </button> */}
       </div>
 
       <div className="kk-section-head" style={{ padding: "18px 16px 8px" }}>
         <span className="kk-section-title" style={{ fontSize: 15 }}>Service center</span>
       </div>
       <section className="kk-quick-actions" style={{ justifyContent: "space-between" }}>
-        <button className="kk-quick-action" onClick={() => openDemo("Settings")}>
+        {/* <button className="kk-quick-action" onClick={() => openDemo("Settings")}>
           <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#8891A3,#565D6E)" }}>
             <IconSettings />
           </span>
@@ -251,7 +251,7 @@ export default function ProfilePage() {
             <IconFeedback />
           </span>
           <span>Feedback</span>
-        </button>
+        </button> */}
         <Link href="/support" className="kk-quick-action">
           <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#ffb23d,#e8531b)" }}>
             <IconMegaphone />

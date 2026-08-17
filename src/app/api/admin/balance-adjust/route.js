@@ -1,9 +1,13 @@
 import dbConnect from "../../../../lib/mongodb";
 import User from "../../../../lib/models/User";
+import Transaction from "../../../../lib/models/Transaction";
 import { requireAdmin } from "../../../../lib/auth";
 import { adjustBalance } from "../../../../lib/wallet";
 import { logActivity } from "../../../../lib/activity";
 import { notifyUser } from "../../../../lib/notifications";
+import { computeTrustScore } from "../../../../lib/trustScore";
+
+const DEPOSIT_STATUSES = ["approved", "completed"];
 
 // Balance Manager — add/deduct a delta (as opposed to POST /api/admin/users,
 // which force-sets an absolute balance). Reuses the same atomic
@@ -32,6 +36,28 @@ export async function POST(request) {
   const updated = await adjustBalance(userId, amount);
   if (!updated) {
     return Response.json({ error: "Insufficient balance for this deduction." }, { status: 400 });
+  }
+
+  // A credit here often means the admin is manually fulfilling a deposit the
+  // user already requested (rather than clicking Approve on it) — so the
+  // oldest pending deposit request for this amount is marked approved too,
+  // instead of being left stuck on "pending" forever. Only the status
+  // changes; the balance was already credited above, so adjustBalance is not
+  // called again here (that would double-credit the user).
+  if (amount > 0) {
+    const matchingDeposit = await Transaction.findOneAndUpdate(
+      { user: userId, type: "deposit", status: "pending", amount },
+      { $set: { status: "approved", reviewedBy: admin._id, reviewedAt: new Date() } },
+      { sort: { createdAt: 1 } }
+    );
+    if (matchingDeposit) {
+      const depositAgg = await Transaction.aggregate([
+        { $match: { user: target._id, type: "deposit", status: { $in: DEPOSIT_STATUSES } } },
+        { $group: { _id: null, total: { $sum: "$amount" } } },
+      ]);
+      const lifetimeDeposit = depositAgg[0]?.total ?? 0;
+      await User.updateOne({ _id: target._id }, { $set: { trustScore: computeTrustScore(lifetimeDeposit) } });
+    }
   }
 
   const verb = amount > 0 ? "credited" : "debited";

@@ -14,6 +14,10 @@ import BottomNav from "../components/BottomNav";
 
 const QUICK_AMOUNTS = [500, 1000, 5000, 10000];
 const MIN_WITHDRAW = 500;
+// Kept in sync with LARGE_WITHDRAW_THRESHOLD in /api/withdraw — purely
+// changes the confirmation copy, the backend already sends every withdrawal
+// to manual admin review regardless of amount.
+const LARGE_WITHDRAW_THRESHOLD = 20000;
 
 const PAYMENT_METHODS = [
   { key: "jazzcash", label: "JazzCash", logo: "/game/jazz.png" },
@@ -41,15 +45,25 @@ export default function WithdrawPage() {
   const [submitting, setSubmitting] = useState(false);
   const [popup, setPopup] = useState(null);
   const [eligible, setEligible] = useState(true); // optimistic until the check resolves
+  const [banned, setBanned] = useState(false);
 
   const openNotice = (msg, tone = "info") => setPopup({ msg, tone });
   const closeNotice = () => setPopup(null);
+  const openBannedNotice = () =>
+    setPopup({
+      tone: "banned",
+      msg: "You've been banned from withdrawing. Please contact support for help.",
+    });
 
   useEffect(() => {
     fetch("/api/wallet")
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => setBalance(data.balance))
       .catch(() => router.push("/login"));
+    fetch("/api/auth/me")
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => setBanned(Boolean(data.user?.isBanned)))
+      .catch(() => {});
     fetch("/api/support-settings")
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => {
@@ -80,6 +94,10 @@ export default function WithdrawPage() {
   const paybostEnabled = isMethodEnabled("paybost");
 
   const handleSubmit = async () => {
+    if (banned) {
+      openBannedNotice();
+      return;
+    }
     if (!eligible) {
       openNotice("You're not eligible to withdraw yet.", "error");
       return;
@@ -125,14 +143,20 @@ export default function WithdrawPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        openNotice(data.error || "Failed to submit withdraw request.", "error");
+        if (data.banned) {
+          openBannedNotice();
+        } else {
+          openNotice(data.error || "Failed to submit withdraw request.", "error");
+        }
         return;
       }
       setSenderNumber("");
       setPaybostAccount("");
       setBalance(data.balance);
       openNotice(
-        `Withdrawal request for Rs${amount.toLocaleString()} submitted — the amount is held from your balance now. It'll be processed once an admin reviews it.`,
+        amount >= LARGE_WITHDRAW_THRESHOLD
+          ? `Withdrawal request for Rs${amount.toLocaleString()} submitted — the amount is held from your balance now. Larger withdrawals go through additional manual review, so this may take a bit longer to process.`
+          : `Withdrawal request for Rs${amount.toLocaleString()} submitted — the amount is held from your balance now. It'll be processed once an admin reviews it.`,
         "success"
       );
     } catch {
@@ -394,14 +418,28 @@ export default function WithdrawPage() {
 
       <div className={`popup ${popup ? "active" : ""}`} onClick={closeNotice}>
         <div className="kk-popup-box" onClick={(e) => e.stopPropagation()}>
-          <div className="kk-popup-icon">{popup?.tone === "success" ? "✅" : popup?.tone === "error" ? "⚠️" : "🧪"}</div>
+          <div className="kk-popup-icon">
+            {popup?.tone === "success" ? "✅" : popup?.tone === "banned" ? "🚫" : popup?.tone === "error" ? "⚠️" : "🧪"}
+          </div>
           <div className="kk-popup-title">
-            {popup?.tone === "success" ? "Withdrawal Request Submitted" : popup?.tone === "error" ? "Couldn't Submit" : "Demo Mode"}
+            {popup?.tone === "success"
+              ? "Withdrawal Request Submitted"
+              : popup?.tone === "banned"
+              ? "You're Banned"
+              : popup?.tone === "error"
+              ? "Couldn't Submit"
+              : "Demo Mode"}
           </div>
           <p className="kk-popup-text">{popup?.msg}</p>
-          <button className="kk-popup-btn" onClick={closeNotice}>
-            Got it
-          </button>
+          {popup?.tone === "banned" ? (
+            <button className="kk-popup-btn" onClick={() => router.push("/support")}>
+              Contact Support
+            </button>
+          ) : (
+            <button className="kk-popup-btn" onClick={closeNotice}>
+              Got it
+            </button>
+          )}
         </div>
       </div>
     </div>

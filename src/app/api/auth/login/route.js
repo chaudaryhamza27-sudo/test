@@ -29,10 +29,6 @@ export async function POST(request) {
     await logActivity({ actorRole: "system", action: "login_failed", message: `Failed login attempt for ${phone || email}.` });
     return Response.json({ error: "Invalid credentials." }, { status: 401 });
   }
-  if (user.isBanned) {
-    return Response.json({ error: "This account has been banned." }, { status: 403 });
-  }
-
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) {
     await logActivity({ user: user._id, actorRole: "user", action: "login_failed", message: "Failed login attempt (wrong password)." });
