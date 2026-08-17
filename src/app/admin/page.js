@@ -206,6 +206,10 @@ export default function AdminDashboard() {
   }, [router]);
 
   useEffect(() => {
+    fetch("/api/admin/ensure-seed").catch(() => {});
+  }, []);
+
+  useEffect(() => {
     (async () => {
       setChecking(true);
       try {
