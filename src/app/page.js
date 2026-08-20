@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { navTabs, categories, sections, TAG_ICONS } from "./data";
+import { navTabs, categories, sections } from "./data";
 import BottomNav from "./components/BottomNav";
 import {
   IconEagle,
@@ -32,6 +32,7 @@ import {
   IconHeadset,
   IconCheck,
   IconInfo,
+  IconDocument,
 } from "./icons";
 
 const HERO_BANNERS = ["/gamesall/banner1.webp", "/gamesall/banner2.webp", "/gamesall/banner3.webp"];
@@ -203,7 +204,7 @@ export default function Home() {
             Welcome to PK92, the most trusted and fastest site, you can play our games anytime,
             anywhere.
           </div>
-          <button className="kk-notice-btn" onClick={() => openDemo("Notice")}>
+          <button className="kk-notice-btn" onClick={() => openDemo("")}>
             <IconSpeaker style={{ width: 13, height: 13 }} />
             Detail
           </button>
@@ -220,7 +221,7 @@ export default function Home() {
                 onClick={() => (hasSection ? goToSection(c.label) : openDemo(c.label))}
               >
                 <div className="kk-cat-icon" style={{ background: `linear-gradient(160deg, ${c.tint[0]}, ${c.tint[1]})` }}>
-                  {Icon && <Icon />}
+                  {c.img ? <img src={c.img} alt={c.label} className="kk-cat-icon-img" /> : Icon && <Icon />}
                 </div>
                 <span>{c.label}</span>
               </button>
@@ -233,7 +234,7 @@ export default function Home() {
             <div className="kk-section-head">
               <h2 className="kk-section-title">
                 {sec.title}
-                <span className="kk-section-badge">More 4</span>
+                {!sec.hideMore && <span className="kk-section-badge"></span>}
               </h2>
               <div className="kk-arrow-group">
                 <button className="kk-arrow-btn" aria-label="Previous" onClick={(e) => scrollGames(e, -1)}>
@@ -248,7 +249,6 @@ export default function Home() {
             <div className="kk-games">
               {sec.games.map((g) => {
                 const GameIcon = GAME_ICONS[g.icon];
-                const TagIcon = CATEGORY_ICONS[TAG_ICONS[g.tag]];
                 const media = (
                   <>
                     <div className="kk-game-media" style={{ "--a": g.tint[0], "--b": g.tint[1] }}>
@@ -265,13 +265,6 @@ export default function Home() {
                         </span>
                       )}
                     </div>
-                    <div className="kk-game-info">
-                      <div className="kk-game-name">{g.name}</div>
-                      <div className="kk-game-tag">
-                        {TagIcon && <TagIcon />}
-                        <span>{g.tag}</span>
-                      </div>
-                    </div>
                   </>
                 );
                 return g.playable ? (
@@ -285,10 +278,10 @@ export default function Home() {
                 );
               })}
               {!sec.noDetail && (
-                <button type="button" className="kk-game-card detail" onClick={() => openDemo(`${sec.title} — More`)}>
+                <Link href="/profile" className="kk-game-card detail">
                   <IconGrid />
                   <span>Detail</span>
-                </button>
+                </Link>
               )}
             </div>
           </section>
@@ -300,16 +293,28 @@ export default function Home() {
         <section className="card" style={{ margin: "0 16px", padding: "18px 8px" }}>
           <div className="kk-quick-actions" style={{ padding: "0 8px", justifyContent: "space-between" }}>
             <Link href="/support" className="kk-quick-action">
-              <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#4aa8ff,#1565e8)" }}>
+              <span className="kk-quick-action-icon" style={{ background: "#fff", border: "1px solid var(--border)", color: "#1565e8" }}>
                 <IconHeadset />
               </span>
               <span>24/7 Customer service</span>
             </Link>
             <Link href="/legal" className="kk-quick-action">
-              <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#7c5cff,#4a2fd6)" }}>
+              <span className="kk-quick-action-icon" style={{ background: "#fff", border: "1px solid var(--border)", color: "#4a2fd6" }}>
                 <IconInfo />
               </span>
               <span>About us</span>
+            </Link>
+            <Link href="/legal/privacy" className="kk-quick-action">
+              <span className="kk-quick-action-icon" style={{ background: "#fff", border: "1px solid var(--border)", color: "#1a9450" }}>
+                <IconShield />
+              </span>
+              <span>Privacy Policy</span>
+            </Link>
+            <Link href="/legal/terms" className="kk-quick-action">
+              <span className="kk-quick-action-icon" style={{ background: "#fff", border: "1px solid var(--border)", color: "#e8531b" }}>
+                <IconDocument />
+              </span>
+              <span>Terms &amp; Conditions</span>
             </Link>
           </div>
         </section>
@@ -333,23 +338,17 @@ export default function Home() {
           <ul className="kk-footer-list">
             <li className="kk-footer-list-item">
               <IconCheck />
-              This platform is an educational UI simulation — every credit shown is a demo
-              credit with no real-world value.
+             The platform advocates fairness, justice, and openness. We mainly operate fair lottery, blockchain games, live casinos, and slot machine games.
             </li>
             <li className="kk-footer-list-item">
               <IconCheck />
-              The Aviator crash game runs on a real backend, but no real money is ever wagered
-              or paid out.
+             Pk92 works with more than 10,000 online live game dealers and slot games, all of which are verified fair games.
             </li>
             <li className="kk-footer-list-item">
               <IconCheck />
-              PK92 is a portfolio/demo project and does not accept real deposits or process real
-              withdrawals.
+             Pk92 supports fast deposit and withdrawal, and looks forward to your visit.
             </li>
-            <li className="kk-footer-list-item">
-              <IconCheck />
-              Built to showcase gaming-platform UI/UX and full-stack engineering patterns.
-            </li>
+            
           </ul>
 
           {/* <div className="kk-footer-warning">

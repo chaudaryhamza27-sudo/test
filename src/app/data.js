@@ -11,10 +11,10 @@ export const navTabs = [
 ];
 
 export const categories = [
-  { key: "slots", label: "Slots", icon: "IconSlots", tint: ["#ff8a3d", "#e8531b"] },
-  { key: "lottery", label: "Lottery", icon: "IconLottery", tint: ["#33c46a", "#1a9450"] },
-  { key: "casino", label: "Casino", icon: "IconCasino", tint: ["#7c5cff", "#4a2fd6"] },
-  { key: "rummy", label: "Rummy", icon: "IconRummy", tint: ["#ff5b8f", "#d6296a"] },
+  { key: "slots", label: "Slots", icon: "IconSlots", img: "/solt.jpg", tint: ["#ff8a3d", "#e8531b"] },
+  { key: "lottery", label: "Lottery", icon: "IconLottery", img: "/lottery.jpg", tint: ["#33c46a", "#1a9450"] },
+  { key: "casino", label: "Casino", icon: "IconCasino", img: "/casion.jpg", tint: ["#7c5cff", "#4a2fd6"] },
+  { key: "rummy", label: "Rummy", icon: "IconRummy", img: "/rummy.jpg", tint: ["#ff5b8f", "#d6296a"] },
   { key: "fishing", label: "Fishing", icon: "IconFishing", tint: ["#2fb6c4", "#1580a0"] },
 ];
 
@@ -42,8 +42,11 @@ export const sections = [
     title: "Recommended",
     subtitle: "The most popular electronic games among players",
     noDetail: true,
+    hideMore: true,
     games: [
       { name: "Aviator", tag: "Crash Game", badge: "Hot", icon: "IconGameAviator", tint: ["#7c3cff", "#1a0c33"], img: "/gamesall/Aviator - Recommended.jpg", href: "/crash", playable: true },
+      { name: "Father Kim", tag: "Slots", icon: "IconGameCrown", tint: ["#c97a06", "#5c3800"], img: "/gamesall/Father Kim - Slot.jpg", href: "/crash" },
+      { name: "Fortune Dragon", tag: "Slots", badge: "Hot", icon: "IconGameDragon", tint: ["#e8531b", "#7a1c0a"], img: "/gamesall/Fortune Dragon - Slot.jpg", href: "/crash" },
     ],
   },
   {

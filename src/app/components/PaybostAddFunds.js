@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -5,9 +6,9 @@ import { IconShield, IconX, IconChevronRight, IconWallet, IconUpload, IconCheck 
 
 // This merchant's Paybost sandbox account only accepts PKR — matches this
 // app's existing Rs-denominated wallet, so 1 PKR (test) == 1 demo credit here.
-const PRESET_AMOUNTS = [3000, 5000, 10000, 25000, 50000, 75000];
+const PRESET_AMOUNTS = [3000, 5000, 10000, 25000, 35000,50000];
 const MIN_AMOUNT = 3000;
-const MAX_AMOUNT = 100000;
+const MAX_AMOUNT = 50000;
 const POLL_INTERVAL_MS = 2000;
 const POLL_MAX_ATTEMPTS = 15; // ~30s
 
@@ -23,10 +24,11 @@ const HOW_IT_WORKS = [
 // the whole page to Paybost, and the user is redirected back to this same
 // page afterwards. On mount we check the URL for that return trip and pick
 // up wherever the popup left off.
+const formatShort = (v) => (v >= 1000 ? `${v / 1000}K` : `${v}`);
+
 export default function PaybostAddFunds({ theme = "dark", triggerClassName, triggerLabel = "Add Funds (Paybost — Test Mode)", onBalanceChange, disabled = false }) {
   const [open, setOpen] = useState(false);
-  const [amount, setAmount] = useState(3000);
-  const [manualAmount, setManualAmount] = useState("");
+  const [amount, setAmount] = useState(null);
   const [phase, setPhase] = useState("select"); // select | redirecting | polling | success | cancelled | error
   const [resultMessage, setResultMessage] = useState("");
   const [resultBalance, setResultBalance] = useState(null);
@@ -106,16 +108,11 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
     reset();
   };
 
-  const pickAmount = (v) => {
-    setAmount(v);
-    setManualAmount("");
-  };
+  const pickAmount = (v) => setAmount(v);
 
   const handleManualChange = (e) => {
     const v = e.target.value;
-    setManualAmount(v);
-    const n = Number(v);
-    setAmount(Number.isFinite(n) ? n : 0);
+    setAmount(v === "" ? null : Number(v) || 0);
   };
 
   const handlePay = async () => {
@@ -151,52 +148,57 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
             <IconX />
           </button>
 
-          <div className="paybost-modal-badge">
+          {/* <div className="paybost-modal-badge">
             <span>🚀</span> PAYBOST <span className="dot">•</span> TEST MODE <span className="dot">•</span> NO REAL MONEY
-          </div>
+          </div> */}
 
           {phase === "select" && (
             <>
               <div className="kk-popup-title paybost-title">
                 Add Funds via Paybost
               </div>
-              <p className={textClass}>Add demo funds instantly using Paybost in test mode.</p>
+              <p className={textClass}>Add  funds instantly using Paybost.</p>
 
-              <div className="paybost-section-label" style={{ marginTop: 14 }}>Quick Select Amount</div>
-              <div className="paybost-quick-grid">
+              <div className="deposit-amount-head" style={{ marginTop: 14 }}>
+                <span className="deposit-amount-icon">
+                  <IconWallet />
+                </span>
+                <h2>Add funds amount</h2>
+              </div>
+
+              <div className="deposit-amount-grid">
                 {PRESET_AMOUNTS.map((v) => (
                   <button
                     type="button"
                     key={v}
-                    className={`paybost-amount-pill ${!manualAmount && amount === v ? "active" : ""}`}
+                    className={`deposit-amount-tile ${amount === v ? "active" : ""}`}
                     onClick={() => pickAmount(v)}
                   >
-                    Rs{v.toLocaleString()}
+                    <span className="tile-rs">Rs</span>
+                    <span className="tile-val">{formatShort(v)}</span>
                   </button>
                 ))}
-                <button
-                  type="button"
-                  className={`paybost-amount-pill ${manualAmount !== "" ? "active" : ""}`}
-                  onClick={() => document.getElementById("paybost-custom-input")?.focus()}
-                >
-                  Custom
-                </button>
               </div>
 
-              <div className="paybost-section-label" style={{ marginTop: 16 }}>Custom Amount</div>
-              <div className="paybost-custom-row">
-                <span className="paybost-rs-prefix">Rs</span>
+              <div className="deposit-amount-inputbar">
+                <span className="inputbar-rs">Rs</span>
                 <input
                   id="paybost-custom-input"
                   type="number"
+                  inputMode="decimal"
                   min={MIN_AMOUNT}
                   max={MAX_AMOUNT}
                   step="0.01"
-                  placeholder="Enter amount"
-                  className="paybost-custom-input2"
-                  value={manualAmount}
+                  placeholder={`Rs${MIN_AMOUNT.toLocaleString()}.00 - Rs${MAX_AMOUNT.toLocaleString()}.00`}
+                  style={{ fontWeight: 500 }}
+                  value={amount ?? ""}
                   onChange={handleManualChange}
                 />
+                {amount != null && (
+                  <button type="button" className="inputbar-clear" aria-label="Clear amount" onClick={() => setAmount(null)}>
+                    <IconX />
+                  </button>
+                )}
               </div>
 
               <div className="paybost-min-max">
@@ -231,13 +233,13 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
                 </div>
               </div>
 
-              <div className="alert alert-info" style={{ marginTop: 14 }}>
+              {/* <div className="alert alert-info" style={{ marginTop: 14 }}>
                 <IconShield style={{ width: 15, height: 15, flexShrink: 0 }} />
                 <span>
                   <b>This is a test mode using Paybost sandbox.</b> No real money is involved. Funds are for demo
                   purposes only.
                 </span>
-              </div>
+              </div> */}
 
               
               <button type="button" className="paybost-cancel-btn" onClick={close}>
@@ -255,7 +257,7 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
           {phase === "success" && (
             <>
               <div className={textClass} style={{ marginTop: 16, color: "#37f59a", fontWeight: 800 }}>
-                Success! Your demo balance is now Rs{Number(resultBalance).toLocaleString()}.
+                Success! Your  balance is now Rs{Number(resultBalance).toLocaleString()}.
               </div>
               <button className={btnClass} onClick={close}>
                 Done
@@ -266,7 +268,7 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
           {phase === "cancelled" && (
             <>
               <div className={textClass} style={{ marginTop: 16 }}>
-                Payment Cancelled — your demo balance was not changed.
+                Payment Cancelled — your d balance was not changed.
               </div>
               <button className={btnClass} onClick={reset}>
                 Try again
@@ -277,7 +279,7 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
           {phase === "error" && (
             <>
               <div className={textClass} style={{ marginTop: 16, color: "#ff5c5c" }}>
-                {resultMessage || "Payment Failed — no funds were added to your demo wallet."}
+                {resultMessage || "Payment Failed — no funds were added to your  wallet."}
               </div>
               <button className={btnClass} onClick={reset}>
                 Try again

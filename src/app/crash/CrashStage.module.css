@@ -1,0 +1,116 @@
+.stage {
+  position: relative;
+  height: 320px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #000;
+}
+
+.canvas {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Square backdrop, ~2.5x the board, anchored so its centre sits on the graph
+   origin — the live build does the same thing in JS with
+   left = -boardWidth * 1.25 and top = boardHeight - boardWidth * 1.25.
+   Doing it with left/bottom + translate keeps it correct at any size. */
+.rays {
+  position: absolute;
+  left: 30px;
+  bottom: 30px;
+  width: 250%;
+  aspect-ratio: 1 / 1;
+  background: repeating-conic-gradient(from 0deg,
+              rgba(255, 255, 255, .05) 0deg 5deg, transparent 5deg 11deg);
+  transform-origin: 50% 50%;
+  animation: raySpin 60s linear infinite;
+  animation-play-state: paused;
+  pointer-events: none;
+}
+
+.raysOn { animation-play-state: running; }
+
+@keyframes raySpin {
+  from { transform: translate(-50%, 50%) rotate(0deg); }
+  to   { transform: translate(-50%, 50%) rotate(360deg); }
+}
+
+.mult {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  font-size: 60px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 0 30px rgba(255, 51, 102, .6);
+}
+
+.crashed { color: #f7001f; }
+
+.flew {
+  position: absolute;
+  top: 26%;
+  left: 50%;
+  z-index: 2;
+  transform: translateX(-50%);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #f7001f;
+}
+
+.waiting {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(0, 0, 0, .75);
+}
+
+.waiting p {
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: #ccd6e6;
+}
+
+.spinner {
+  width: 84px;
+  height: 84px;
+  transform-origin: 50% 50%;
+  animation: spin360 2.5s linear infinite;
+}
+
+@keyframes spin360 {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+
+.bar {
+  width: 180px;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, .12);
+}
+
+.bar i {
+  display: block;
+  height: 100%;
+  background: #ff3366;
+  transition: width .12s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rays, .spinner { animation: none; }
+}

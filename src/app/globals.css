@@ -126,6 +126,10 @@ a{text-decoration:none;color:inherit}
   background:var(--void);color:var(--text);
 }
 @media(min-width:481px){.app-shell{box-shadow:0 0 60px rgba(0,0,0,.35)}}
+/* Crash page only — breaks out of the fixed mobile-card width into a wide
+   desktop layout with a sidebar. Scoped to .game-wide-shell so every other
+   page keeps the standard 480px card at all viewport sizes. */
+@media(min-width:960px){.app-shell.game-wide-shell{max-width:1180px}}
 .app-glow{position:fixed;width:260px;height:260px;border-radius:999px;filter:blur(28px);opacity:.34;z-index:-1}
 .g1{top:90px;left:-120px;background:var(--pink)}
 .g2{right:-140px;top:360px;background:var(--cyan)}
@@ -521,8 +525,8 @@ a{text-decoration:none;color:inherit}
 .game-history-strip{margin:8px 14px 14px;display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
 .game-history-strip::-webkit-scrollbar{display:none}
 .game-history-empty{font-size:11px;color:var(--muted);white-space:nowrap}
-.game-history-chip{flex-shrink:0;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:800;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);color:#e8dff3}
-.game-history-chip.low{color:#ffb3b3;border-color:rgba(255,92,92,.35);background:rgba(255,92,92,.10)}
+.game-history-chip{flex-shrink:0;min-width:65px;text-align:center;padding:6px 10px;border-radius:10px;font-size:11px;font-weight:700;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);color:#e8dff3}
+.game-history-chip.low{color:#a8c8ff;border-color:rgba(59,130,246,.35);background:rgba(59,130,246,.10)}
 .game-history-chip.high{color:#9dffce;border-color:rgba(55,245,154,.35);background:rgba(55,245,154,.10)}
 
 /* Scoped red accent for the Aviator page only — never touches the shared
@@ -532,11 +536,25 @@ a{text-decoration:none;color:inherit}
 .game-mode-badge{background:rgba(233,32,58,.16);color:#ff8a97;font-size:10px;letter-spacing:.3px}
 
 .game-stage{
-  position:relative;margin:0 14px 16px;height:220px;border-radius:28px;overflow:hidden;
-  background:linear-gradient(180deg,#0c1424,#070b14);border:1px solid rgba(255,255,255,.10);box-shadow:var(--shadow);
+  position:relative;margin:0 14px 16px;height:220px;border-radius:20px;overflow:hidden;
+  background:#000;border:1px solid #2A2B2E;box-shadow:var(--shadow);
   display:flex;flex-direction:column;
 }
 .game-stage.no-grid .game-chart-grid,.game-stage.no-grid .game-chart-axis{display:none}
+/* Slow-rotating ray backdrop behind the whole stage — present in every
+   phase (waiting, running, crashed) on the reference site, not just while
+   waiting. Oversized and anchored bottom-left so the rotation reads as a
+   subtle drift rather than a spinning pinwheel. */
+.game-stage::before{
+  content:"";position:absolute;z-index:0;pointer-events:none;
+  left:-45%;bottom:-95%;width:190%;height:270%;
+  background:var(--game-red,#e9203a);opacity:.16;
+  -webkit-mask:url(/game/nextround.svg) center/contain no-repeat;
+  mask:url(/game/nextround.svg) center/contain no-repeat;
+  animation:gameRaySpin 50s linear infinite;
+}
+@keyframes gameRaySpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.game-stage>*{position:relative;z-index:1}
 
 .game-stage-controls{position:absolute;top:12px;right:12px;z-index:3;display:flex;gap:8px}
 .game-stage-icon-btn{width:30px;height:30px;flex-shrink:0;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);color:var(--muted);display:grid;place-items:center;cursor:pointer}
@@ -550,12 +568,29 @@ a{text-decoration:none;color:inherit}
 
 /* Fixed 26px box regardless of the chart's own scale/zoom — the plane can
    never grow beyond this, which is what keeps it "always small" per spec. */
-.game-chart-plane{position:absolute;width:46px;height:46px;color:#e9203a;pointer-events:none;z-index:2;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45));transition:left .08s linear,top .08s linear}
+/* Width-only sizing + aspect-ratio (matched to the sprite's own 145:68 box)
+   instead of a square with object-fit:contain — a non-square box means the
+   image fills it exactly with no letterboxing, so the propeller hub below
+   can be placed with plain percentages instead of guessing the letterbox gap. */
+.game-chart-plane{position:absolute;width:clamp(46px,15vw,68px);aspect-ratio:145/68;color:#e9203a;pointer-events:none;z-index:2;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45)) drop-shadow(0 0 16px rgba(233,32,58,.55));transition:left .24s linear,top .24s linear,transform .24s linear}
 .game-chart-plane svg{width:100%;height:100%;display:block}
 .game-chart-plane img{width:100%;height:100%;display:block;object-fit:contain}
 .game-chart-plane.crashed{color:#ff5c5c;filter:grayscale(.35) drop-shadow(0 0 12px rgba(255,92,92,.55))}
 .game-chart-plane.crashed img{filter:grayscale(.7) brightness(.85)}
 .game-chart-plane-trail{position:absolute;top:50%;right:100%;transform:translateY(-50%);width:30px;height:3px;border-radius:2px;background:linear-gradient(90deg,transparent,rgba(233,32,58,.5));pointer-events:none}
+
+/* Spinning propeller blade, layered behind the plane body at the nose hub.
+   Positioned with percentages of the plane box (left/height fractions come
+   from the sprite's own pixel geometry: hub sits ~95% across, ~56% down).
+   Spins continuously while flying and holds still the rest of the time —
+   the flight-angle rotation on .game-chart-plane still applies on top since
+   this sits inside that rotated box. */
+.game-chart-plane-prop{position:absolute;left:87%;top:0;width:13%;height:100%;z-index:0;transform-origin:58% 56%;animation:gamePropSpin .83s linear infinite;animation-play-state:paused;opacity:.9}
+.game-chart-plane.spinning .game-chart-plane-prop{animation-play-state:running}
+.game-chart-plane-prop img{width:100%;height:100%;display:block;object-fit:contain}
+@keyframes gamePropSpin{to{transform:rotate(-360deg)}}
+.game-chart-plane img.body{position:relative;z-index:1}
+.game-chart-plane.crashed .game-chart-plane-prop{filter:grayscale(.7) brightness(.85)}
 
 .game-stage-baseline{position:absolute;left:16px;right:16px;bottom:9px;height:2px;z-index:1;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.3) 1.4px,transparent 1.4px);background-size:12px 2px;background-repeat:repeat-x}
 .game-stage-baseline.moving{animation:gameBaselineMove .9s linear infinite}
@@ -563,7 +598,7 @@ a{text-decoration:none;color:inherit}
 
 .game-multiplier{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);z-index:2;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:40px;font-weight:900;color:#fff;text-shadow:0 4px 18px rgba(0,0,0,.5);pointer-events:none}
 .game-multiplier.waiting{font-size:21px;color:#ff5c72}
-.game-multiplier.running{color:#fff;font-size:44px;text-shadow:0 0 34px rgba(233,32,58,.55),0 4px 18px rgba(0,0,0,.5)}
+.game-multiplier.running{color:#fff;font-size:44px;text-shadow:0 0 28px rgba(233,32,58,.85),0 0 60px rgba(233,32,58,.5),0 4px 18px rgba(0,0,0,.5)}
 .game-multiplier.crashed{color:#ff5c5c;font-size:26px}
 .game-phase-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
 .game-countdown{font-size:34px;font-weight:900}
@@ -576,26 +611,31 @@ a{text-decoration:none;color:inherit}
    controls or the chart underneath it. */
 .game-waiting-badge{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:none}
 .game-waiting-badge-icon{
-  width:90px;height:90px;background:var(--game-red,#e9203a);opacity:.5;
-  -webkit-mask:url(/game/nextround.svg) center/contain no-repeat;
-  mask:url(/game/nextround.svg) center/contain no-repeat;
+  width:56px;height:56px;color:var(--game-red,#e9203a);
   filter:drop-shadow(0 0 20px rgba(233,32,58,.55));
-  animation:gameWaitingSpin 5s linear infinite;
+  animation:gameWaitingSpin 2.5s linear infinite;
 }
-@keyframes gameWaitingSpin{to{transform:rotate(360deg)}}
-.game-waiting-text{font-family:Georgia,"Times New Roman",serif;font-size:16px;font-weight:700;color:#fff;letter-spacing:.4px;text-shadow:0 4px 14px rgba(0,0,0,.6)}
-.game-waiting-bar{width:60%;max-width:180px;height:4px;border-radius:999px;background:rgba(255,255,255,.14);overflow:hidden}
-.game-waiting-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#e9203a,#ff5c72);transition:width .1s linear}
+.game-waiting-badge-icon svg{width:100%;height:100%;display:block}
+@keyframes gameWaitingSpin{to{transform:rotate(-360deg)}}
+.game-waiting-text{font-family:inherit;font-size:16px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.6px;text-shadow:0 4px 14px rgba(0,0,0,.6)}
+.game-waiting-bar{width:60%;max-width:180px;height:5px;border-radius:999px;background:rgba(255,255,255,.14);overflow:hidden}
+.game-waiting-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#e9203a,#ff5c72);box-shadow:0 0 10px rgba(233,32,58,.7);transition:width .1s linear}
 
 .game-login-note{margin:0 14px 16px;padding:14px 16px;border-radius:18px;background:rgba(40,231,255,.08);border:1px solid rgba(40,231,255,.18);color:#d7f6ff;font-size:12.5px;text-align:center}
 .game-login-note a{color:var(--cyan);font-weight:800}
 
 .game-panel .card-title span{color:var(--gold)}
-.game-cashout-btn{background:linear-gradient(135deg,var(--green),var(--cyan)) !important;color:#06120e !important}
+.game-cashout-btn{background:linear-gradient(135deg,#ffb300,#ff8f00) !important;color:#2a1700 !important;box-shadow:0 12px 26px rgba(255,143,0,.35) !important;font-size:clamp(13px,5.2vw,20px) !important;}
 
 /* --- Aviator: two-column desktop layout --- */
 .app-shell.no-bottom-nav{padding-bottom:24px}
 
+/* Crash page only — reference header uses a larger logo/menu-button than
+   the shared app header default, so scope the size bump to .game-red-theme
+   rather than touching .app-header globally (Deposit/Withdraw/etc. keep
+   the smaller default). */
+.game-red-theme .app-header .brand-mark{width:52px;height:52px;border-radius:16px}
+.game-red-theme .game-profile-btn{width:48px;height:48px}
 .game-header-right{display:flex;align-items:center;gap:12px}
 .game-balance-block{text-align:right}
 .game-balance-block .lbl{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
@@ -605,6 +645,11 @@ a{text-decoration:none;color:inherit}
 
 .game-layout{display:grid;grid-template-columns:1fr;gap:14px;padding:0}
 .game-main-col,.game-side-col{display:flex;flex-direction:column;gap:16px;min-width:0}
+@media(min-width:960px){
+  .game-layout{grid-template-columns:340px 1fr;align-items:start;gap:20px}
+  .game-side-col{order:-1}
+  .game-stage{height:440px}
+}
 
 .game-round-bar{display:flex;align-items:center;justify-content:space-between;margin:0 14px 8px;font-size:9.5px;color:var(--muted)}
 .game-round-bar .badge-pill{padding:3px 7px;font-size:9px}
@@ -624,11 +669,18 @@ a{text-decoration:none;color:inherit}
 .game-tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
 
 .game-table-wrap{overflow-x:auto}
-.game-table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:520px}
+.game-table{width:100%;border-collapse:separate;border-spacing:0 6px;font-size:12.5px;min-width:520px}
 .game-table th{text-align:left;padding:10px 14px;font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
-.game-table td{padding:11px 14px;border-top:1px solid rgba(255,255,255,.06);white-space:nowrap;font-weight:700}
+.game-table tbody tr{background:rgba(255,255,255,.03);transition:background .2s ease}
+.game-table tbody tr:hover{background:rgba(255,255,255,.06)}
+.game-table td{padding:11px 14px;border-top:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04);white-space:nowrap;font-weight:700}
+.game-table td:first-child{border-left:1px solid rgba(255,255,255,.04);border-top-left-radius:12px;border-bottom-left-radius:12px}
+.game-table td:last-child{border-right:1px solid rgba(255,255,255,.04);border-top-right-radius:12px;border-bottom-right-radius:12px}
 .game-table .muted{color:var(--muted);font-weight:600}
 .game-table .win{color:var(--green)}
+.game-mult-badge{display:inline-block;min-width:56px;text-align:center;padding:4px 8px;border-radius:10px;font-weight:800;font-size:11.5px}
+.game-mult-badge.won{background:rgba(34,197,94,.14);color:#7bffb0}
+.game-mult-badge.lost{background:rgba(59,130,246,.12);color:#a8c8ff}
 .game-table-empty{padding:32px 14px;text-align:center;color:var(--muted);font-size:12.5px}
 
 .game-bet-panel-head{display:flex;align-items:center;justify-content:space-between;margin:0 14px 12px}
@@ -638,7 +690,7 @@ a{text-decoration:none;color:inherit}
 
 /* Two independent bet panels side by side — one manual, one auto, or any mix. */
 .game-bet-panels-row{display:flex;flex-direction:column;gap:10px;margin:0 14px 4px}
-@media(min-width:960px){.game-bet-panels-row{margin:0 0 4px}}
+@media(min-width:960px){.game-bet-panels-row{margin:0 0 4px;flex-direction:row}}
 
 .game-bet-panel{flex:1;min-width:0;padding:14px;border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.035));border:1px solid rgba(255,255,255,.10);box-shadow:var(--shadow)}
 
@@ -651,18 +703,22 @@ a{text-decoration:none;color:inherit}
 
 .game-amount-pill{display:flex;align-items:center;height:38px;border-radius:999px;background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.10);padding:0 3px}
 .game-amount-pill input{flex:1;min-width:0;width:0;background:none;border:0;text-align:center;color:var(--text);font-size:13px;font-weight:800}
-.game-amount-step{flex-shrink:0;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.08);border:0;color:var(--text);font-size:15px;font-weight:900;line-height:1;cursor:pointer;display:grid;place-items:center}
+.game-amount-step{flex-shrink:0;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.08);border:0;color:var(--text);font-size:15px;font-weight:900;line-height:1;cursor:pointer;display:grid;place-items:center;transition:background .15s ease,transform .15s ease}
 .game-amount-step:hover{background:rgba(255,255,255,.14)}
+.game-amount-step:active:not(:disabled){transform:scale(.92)}
 .game-amount-step:disabled{opacity:.4;cursor:not-allowed}
 
 .game-quick-amounts{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
-.game-quick-btn{height:28px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);color:var(--text);font-size:10.5px;font-weight:800;cursor:pointer}
+.game-quick-btn{height:28px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);color:var(--text);font-size:10.5px;font-weight:800;cursor:pointer;transition:background .15s ease,transform .15s ease}
 .game-quick-btn.active{background:rgba(233,32,58,.14);border-color:var(--game-red,#e9203a);color:#ff8a97}
+.game-quick-btn:active:not(:disabled){transform:scale(.95)}
 .game-quick-btn:disabled{opacity:.4;cursor:not-allowed}
 
-.game-place-bet-btn{flex:0 0 40%;width:auto;height:auto;margin-top:0;border:0;border-radius:16px;color:#062a12;font-size:32px;font-weight:900;line-height:1.15;background:linear-gradient(180deg,#3ddc35,#189e18);box-shadow:0 12px 26px rgba(34,197,94,.3);cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px}
+.game-place-bet-btn{flex:0 0 40%;width:auto;height:auto;margin-top:0;border:0;border-radius:16px;color:#062a12;font-size:clamp(18px,8vw,32px);font-weight:900;line-height:1.15;background:linear-gradient(180deg,#3ddc35,#189e18);box-shadow:0 12px 26px rgba(34,197,94,.3);cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px;transition:background .15s ease,color .15s ease,transform .15s ease}
+.game-place-bet-btn:active:not(:disabled){transform:scale(.97)}
 .game-place-bet-btn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
 .game-place-bet-btn.armed{background:rgba(255,255,255,.08);color:var(--muted);box-shadow:none}
+.game-place-bet-btn.placed{background:linear-gradient(180deg,#3a4658,#1e2732);color:#a9bdd4;box-shadow:none;font-size:clamp(15px,6vw,24px)}
 
 .game-auto-controls{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;gap:10px}
 .game-auto-toggle-row{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;color:var(--text)}
@@ -683,6 +739,16 @@ a{text-decoration:none;color:inherit}
 
 .game-limits-note{margin-top:10px;text-align:center;font-size:11px;color:var(--muted)}
 
+.game-livebets-panel{margin:0 14px;padding:16px;border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.09)}
+@media(min-width:960px){.game-livebets-panel{margin:0}}
+.game-livebets-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.game-livebets-head h2{font-size:14px;font-weight:800}
+.game-livebets-count{font-size:11px;color:var(--muted);font-weight:700}
+.game-livebets-list{display:flex;flex-direction:column;gap:6px;max-height:460px;overflow-y:auto}
+.game-livebets-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.03);font-size:12px}
+.game-livebets-row .uid{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:var(--text-muted)}
+.game-livebets-row .amt{font-weight:800;color:var(--text);flex-shrink:0}
+
 .game-recent-panel{margin:0 14px;padding:16px;border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.09)}
 @media(min-width:960px){.game-recent-panel{margin:0}}
 .game-recent-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
@@ -692,7 +758,7 @@ a{text-decoration:none;color:inherit}
 .game-recent-row:first-child{border-top:0}
 .game-recent-mult{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:900}
 .game-recent-mult.up{color:var(--green)}
-.game-recent-mult.down{color:#ff6b6b}
+.game-recent-mult.down{color:var(--cyan)}
 .game-recent-time{font-size:11px;color:var(--muted)}
 
 .game-trust-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:20px 14px 0}
@@ -803,8 +869,9 @@ a{text-decoration:none;color:inherit}
 .kk-cats{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(96px,1fr);gap:10px;overflow-x:auto;padding:14px 16px 8px;scrollbar-width:none}
 .kk-cats::-webkit-scrollbar{display:none}
 .kk-cat{display:flex;flex-direction:column;align-items:center;gap:7px;padding:6px 4px;border-radius:16px;flex-shrink:0;cursor:pointer;background:none;border:0;text-align:center}
-.kk-cat-icon{width:44px;height:44px;min-width:44px;border-radius:50%;display:grid;place-items:center;color:#fff;box-shadow:0 6px 14px rgba(15,23,42,.16)}
+.kk-cat-icon{width:44px;height:44px;min-width:44px;border-radius:50%;display:grid;place-items:center;color:#fff;box-shadow:0 6px 14px rgba(15,23,42,.16);overflow:hidden}
 .kk-cat-icon svg{width:17px;height:17px}
+.kk-cat-icon-img{width:100%;height:100%;object-fit:cover}
 .kk-cat span{font-size:12.5px;color:var(--kk-text);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 
@@ -817,24 +884,20 @@ a{text-decoration:none;color:inherit}
 .kk-arrow-btn{width:26px;height:26px;border-radius:8px;background:var(--kk-blue-grad);color:#fff;display:grid;place-items:center;border:0;cursor:pointer}
 .kk-arrow-btn svg{width:14px;height:14px}
 
-.kk-games{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 16px 10px}
+.kk-games{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 8px 10px}
 .kk-games .kk-game-card:only-child{grid-column:1/-1}
-.kk-games .kk-game-card:only-child .kk-game-media{height:170px}
+.kk-games .kk-game-card:only-child .kk-game-media{aspect-ratio:16/9}
 .kk-game-card{min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--kk-shadow);cursor:pointer;transition:transform .18s}
 .kk-game-card:active{transform:scale(.97)}
-.kk-game-media{height:88px;position:relative;display:grid;place-items:center;background:linear-gradient(160deg,var(--a,#2f6fe0),var(--b,#123a8f))}
+.kk-game-media{aspect-ratio:1/1;position:relative;display:grid;place-items:center;background:linear-gradient(160deg,var(--a,#2f6fe0),var(--b,#123a8f))}
 .kk-game-media:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.20),transparent 55%)}
 .kk-game-icon{position:relative;z-index:1;width:46px;height:46px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}
 .kk-game-thumb{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:cover}
 .kk-game-badge{position:absolute;top:7px;left:7px;z-index:2;padding:3px 8px;border-radius:999px;font-size:9px;font-weight:900;letter-spacing:.3px;background:var(--danger);color:#fff}
 .kk-game-badge.new{background:var(--success)}
 .kk-game-play{position:absolute;bottom:7px;right:7px;z-index:2;display:flex;align-items:center;gap:3px;padding:4px 8px;border-radius:999px;background:var(--kk-blue-grad);color:#fff;font-size:9.5px;font-weight:900;box-shadow:0 4px 10px rgba(0,0,0,.35)}
-.kk-game-info{padding:8px 9px 10px}
-.kk-game-name{font-size:12px;font-weight:800;color:var(--kk-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.kk-game-tag{margin-top:4px;display:flex;align-items:center;gap:5px;font-size:10px;color:var(--kk-muted)}
-.kk-game-tag svg{width:11px;height:11px;flex-shrink:0}
 
-.kk-game-card.detail{background:var(--kk-blue-grad);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff;min-height:132px}
+.kk-game-card.detail{background:var(--kk-blue-grad);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff;aspect-ratio:1/1}
 .kk-game-card.detail svg{width:26px;height:26px}
 .kk-game-card.detail span{font-size:11.5px;font-weight:800}
 
@@ -1039,9 +1102,27 @@ a{text-decoration:none;color:inherit}
 .deposit-amount-input-box input{background:none;border:0;outline:none;color:var(--kk-text);font-size:20px;font-weight:800;width:100%}
 .deposit-min-hint{margin-top:8px;font-size:11px;color:var(--text-faint)}
 
+.deposit-amount-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.deposit-amount-icon{width:30px;height:30px;border-radius:9px;background:var(--info-bg);color:var(--link);display:grid;place-items:center;flex-shrink:0}
+.deposit-amount-icon svg{width:16px;height:16px}
+.deposit-amount-head h2{font-size:15px;font-weight:800;color:var(--kk-text)}
+
+.deposit-amount-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.deposit-amount-tile{display:flex;align-items:center;justify-content:center;gap:5px;height:34px;border-radius:12px;background:#fff;border:1px solid var(--link);cursor:pointer}
+.deposit-amount-tile .tile-rs{font-size:12px;font-weight:500;color:var(--kk-muted)}
+.deposit-amount-tile .tile-val{font-size:15px;font-weight:500;color:var(--link)}
+.deposit-amount-tile.active{background:var(--info-bg);border-color:var(--link);box-shadow:0 0 0 2px var(--info-bg)}
+
+.deposit-amount-inputbar{margin-top:14px;display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:#fff;border:1px solid var(--border)}
+.deposit-amount-inputbar .inputbar-rs{font-size:20px;font-weight:800;color:var(--link);padding-right:10px;border-right:1px solid var(--border)}
+.deposit-amount-inputbar input{flex:1;min-width:0;background:none;border:0;outline:none;color:var(--kk-text);font-size:15px;font-weight:700}
+.deposit-amount-inputbar input::placeholder{color:var(--text-faint);font-weight:600}
+.deposit-amount-inputbar .inputbar-clear{width:22px;height:22px;flex-shrink:0;border-radius:50%;border:0;background:var(--surface-sunken);color:var(--kk-muted);display:grid;place-items:center;cursor:pointer}
+.deposit-amount-inputbar .inputbar-clear svg{width:11px;height:11px}
+
 .deposit-method-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.deposit-method-card{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:18px 12px;border-radius:16px;background:#fff;border:2px solid transparent;cursor:pointer;transition:box-shadow .15s,border-color .15s}
-.deposit-method-card img{height:26px;width:auto;object-fit:contain}
+.deposit-method-card{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px 12px;border-radius:16px;background:#fff;border:2px solid var(--border);cursor:pointer;transition:box-shadow .15s,border-color .15s}
+.deposit-method-card img{height:44px;max-width:100%;object-fit:contain}
 .deposit-method-card span{font-size:13px;font-weight:800;color:#111827}
 .deposit-method-card.selected{border-color:#f2b90c;box-shadow:0 0 0 3px rgba(242,185,12,.25),0 8px 20px rgba(242,185,12,.25)}
 .deposit-method-card.disabled{opacity:.5;cursor:not-allowed}

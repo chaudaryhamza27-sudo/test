@@ -200,14 +200,14 @@ export default function ActivityPage() {
         </section>
 
         <section className="kk-promo-grid">
-          <button className="kk-promo-card" onClick={() => openDemo("Gifts")}>
+          <button className="kk-promo-card" onClick={() => openDemo("")}>
             <div className="kk-promo-card-art" style={{ background: "linear-gradient(135deg,#ff8a80,#ff5252)" }}>🎁</div>
             <div className="kk-promo-card-body">
               <b>Gifts</b>
               <p>Enter the redemption code to receive gift rewards</p>
             </div>
           </button>
-          <button className="kk-promo-card" onClick={() => openDemo("Attendance Bonus")}>
+          <button className="kk-promo-card" onClick={() => openDemo("")}>
             <div className="kk-promo-card-art" style={{ background: "linear-gradient(135deg,#ffab91,#ff7043)" }}>📅</div>
             <div className="kk-promo-card-body">
               <b>Attendance bonus</b>
@@ -216,7 +216,7 @@ export default function ActivityPage() {
           </button>
         </section>
 
-        <button className="kk-promo-banner" onClick={() => openDemo("Recharge Bonus")}>
+        {/* <button className="kk-promo-banner" onClick={() => openDemo("Recharge Bonus")}>
           <div className="kk-promo-banner-art" style={{ "--a": "#3f7fe0", "--b": "#153e91" }}>
             <div className="kk-promo-banner-title">
               Recharge
@@ -240,7 +240,7 @@ export default function ActivityPage() {
           <div className="kk-promo-banner-body">
             <b>Login streak bonus</b>
           </div>
-        </button>
+        </button> */}
 
         <div className="kk-activity-stats">
           <div className="kk-activity-stat">

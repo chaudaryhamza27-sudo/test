@@ -9,12 +9,16 @@ import {
   IconShield,
   IconDeposit,
   IconGlobe,
+  IconX,
 } from "../icons";
 import PaybostAddFunds from "../components/PaybostAddFunds";
 import BottomNav from "../components/BottomNav";
 
-const QUICK_AMOUNTS = [3000, 5000, 10000, 20000];
+const QUICK_AMOUNTS = [3000, 5000, 10000, 20000, 30000, 50000];
 const MIN_DEPOSIT = 3000;
+const MAX_DEPOSIT = 50000;
+
+const formatShort = (v) => (v >= 1000 ? `${v / 1000}K` : `${v}`);
 
 const PAYMENT_METHODS = [
   { key: "jazzcash", label: "JazzCash", logo: "/game/jazz.png" },
@@ -25,7 +29,7 @@ export default function DepositPage() {
   const router = useRouter();
   const [tab, setTab] = useState("manual");
   const [balance, setBalance] = useState(0);
-  const [amount, setAmount] = useState(3000);
+  const [amount, setAmount] = useState(null);
   const [customMode, setCustomMode] = useState(false);
   const [methods, setMethods] = useState(null); // [{ key, label, enabled }] from admin settings
   const [selectedMethod, setSelectedMethod] = useState(null);
@@ -72,8 +76,12 @@ export default function DepositPage() {
   // same rule the Paybost tab already follows off its own single toggle.
   const manualEnabled = methods === null || PAYMENT_METHODS.some((m) => isMethodEnabled(m.key));
 
+  // Keep the active tab pointed at a method the admin actually has enabled —
+  // jump to whichever one is still available the moment the other drops out.
   useEffect(() => {
-    if (methods !== null && !manualEnabled && paybostEnabled && tab === "manual") setTab("paybost");
+    if (methods === null) return;
+    if (!manualEnabled && paybostEnabled && tab === "manual") setTab("paybost");
+    if (!paybostEnabled && manualEnabled && tab === "paybost") setTab("manual");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [methods, manualEnabled, paybostEnabled]);
 
@@ -142,68 +150,97 @@ export default function DepositPage() {
           <div className="kk-wallet-balance-label">Available to use</div>
         </section>
 
-        <div className="deposit-tabs">
-          <button
-            className={`deposit-tab ${tab === "manual" ? "active" : ""} ${!manualEnabled ? "disabled" : ""}`}
-            onClick={() => manualEnabled && setTab("manual")}
-            disabled={!manualEnabled}
-          >
-            <span className="deposit-tab-icon blue">
-              <IconDeposit />
-            </span>
-            <span>
-              <b>Manual Deposit</b>
-              <span>{manualEnabled ? "Deposit manually" : "Currently unavailable"}</span>
-            </span>
-          </button>
-          <button
-            className={`deposit-tab ${tab === "paybost" ? "active" : ""} ${!paybostEnabled ? "disabled" : ""}`}
-            onClick={() => paybostEnabled && setTab("paybost")}
-            disabled={!paybostEnabled}
-          >
-            <span className="deposit-tab-icon purple">🚀</span>
-            <span>
-              <b>Add Funds (Paybost)</b>
-              <span>{paybostEnabled ? "Instant deposit via Paybost" : "Currently unavailable"}</span>
-            </span>
-          </button>
-        </div>
+        {(manualEnabled || paybostEnabled) && (
+          <div className="deposit-tabs">
+            {manualEnabled && (
+              <button
+                className={`deposit-tab ${tab === "manual" ? "active" : ""}`}
+                onClick={() => setTab("manual")}
+              >
+                <span className="deposit-tab-icon blue">
+                  <IconDeposit />
+                </span>
+                <span>
+                  <b>Manual Deposit</b>
+                  <span>Deposit manually</span>
+                </span>
+              </button>
+            )}
+            {paybostEnabled && (
+              <button
+                className={`deposit-tab ${tab === "paybost" ? "active" : ""}`}
+                onClick={() => setTab("paybost")}
+              >
+                <span className="deposit-tab-icon purple">🚀</span>
+                <span>
+                  <b>Add Funds (Paybost)</b>
+                  <span>Instant deposit via Paybost</span>
+                </span>
+              </button>
+            )}
+          </div>
+        )}
 
-        {tab === "manual" ? (
+        {methods !== null && !manualEnabled && !paybostEnabled ? (
+          <section className="deposit-step-card" style={{ textAlign: "center",margin:"10px" }}>
+            <h2 style={{ marginBottom: 8 }}>No Payment Methods Available</h2>
+            <p style={{ fontSize: 12.5, color: "var(--kk-muted)" }}>
+              Deposits are temporarily unavailable. Please contact support or try again later.
+            </p>
+          </section>
+        ) : tab === "manual" ? (
           <div className="deposit-grid-2col">
             <div className="deposit-main-col">
               <section className="deposit-step-card">
-                <div className="deposit-step-head">
-                  <span className="deposit-step-num">1</span>
-                  <div>
-                    <h2>Enter Amount</h2>
-                    <p>Enter the amount you want to deposit</p>
-                  </div>
+                <div className="deposit-amount-head">
+                  <span className="deposit-amount-icon">
+                    <IconDeposit />
+                  </span>
+                  <h2>Deposit amount</h2>
                 </div>
-                <div className="deposit-amount-row">
+
+                <div className="deposit-amount-grid">
                   {QUICK_AMOUNTS.map((v) => (
-                    <button key={v} className={`deposit-amount-pill ${!customMode && amount === v ? "active" : ""}`} onClick={() => pickAmount(v)}>
-                      Rs{v.toLocaleString()}
+                    <button
+                      key={v}
+                      type="button"
+                      className={`deposit-amount-tile ${!customMode && amount === v ? "active" : ""}`}
+                      onClick={() => pickAmount(v)}
+                    >
+                      <span className="tile-rs">Rs</span>
+                      <span className="tile-val">{formatShort(v)}</span>
                     </button>
                   ))}
-                  <button className={`deposit-amount-pill ${customMode ? "active" : ""}`} onClick={() => setCustomMode(true)}>
-                    Other
-                  </button>
                 </div>
-                <div className="deposit-amount-input-box">
-                  <span>Amount</span>
-                  <div>
-                    Rs{" "}
-                    <input
-                      type="number"
-                      min={MIN_DEPOSIT}
-                      value={customMode ? amount : amount}
-                      onChange={(e) => {
-                        setCustomMode(true);
-                        setAmount(Number(e.target.value) || 0);
+
+                <div className="deposit-amount-inputbar">
+                  <span className="inputbar-rs">Rs</span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min={MIN_DEPOSIT}
+                    max={MAX_DEPOSIT}
+                    placeholder={`Rs${MIN_DEPOSIT.toLocaleString()}.00 - Rs${MAX_DEPOSIT.toLocaleString()}.00`}
+                    value={amount ?? ""}
+                    onChange={(e) => {
+                      setCustomMode(true);
+                      const v = e.target.value;
+                      setAmount(v === "" ? null : Number(v) || 0);
+                    }}
+                  />
+                  {amount != null && (
+                    <button
+                      type="button"
+                      className="inputbar-clear"
+                      aria-label="Clear amount"
+                      onClick={() => {
+                        setAmount(null);
+                        setCustomMode(false);
                       }}
-                    />
-                  </div>
+                    >
+                      <IconX />
+                    </button>
+                  )}
                 </div>
                 <div className="deposit-min-hint">Minimum deposit: Rs{MIN_DEPOSIT}</div>
               </section>
@@ -217,22 +254,17 @@ export default function DepositPage() {
                   </div>
                 </div>
                 <div className="deposit-method-grid">
-                  {PAYMENT_METHODS.map((m) => {
-                    const enabled = isMethodEnabled(m.key);
-                    return (
-                      <button
-                        key={m.key}
-                        type="button"
-                        className={`deposit-method-card ${selectedMethod === m.key ? "selected" : ""} ${!enabled ? "disabled" : ""}`}
-                        onClick={() => enabled && setSelectedMethod(m.key)}
-                        disabled={!enabled}
-                      >
-                        <img src={m.logo} alt={m.label} />
-                        <span>{m.label}</span>
-                        {!enabled && <em>Unavailable</em>}
-                      </button>
-                    );
-                  })}
+                  {PAYMENT_METHODS.filter((m) => isMethodEnabled(m.key)).map((m) => (
+                    <button
+                      key={m.key}
+                      type="button"
+                      className={`deposit-method-card ${selectedMethod === m.key ? "selected" : ""}`}
+                      onClick={() => setSelectedMethod(m.key)}
+                    >
+                      <img src={m.logo} alt={m.label} />
+                      <span>{m.label}</span>
+                    </button>
+                  ))}
                 </div>
                 {selectedMethod && (
                   <div className="deposit-number-input-box">

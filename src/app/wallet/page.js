@@ -148,7 +148,7 @@ export default function WalletPage() {
           ))}
         </div>
 
-        <div className="alert alert-info" style={{ margin: "16px 16px 0" }}>
+        {/* <div className="alert alert-info" style={{ margin: "16px 16px 0" }}>
           <IconShield style={{ width: 16, height: 16, flexShrink: 0 }} />
           <span>
             <b>Demo Mode</b> — Stats above reflect your real demo-credit activity. No real money is ever involved.
@@ -156,6 +156,7 @@ export default function WalletPage() {
         </div>
 
         <footer className="kk-footer">This account and its balance are placeholders for this UI preview.</footer>
+      */}
       </main>
 
       <BottomNav />
