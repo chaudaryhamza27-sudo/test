@@ -5,6 +5,7 @@ import CrashStage from './CrashStage';
 import BetPanel from './BetPanel';
 import useCrashRound from './useCrashRound';
 import AppShellHeader from '../components/AppShellHeader';
+import { IconHistory } from '../icons';
 import './crash.css';
 
 /*
@@ -115,6 +116,7 @@ export default function CrashDemoPage() {
   const [feed, setFeed] = useState([]);           // filled client-side only — random, so SSR can't match it
   const [betsTab, setBetsTab] = useState('all');
   const [showPrev, setShowPrev] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(FEED_PAGE);
   const prevPhase = useRef(round.phase);
 
@@ -157,12 +159,33 @@ export default function CrashDemoPage() {
     <main className="crash-page" style={{ maxWidth: 900, width: '100%', margin: '0 auto', color: '#fff' }}>
       <AppShellHeader subtitle="Crash" balance={balance} showTrustBadges={false} />
 
-      <div className="crash-history">
-        {history.map((m, i) => (
-          <span key={i} className="crash-history-pill" style={badgeStyle(m)}>
-            {m.toFixed(2)}x
-          </span>
-        ))}
+      <div className="crash-history-wrap">
+        <div className="crash-history">
+          {history.slice(0, 8).map((m, i) => (
+            <span key={i} className="crash-history-pill" style={badgeStyle(m)}>
+              {m.toFixed(2)}x
+            </span>
+          ))}
+        </div>
+        <button
+          type="button"
+          className={`crash-history-toggle${historyOpen ? ' open' : ''}`}
+          onClick={() => setHistoryOpen((v) => !v)}
+          aria-label="More round history"
+        >
+          <IconHistory />
+        </button>
+
+        {historyOpen && (
+          <div className="crash-history-dropdown">
+            {history.length === 0 && <span className="crash-history-empty">No rounds yet</span>}
+            {history.map((m, i) => (
+              <span key={i} className="crash-history-pill" style={badgeStyle(m)}>
+                {m.toFixed(2)}x
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       <CrashStage

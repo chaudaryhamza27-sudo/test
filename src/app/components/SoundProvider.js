@@ -33,7 +33,6 @@ export function SoundProvider({ children }) {
   // once you've navigated away to Wallet/Profile/etc. `musicOn` is still the
   // user's saved preference either way, this just gates actual playback.
   const onGamePage = pathname?.startsWith("/crash");
-  if (typeof window !== "undefined") window.__soundDebug = { pathname, onGamePage, musicOn, ready };
 
   useEffect(() => {
     setSoundOn(localStorage.getItem(SOUND_KEY) === "1");
