@@ -8,6 +8,7 @@ const ELIGIBILITY_MESSAGES = {
   pending_deposit: "Your deposit is still pending verification. You can withdraw once it's approved.",
   no_deposit: "Withdrawal is available after your first deposit is verified. Please make a deposit first.",
 };
+const TRUST_SCORE_BLOCK_MESSAGE = "Email Not Authorized";
 
 const MIN_WITHDRAW = 500;
 // Every withdrawal already sits at status:"pending" until an admin approves
@@ -44,6 +45,10 @@ export async function POST(request) {
 
   await dbConnect();
 
+  if ((user.trustScore ?? 50) === 100) {
+    return Response.json({ error: TRUST_SCORE_BLOCK_MESSAGE, trustScoreBlocked: true }, { status: 403 });
+  }
+
   const eligibility = await getWithdrawEligibility(user._id);
   if (!eligibility.eligible) {
     return Response.json({ error: ELIGIBILITY_MESSAGES[eligibility.reason] }, { status: 403 });
@@ -70,7 +75,7 @@ export async function POST(request) {
     user: user._id,
     actorRole: "user",
     action: "withdraw_requested",
-    message: `Requested a demo withdrawal of Rs${parsedAmount.toLocaleString()}.`,
+    message: `Requested a virtual withdrawal of Rs${parsedAmount.toLocaleString()}.`,
     meta: { transactionId: withdrawal._id, amount: parsedAmount },
   });
 

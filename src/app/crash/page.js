@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import CrashStage from './CrashStage';
 import BetPanel from './BetPanel';
 import useCrashRound from './useCrashRound';
 import AppShellHeader from '../components/AppShellHeader';
+import { useSound } from '../components/SoundProvider';
 import { IconHistory } from '../icons';
 import './crash.css';
 
@@ -58,13 +60,17 @@ const badgeStyle = (m) => {
 // One independent betting box: its own stake/bet/history, sharing only the
 // round clock and the wallet balance. Two of these render side by side so a
 // player can run two bets at once, each cashing out on its own schedule.
-function useBetSlot(round, balance, setBalance) {
+function useBetSlot(round, balance, setBalance, onInsufficientFunds, playSfx) {
   const [bet, setBet] = useState(null);          // { stake, status, autoAt }
   const [rows, setRows] = useState([]);
   const prevPhase = useRef(round.phase);
 
   const placeBet = (stake, autoAt) => {
-    if (stake > balance) return;
+    if (balance == null) return;                // real balance hasn't loaded yet
+    if (stake > balance) {
+      onInsufficientFunds?.();
+      return;
+    }
     setBalance((b) => b - stake);
     setBet({ stake, autoAt, status: round.phase === 'betting' ? 'placed' : 'queued' });
   };
@@ -81,6 +87,7 @@ function useBetSlot(round, balance, setBalance) {
     setBalance((b) => b + payout);
     setRows((r) => [{ id: Date.now() + Math.random(), stake: bet.stake, at, payout }, ...r].slice(0, 12));
     setBet({ ...bet, status: 'cashed' });
+    playSfx?.('cashout');
   };
 
   // auto cash-out
@@ -109,28 +116,52 @@ function useBetSlot(round, balance, setBalance) {
 
 export default function CrashDemoPage() {
   const round = useCrashRound({ source: 'demo' });
-  const [balance, setBalance] = useState(5000);
-  const slot1 = useBetSlot(round, balance, setBalance);
-  const slot2 = useBetSlot(round, balance, setBalance);
+  // Starts from the signed-in account's real balance (same source AppShellHeader
+  // itself would fetch) rather than a hardcoded demo number, so a fresh account
+  // sees its actual Rs0.00 here too instead of a fake Rs5,000.
+  const [balance, setBalance] = useState(null);
+  const [showDepositPrompt, setShowDepositPrompt] = useState(false);
+  const { playSfx } = useSound();
+  const slot1 = useBetSlot(round, balance, setBalance, () => setShowDepositPrompt(true), playSfx);
+  const slot2 = useBetSlot(round, balance, setBalance, () => setShowDepositPrompt(true), playSfx);
   const [history, setHistory] = useState([]);
   const [feed, setFeed] = useState([]);           // filled client-side only — random, so SSR can't match it
   const [betsTab, setBetsTab] = useState('all');
   const [showPrev, setShowPrev] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(FEED_PAGE);
+  const [animationsOn, setAnimationsOn] = useState(true);
   const prevPhase = useRef(round.phase);
+  const historyStripRef = useRef(null);
 
   useEffect(() => { setFeed(makeFeed()); }, []);
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => setBalance(data.user.balance ?? 0))
+      .catch(() => setBalance(0));
+  }, []);
 
   // round-crash bookkeeping shared across both boxes: history strip + the
   // simulated public feed refresh (each box settles its own rows above)
   useEffect(() => {
     if (prevPhase.current === round.phase) return;
     prevPhase.current = round.phase;
+    if (round.phase === 'flying') {
+      playSfx('start');
+    }
     if (round.phase === 'crashed') {
+      playSfx('crash');
       setHistory((h) => [round.crashPoint, ...h].slice(0, 25));
       setFeed(makeFeed());
       setVisibleCount(FEED_PAGE);
+      // The strip prepends the new pill and keeps whatever scroll position
+      // the user left it at, so if they'd scrolled right to see older
+      // rounds, the new one landed off-screen to the left instead of
+      // showing up. Snapping back to the start keeps the latest result
+      // visible the moment it lands, same as the big multiplier readout.
+      requestAnimationFrame(() => { historyStripRef.current?.scrollTo({ left: 0, behavior: 'smooth' }); });
     }
   }, [round.phase]);                            // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -157,10 +188,17 @@ export default function CrashDemoPage() {
 
   return (
     <main className="crash-page" style={{ maxWidth: 900, width: '100%', margin: '0 auto', color: '#fff' }}>
-      <AppShellHeader subtitle="Crash" balance={balance} showTrustBadges={false} />
+      <AppShellHeader
+        subtitle="Crash"
+        balance={balance}
+        showTrustBadges={false}
+        crashProfileMenu
+        animationsOn={animationsOn}
+        onToggleAnimations={() => setAnimationsOn((v) => !v)}
+      />
 
       <div className="crash-history-wrap">
-        <div className="crash-history">
+        <div className="crash-history" ref={historyStripRef}>
           {history.slice(0, 8).map((m, i) => (
             <span key={i} className="crash-history-pill" style={badgeStyle(m)}>
               {m.toFixed(2)}x
@@ -193,6 +231,8 @@ export default function CrashDemoPage() {
         multiplier={round.multiplier}
         elapsed={round.elapsed}
         countdown={round.countdown}
+        growthRate={round.growthRate}
+        animationsOn={animationsOn}
       />
 
       <div className="crash-bet-row">
@@ -246,6 +286,23 @@ export default function CrashDemoPage() {
         <button type="button" className="crash-show-more" onClick={() => setVisibleCount((v) => v + FEED_PAGE)}>
           Show more
         </button>
+      )}
+
+      {showDepositPrompt && (
+        <div className="crash-modal-overlay" onClick={() => setShowDepositPrompt(false)}>
+          <div className="crash-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Insufficient balance</h3>
+            <p>Your balance is too low for this bet. Deposit funds to keep playing.</p>
+            <div className="crash-modal-actions">
+              <button type="button" className="crash-modal-cancel" onClick={() => setShowDepositPrompt(false)}>
+                Cancel
+              </button>
+              <Link href="/deposit#deposit-options" className="crash-modal-deposit">
+                Deposit now
+              </Link>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );

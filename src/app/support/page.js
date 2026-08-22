@@ -93,7 +93,7 @@ export default function SupportPage() {
         )}
 
         <footer className="kk-footer">
-          PK92 is an educational simulation using demo credits only — WhatsApp support is provided for demo
+          PK92 is an educational simulation using virtual funds only — WhatsApp support is provided for platform
           purposes and no real transactions are handled over chat.
         </footer>
       </main>

@@ -112,6 +112,7 @@ export async function PATCH(request) {
   if (typeof trustScoreDelta === "number" && Number.isFinite(trustScoreDelta) && trustScoreDelta !== 0) {
     const previous = user.trustScore ?? 50;
     user.trustScore = Math.max(0, Math.min(100, previous + trustScoreDelta));
+    user.trustScoreManual = true;
     await logActivity({
       user: admin._id,
       actorRole: "admin",
@@ -129,12 +130,12 @@ export async function PATCH(request) {
       actorRole: "admin",
       action: "balance_adjusted",
       targetUser: user._id,
-      message: `Reset demo balance for ${user.uid} from Rs${Number(previousBalance).toLocaleString()} to Rs${Number(balance).toLocaleString()}.`,
+      message: `Reset virtual balance for ${user.uid} from Rs${Number(previousBalance).toLocaleString()} to Rs${Number(balance).toLocaleString()}.`,
     });
     await notifyUser(user._id, {
       type: "balance_adjusted",
       title: "Balance updated",
-      message: `An administrator updated your demo balance to Rs${Number(balance).toLocaleString()}.`,
+      message: `An administrator updated your virtual balance to Rs${Number(balance).toLocaleString()}.`,
     });
   }
   await user.save();

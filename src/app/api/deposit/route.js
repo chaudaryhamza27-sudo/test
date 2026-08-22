@@ -72,7 +72,7 @@ export async function POST(request) {
     user: user._id,
     actorRole: "user",
     action: "deposit_requested",
-    message: `Requested a demo deposit of Rs${parsedAmount.toLocaleString()}.`,
+    message: `Requested a virtual deposit of Rs${parsedAmount.toLocaleString()}.`,
     meta: { transactionId: deposit._id, amount: parsedAmount },
   });
 

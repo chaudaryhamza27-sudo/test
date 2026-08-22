@@ -25,10 +25,11 @@ import { useEffect, useRef, useState } from 'react';
  *   build where the client decides the crash point.
  */
 
-const GROWTH = 0.09;          // must match the server's multiplier curve
+const BASE_GROWTH = 0.10;     // must match the server's multiplier curve
+const GROWTH_JITTER = 0.18;   // +/-18%, so each round climbs at its own pace
 const BET_WINDOW_MS = 5000;   // demo only
 
-export const multiplierAt = (seconds) => Math.exp(GROWTH * seconds);
+export const multiplierAt = (seconds, rate = BASE_GROWTH) => Math.exp(rate * seconds);
 
 export default function useCrashRound({ source = 'server', endpoint = '/api/game/stream' } = {}) {
   const [round, setRound] = useState({ phase: 'betting', roundId: null, crashPoint: null });
@@ -70,9 +71,11 @@ export default function useCrashRound({ source = 'server', endpoint = '/api/game
     const takeOff = () => {
       const r = Math.random();
       const crashPoint = Math.min(Math.max(1, Math.floor((0.97 / (1 - r)) * 100) / 100), 40);
+      const rate = BASE_GROWTH * (1 + (Math.random() * 2 - 1) * GROWTH_JITTER);
       markRef.current.startedAt = Date.now();
-      setRound((prev) => ({ ...prev, phase: 'flying', crashPoint }));
-      const flightMs = (Math.log(crashPoint) / GROWTH) * 1000;
+      markRef.current.rate = rate;
+      setRound((prev) => ({ ...prev, phase: 'flying', crashPoint, growthRate: rate }));
+      const flightMs = (Math.log(crashPoint) / rate) * 1000;
       timer = setTimeout(() => {
         setRound((prev) => ({ ...prev, phase: 'crashed' }));
         timer = setTimeout(startBetting, 2400);
@@ -89,13 +92,15 @@ export default function useCrashRound({ source = 'server', endpoint = '/api/game
     const frame = () => {
       const now = Date.now();
       if (round.phase === 'flying') {
+        const rate = markRef.current.rate || BASE_GROWTH;
         const elapsed = (now - markRef.current.startedAt) / 1000;
-        const m = multiplierAt(elapsed);
+        const m = multiplierAt(elapsed, rate);
         const capped = round.crashPoint ? Math.min(m, round.crashPoint) : m;
         setTick({ multiplier: capped, elapsed, countdown: 0 });
       } else if (round.phase === 'crashed') {
         const at = round.crashPoint ?? 1;
-        setTick({ multiplier: at, elapsed: Math.log(at) / GROWTH, countdown: 0 });
+        const rate = markRef.current.rate || BASE_GROWTH;
+        setTick({ multiplier: at, elapsed: Math.log(at) / rate, countdown: 0 });
       } else {
         const left = markRef.current.betsCloseAt - now;
         const total = BET_WINDOW_MS;

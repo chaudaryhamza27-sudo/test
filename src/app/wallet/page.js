@@ -151,7 +151,7 @@ export default function WalletPage() {
         {/* <div className="alert alert-info" style={{ margin: "16px 16px 0" }}>
           <IconShield style={{ width: 16, height: 16, flexShrink: 0 }} />
           <span>
-            <b>Demo Mode</b> — Stats above reflect your real demo-credit activity. No real money is ever involved.
+            <b>Practice Mode</b> — Stats above reflect your virtual balance activity. No real money is ever involved.
           </span>
         </div>
 

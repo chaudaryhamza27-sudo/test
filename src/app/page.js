@@ -363,7 +363,7 @@ export default function Home() {
       <div className={`popup ${popup ? "active" : ""}`} onClick={closeDemo}>
         <div className="kk-popup-box" onClick={(e) => e.stopPropagation()}>
           <div className="kk-popup-icon">🎮</div>
-          <div className="kk-popup-title">Demo Mode</div>
+          <div className="kk-popup-title">Practice Mode</div>
           <p className="kk-popup-text">
             &quot;{popup}&quot; is a placeholder tile in this UI showcase — no real game or wallet is connected.
           </p>

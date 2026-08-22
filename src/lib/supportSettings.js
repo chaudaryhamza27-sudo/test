@@ -8,10 +8,13 @@ import SupportSettings from "./models/SupportSettings";
 const REQUIRED_METHODS = [
   { key: "easypaisa", label: "EasyPaisa" },
   { key: "jazzcash", label: "JazzCash" },
-  { key: "sadapay", label: "SadaPay" },
-  { key: "trc20", label: "TRC20 (USDT)" },
   { key: "paybost", label: "Paybost" },
 ];
+// Withdraw dropped Paybost (its automated-checkout flow is deposit-only —
+// there's no equivalent instant payout API, so it never made sense as a
+// withdraw method) without dropping it from deposits. Self-healing the two
+// lists off one shared REQUIRED_METHODS would keep re-adding it here.
+const REQUIRED_WITHDRAW_METHODS = REQUIRED_METHODS.filter((m) => m.key !== "paybost");
 
 export async function getOrCreateSupportSettings() {
   await dbConnect();
@@ -28,6 +31,8 @@ export async function getOrCreateSupportSettings() {
       settings.methods.push({ key: required.key, label: required.label, enabled: false });
       changed = true;
     }
+  }
+  for (const required of REQUIRED_WITHDRAW_METHODS) {
     if (!settings.withdrawMethods.some((m) => m.key === required.key)) {
       settings.withdrawMethods.push({ key: required.key, label: required.label, enabled: false });
       changed = true;

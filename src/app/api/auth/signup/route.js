@@ -76,8 +76,8 @@ export async function POST(request) {
   });
   await notifyUser(user._id, {
     type: "welcome",
-    title: "Welcome to the demo!",
-    message: "Your account starts with a Rs0 balance — make a demo deposit to get started. No real money is involved.",
+    title: "Welcome to Practice Mode",
+    message: "Your account starts with a Rs0 balance — make a virtual deposit to get started. No real money is involved.",
   });
 
   return Response.json({

@@ -79,7 +79,7 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
       }
       if (res.ok && ["FAILED", "CANCELLED", "REFUNDED"].includes(data.status)) {
         setPhase("error");
-        setResultMessage("Payment did not complete — no funds were added to your demo wallet.");
+        setResultMessage("Payment did not complete — no funds were added to your virtual wallet.");
         return;
       }
     } catch {
@@ -236,7 +236,7 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
               {/* <div className="alert alert-info" style={{ marginTop: 14 }}>
                 <IconShield style={{ width: 15, height: 15, flexShrink: 0 }} />
                 <span>
-                  <b>This is a test mode using Paybost sandbox.</b> No real money is involved. Funds are for demo
+                  <b>This is a test mode using Paybost sandbox.</b> No real money is involved. Funds are for practice
                   purposes only.
                 </span>
               </div> */}

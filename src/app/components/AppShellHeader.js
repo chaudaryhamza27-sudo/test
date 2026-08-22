@@ -4,19 +4,27 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { IconEagle, IconChevronLeft, IconDeposit } from "../icons";
 import ProfileMenu from "./ProfileMenu";
+import CrashProfileMenu from "./CrashProfileMenu";
 
 const money = (n) => Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const TRUST_BADGES = [
   { icon: "⚡", label: "Real", sub: "Simulated funds" },
-  { icon: "🪙", label: "Demo test", sub: "Safe to try" },
+  { icon: "🪙", label: "Practice Mode", sub: "Safe to explore" },
   // { icon: "🛡️", label: "No", sub: "Real payments" },
 ];
 
 // One shared header for the "app-shell" family of pages (Deposit, Withdraw,
 // Game) — logo/back, trust badges, balance, and the account dropdown, so
 // none of those pages hand-roll their own header markup anymore.
-export default function AppShellHeader({ subtitle = "UI Showcase", showTrustBadges = true, balance: controlledBalance }) {
+export default function AppShellHeader({
+  subtitle = "UI Showcase",
+  showTrustBadges = true,
+  balance: controlledBalance,
+  crashProfileMenu = false,
+  animationsOn,
+  onToggleAnimations,
+}) {
   const [fetchedBalance, setFetchedBalance] = useState(null);
   const isControlled = controlledBalance !== undefined;
 
@@ -69,7 +77,11 @@ export default function AppShellHeader({ subtitle = "UI Showcase", showTrustBadg
           <IconDeposit style={{ width: 13, height: 13, flexShrink: 0 }} />
           <span className="add-funds-label">Add Funds</span>
         </Link>
-        <ProfileMenu />
+        {crashProfileMenu ? (
+          <CrashProfileMenu animationsOn={animationsOn} onToggleAnimations={onToggleAnimations} />
+        ) : (
+          <ProfileMenu />
+        )}
       </div>
     </header>
   );

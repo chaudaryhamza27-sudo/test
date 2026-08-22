@@ -333,8 +333,8 @@ export default function DepositPage() {
                 {paybostEnabled ? (
                   <>
                     <p style={{ fontSize: 12.5, color: "var(--kk-muted)", marginBottom: 18 }}>
-                      Credit demo funds instantly through Paybost&apos;s sandbox checkout — running in test mode, still
-                      100% simulated, still no real money.
+                      Add virtual funds through Paybost&apos;s sandbox checkout — running in test mode, fully
+                      simulated, with no real money involved.
                     </p>
                     <PaybostAddFunds theme="light" triggerClassName="deposit-submit-btn" triggerLabel="🚀 Add Funds Instantly via Paybost" onBalanceChange={setBalance} />
                   </>
@@ -355,7 +355,7 @@ export default function DepositPage() {
                 </div>
                 <ul className="deposit-safety-list">
                   <li>🔒 SSL Encrypted</li>
-                  <li>⚡ Instant Credit</li>
+                    <li>⚡ Instant Balance Update</li>
                   <li>🕐 24/7 Support</li>
                   <li>💰 Secure Transactions</li>
                 </ul>
@@ -378,7 +378,7 @@ export default function DepositPage() {
         </div>
 
         <footer className="kk-footer">
-          PK92 is an educational simulation using demo credits only — no real money or payment gateway is
+          PK92 is an educational simulation using virtual funds only — no real money or payment gateway is
           involved. See our <Link href="/legal/terms">Terms</Link> and{" "}
           <Link href="/legal/deposit-policy">Deposit Policy</Link>.
         </footer>
@@ -390,7 +390,7 @@ export default function DepositPage() {
         <div className="kk-popup-box" onClick={(e) => e.stopPropagation()}>
           <div className="kk-popup-icon">{popup?.tone === "success" ? "✅" : popup?.tone === "error" ? "⚠️" : "🧪"}</div>
           <div className="kk-popup-title">
-            {popup?.tone === "success" ? "Deposit Request Submitted" : popup?.tone === "error" ? "Couldn't Submit" : "Demo Mode"}
+            {popup?.tone === "success" ? "Deposit Request Submitted" : popup?.tone === "error" ? "Couldn't Submit" : "Practice Mode"}
           </div>
           <p className="kk-popup-text">{popup?.msg}</p>
           <button className="kk-popup-btn" onClick={closeNotice}>

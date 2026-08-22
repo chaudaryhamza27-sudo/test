@@ -6,7 +6,7 @@ import mongoose from "mongoose";
 // api/admin/deposit-account.
 const DepositAccountSchema = new mongoose.Schema(
   {
-    accountTitle: { type: String, default: "Demo Wallet" },
+    accountTitle: { type: String, default: "Virtual Wallet" },
     bankName: { type: String, default: "Meezan Bank" },
     accountNumber: { type: String, default: "1234-5678-9012-3456" },
     iban: { type: String, default: "PK12 MEZN 0000 1234 5678 9012" },

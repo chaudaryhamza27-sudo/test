@@ -101,7 +101,7 @@ export default function SignupPage() {
               <IconEagle />
               PK92
             </div>
-            <button type="button" className="kk-auth-lang" onClick={() => openNotice("Language selection is a placeholder in this demo.")}>
+            <button type="button" className="kk-auth-lang" onClick={() => openNotice("Language selection is a placeholder in this preview.")}>
               <IconFlagUS className="kk-auth-flag" />
               EN
             </button>
@@ -150,7 +150,7 @@ export default function SignupPage() {
                   Phone number
                 </div>
                 <div className="kk-auth-phone-row">
-                  <button type="button" className="kk-country-select" onClick={() => openNotice("Country code selection is a placeholder in this demo.")}>
+                  <button type="button" className="kk-country-select" onClick={() => openNotice("Country code selection is a placeholder in this preview.")}>
                     +92
                     <IconChevronDown />
                   </button>
@@ -266,7 +266,7 @@ export default function SignupPage() {
           </Link>
 
           <div className="kk-auth-footer">
-            <button type="button" className="kk-auth-footer-item" onClick={() => openNotice("Customer service chat is a placeholder in this demo.")}>
+            <button type="button" className="kk-auth-footer-item" onClick={() => openNotice("Customer service chat is a placeholder in this preview.")}>
               <span className="kk-auth-footer-icon">
                 <IconSupport />
               </span>

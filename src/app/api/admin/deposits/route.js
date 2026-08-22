@@ -70,7 +70,10 @@ export async function PATCH(request) {
       { $group: { _id: null, total: { $sum: "$amount" } } },
     ]);
     const lifetimeDeposit = depositAgg[0]?.total ?? 0;
-    await User.updateOne({ _id: tx.user }, { $set: { trustScore: computeTrustScore(lifetimeDeposit) } });
+    await User.updateOne(
+      { _id: tx.user, $or: [{ trustScoreManual: false }, { trustScoreManual: { $exists: false } }] },
+      { $set: { trustScore: computeTrustScore(lifetimeDeposit) } }
+    );
   } else if (typeof rejectionReason === "string" && rejectionReason.trim()) {
     // Set the whole meta object (rather than a dotted sub-path) since meta
     // may currently be null, and Mongo can't set a nested path on null.
@@ -83,7 +86,7 @@ export async function PATCH(request) {
     actorRole: "admin",
     action: action === "approve" ? "deposit_approved" : "deposit_rejected",
     targetUser: tx.user,
-    message: `${action === "approve" ? "Approved" : "Rejected"} a demo deposit of Rs${Number(tx.amount).toLocaleString()}.`,
+    message: `${action === "approve" ? "Approved" : "Rejected"} a virtual deposit of Rs${Number(tx.amount).toLocaleString()}.`,
     meta: { transactionId: tx._id, amount: tx.amount, rejectionReason: tx.meta?.rejectionReason || null },
   });
   await notifyUser(tx.user, {
@@ -91,8 +94,8 @@ export async function PATCH(request) {
     title: action === "approve" ? "Deposit approved" : "Deposit rejected",
     message:
       action === "approve"
-        ? `Your demo deposit of Rs${Number(tx.amount).toLocaleString()} has been credited.`
-        : `Your demo deposit request of Rs${Number(tx.amount).toLocaleString()} was rejected.${tx.meta?.rejectionReason ? ` Reason: ${tx.meta.rejectionReason}` : ""}`,
+        ? `Your virtual deposit of Rs${Number(tx.amount).toLocaleString()} has been added.`
+        : `Your virtual deposit request of Rs${Number(tx.amount).toLocaleString()} was rejected.${tx.meta?.rejectionReason ? ` Reason: ${tx.meta.rejectionReason}` : ""}`,
   });
 
   return Response.json({ deposit: { ...tx.toObject(), meta: undefined, hasProof: undefined } });

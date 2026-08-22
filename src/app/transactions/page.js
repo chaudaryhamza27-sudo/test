@@ -114,7 +114,7 @@ export default function TransactionsPage() {
                   <div className="kk-list-item" key={tx._id} style={{ cursor: "default", alignItems: "flex-start" }}>
                     <span className="label" style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                       <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        {isPayPal ? "Demo Deposit" : TYPE_LABELS[tx.type] || tx.type}
+                        {isPayPal ? "Virtual Deposit" : TYPE_LABELS[tx.type] || tx.type}
                         {isPayPal && (
                           <span
                             style={{

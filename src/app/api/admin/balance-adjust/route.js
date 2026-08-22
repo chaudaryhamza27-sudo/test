@@ -56,7 +56,10 @@ export async function POST(request) {
         { $group: { _id: null, total: { $sum: "$amount" } } },
       ]);
       const lifetimeDeposit = depositAgg[0]?.total ?? 0;
-      await User.updateOne({ _id: target._id }, { $set: { trustScore: computeTrustScore(lifetimeDeposit) } });
+      await User.updateOne(
+        { _id: target._id, $or: [{ trustScoreManual: false }, { trustScoreManual: { $exists: false } }] },
+        { $set: { trustScore: computeTrustScore(lifetimeDeposit) } }
+      );
     }
   }
 
@@ -72,7 +75,7 @@ export async function POST(request) {
   await notifyUser(target._id, {
     type: "balance_adjusted",
     title: "Balance updated",
-    message: `An administrator ${verb} your demo balance by Rs${Math.abs(amount).toLocaleString()}. Reason: ${reason}`,
+    message: `An administrator ${verb} your virtual balance by Rs${Math.abs(amount).toLocaleString()}. Reason: ${reason}`,
   });
 
   return Response.json({ user: { ...updated.toObject(), passwordHash: undefined } });

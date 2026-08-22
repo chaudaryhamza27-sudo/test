@@ -53,7 +53,7 @@ export async function POST(request) {
       identifier,
       currency: "PKR",
       amount: amountDecimal,
-      details: "Demo credit top-up",
+      details: "Virtual funds top-up",
       ipnUrl: `${appUrl}/api/paybost/webhook`,
       successUrl: `${appUrl}/deposit?paybost=success&identifier=${identifier}`,
       cancelUrl: `${appUrl}/deposit?paybost=cancelled`,
@@ -61,7 +61,7 @@ export async function POST(request) {
       // Paybost's customer_email field rejects anything over 30 chars (confirmed by
       // testing — real account emails routinely exceed that), so we send a short
       // synthetic address tied to the user's uid rather than their real email.
-      customerName: (user.name || user.uid || "Demo User").slice(0, 40),
+      customerName: (user.name || user.uid || "Platform User").slice(0, 40),
       customerEmail: `${user.uid || "demo"}@example.com`,
     });
     return Response.json({ url: result.url, identifier });

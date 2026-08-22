@@ -256,3 +256,106 @@
 }
 
 .crash-cashout.won { color: #00ff99; }
+
+/* Crash-page account dropdown — dark variant of the shared white
+   .profile-dropdown (globals.css), reusing its layout classes but with its
+   own colors so it doesn't leak onto other pages. */
+.crash-profile-dropdown {
+  background: #101b2e;
+  border: 1px solid #1f3050;
+  padding: 6px;
+}
+
+.crash-profile-user {
+  padding: 12px 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #1f3050;
+  text-align: center;
+}
+.crash-profile-user b { display: block; font-size: 13px; font-weight: 800; color: #fff; word-break: break-all; }
+.crash-profile-user span { display: block; font-size: 11px; color: #7c8aa5; margin-top: 3px; letter-spacing: .3px; }
+
+.crash-profile-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #e7ecf5;
+}
+.crash-profile-toggle-row svg { width: 16px; height: 16px; color: #7c8aa5; flex-shrink: 0; }
+.crash-profile-toggle-row span { flex: 1; }
+
+.game-toggle.crash-toggle { background: rgba(255, 255, 255, .12); }
+.game-toggle.crash-toggle.on { background: #1a8fe3; }
+
+.crash-profile-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 8px;
+  border-radius: 10px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: #e7ecf5;
+  text-decoration: none;
+}
+.crash-profile-item:hover { background: rgba(255, 255, 255, .06); }
+.crash-profile-item svg { width: 16px; height: 16px; color: #7c8aa5; flex-shrink: 0; }
+.crash-profile-item span { flex: 1; }
+.crash-profile-item .chev { width: 12px; height: 12px; color: #4c5b78; flex: none; }
+
+.crash-profile-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f00b3e;
+  flex: none;
+}
+
+/* Insufficient-balance prompt shown when a bet is attempted with too little
+   balance — nudges toward /deposit instead of the bet button silently doing
+   nothing. */
+.crash-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .6);
+  display: grid;
+  place-items: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.crash-modal {
+  width: min(340px, 100%);
+  background: #101b2e;
+  border: 1px solid #1f3050;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  color: #e7ecf5;
+}
+.crash-modal h3 { margin: 0 0 8px; font-size: 16px; font-weight: 800; color: #fff; }
+.crash-modal p { margin: 0 0 18px; font-size: 13px; color: #9aa8c2; line-height: 1.5; }
+
+.crash-modal-actions { display: flex; gap: 10px; }
+.crash-modal-cancel,
+.crash-modal-deposit {
+  flex: 1;
+  padding: 11px 0;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  border: 0;
+}
+.crash-modal-cancel { background: rgba(255, 255, 255, .1); color: #e7ecf5; }
+.crash-modal-cancel:hover { background: rgba(255, 255, 255, .16); }
+.crash-modal-deposit { background: #1a8fe3; color: #fff; }
+.crash-modal-deposit:hover { background: #2b9ceb; }

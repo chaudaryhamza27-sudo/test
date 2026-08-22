@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -128,7 +129,7 @@ export default function Home() {
               <h1 className="hero-title">Play More<br /><span>Win Bigger</span></h1>
               <p className="hero-sub">New dark royal theme, faster game access, smooth mobile design and premium casino style.</p>
               <div className="hero-actions">
-                <a href="/crash" className="hero-btn primary"><i className="fa-solid fa-play"></i> Play Aviator</a>
+                <Link href="/crash" className="hero-btn primary"><i className="fa-solid fa-play"></i> Play Aviator</Link>
                 <a href="/data/wingoload.php" className="hero-btn ghost"><i className="fa-solid fa-bolt"></i> Wingo</a>
               </div>
             </div>

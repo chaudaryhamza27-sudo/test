@@ -108,7 +108,7 @@ function PageHead({ title, sub, badge, onRefresh, refreshing }) {
         {sub && <p>{sub}</p>}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        {badge && <span className="admin-demo-badge">EDUCATIONAL DEMO · SIMULATION MODE · NO REAL MONEY</span>}
+        {badge && <span className="admin-demo-badge">EDUCATIONAL SIMULATION · PRACTICE MODE · NO REAL MONEY</span>}
         {onRefresh && (
           <button
             type="button"
@@ -799,8 +799,8 @@ export default function AdminDashboard() {
                 <StatCard label="Total Users" value={overview.totalUsers} />
                 <StatCard label="Active Users" value={overview.activeUsers} />
                 <StatCard label="Banned Users" value={overview.bannedUsers} />
-                <StatCard label="Demo Deposits" value={`Rs ${overview.totalDeposits.toLocaleString()}`} />
-                <StatCard label="Demo Withdrawals" value={`Rs ${overview.totalWithdrawals.toLocaleString()}`} />
+                <StatCard label="Virtual Deposits" value={`Rs ${overview.totalDeposits.toLocaleString()}`} />
+                <StatCard label="Virtual Withdrawals" value={`Rs ${overview.totalWithdrawals.toLocaleString()}`} />
                 <StatCard label="Total Transactions" value={overview.totalTransactions} />
                 <StatCard label="Game Rounds" value={overview.totalGameRounds} />
                 <StatCard label="Pending Deposits" value={overview.pendingDeposits} />
@@ -813,7 +813,7 @@ export default function AdminDashboard() {
                   <BarChart data={overview.registrationsByDay} valueKey="count" color="#4c8dff" />
                 </div>
                 <div className="admin-chart-card">
-                  <h3>Approved demo deposits (last 14 days)</h3>
+                  <h3>Approved virtual deposits (last 14 days)</h3>
                   <BarChart data={overview.depositsByDay} valueKey="amount" color="#22c55e" formatValue={(v) => `Rs ${v.toLocaleString()}`} />
                 </div>
               </div>
@@ -890,7 +890,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="admin-quick-field">
                   <label>Amount</label>
-                  <input type="number" min="1" placeholder="Amount" value={trustAmount} onChange={(e) => setTrustAmount(e.target.value)} disabled={trustSubmitting} />
+                  <input type="number" min="1" placeholder="Enter trust score" value={trustAmount} onChange={(e) => setTrustAmount(e.target.value)} disabled={trustSubmitting} />
                 </div>
               </div>
               <div className="admin-quick-actions">

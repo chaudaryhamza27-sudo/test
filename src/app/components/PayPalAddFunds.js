@@ -83,7 +83,7 @@ export default function PayPalAddFunds({ theme = "dark", triggerClassName, trigg
       onBalanceChange?.(json.balance);
     } catch {
       setPhase("error");
-      setResultMessage("Payment Failed — no funds were added to your demo wallet.");
+      setResultMessage("Payment Failed — no funds were added to your virtual wallet.");
     }
   };
 
@@ -94,7 +94,7 @@ export default function PayPalAddFunds({ theme = "dark", triggerClassName, trigg
   const onError = (err) => {
     if (process.env.NODE_ENV === "development") console.error("[PayPal]", err);
     setPhase("error");
-    setResultMessage("Payment Failed — no funds were added to your demo wallet.");
+    setResultMessage("Payment Failed — no funds were added to your virtual wallet.");
   };
 
   return (
@@ -118,14 +118,14 @@ export default function PayPalAddFunds({ theme = "dark", triggerClassName, trigg
               <div className="kk-popup-title" style={{ fontSize: 22, marginTop: 12 }}>
                 Add Funds via PayPal
               </div>
-              <p className={textClass}>Add demo funds instantly using PayPal Sandbox.</p>
+              <p className={textClass}>Add virtual funds instantly using PayPal Sandbox.</p>
 
               <div className="paybost-range-box">
                 <div className="paybost-range-icon">
                   <IconWallet />
                 </div>
                 <div>
-                  <div className="paybost-range-label">Demo Balance will be added</div>
+                  <div className="paybost-range-label">Virtual balance will be added</div>
                   <div className="paybost-range-value">
                     ${MIN_AMOUNT} ~ ${MAX_AMOUNT}
                   </div>
@@ -195,7 +195,7 @@ export default function PayPalAddFunds({ theme = "dark", triggerClassName, trigg
               <div className="alert alert-info" style={{ marginTop: 14 }}>
                 <IconShield style={{ width: 15, height: 15, flexShrink: 0 }} />
                 <span>
-                  <b>This is a test mode using PayPal Sandbox.</b> No real money is involved. Funds are for demo
+                  <b>This is a test mode using PayPal Sandbox.</b> No real money is involved. Funds are for practice
                   purposes only.
                 </span>
               </div>
@@ -230,7 +230,7 @@ export default function PayPalAddFunds({ theme = "dark", triggerClassName, trigg
           {phase === "success" && (
             <>
               <div className={textClass} style={{ marginTop: 16, color: "#37f59a", fontWeight: 800 }}>
-                Success! Your demo balance is now Rs{Number(resultBalance).toLocaleString()}.
+                Success! Your virtual balance is now Rs{Number(resultBalance).toLocaleString()}.
               </div>
               <button className={btnClass} onClick={close}>
                 Done
@@ -241,7 +241,7 @@ export default function PayPalAddFunds({ theme = "dark", triggerClassName, trigg
           {phase === "cancelled" && (
             <>
               <div className={textClass} style={{ marginTop: 16 }}>
-                Payment Cancelled — your demo balance was not changed.
+                Payment Cancelled — your virtual balance was not changed.
               </div>
               <button className={btnClass} onClick={reset}>
                 Try again
@@ -252,7 +252,7 @@ export default function PayPalAddFunds({ theme = "dark", triggerClassName, trigg
           {phase === "error" && (
             <>
               <div className={textClass} style={{ marginTop: 16, color: "#ff5c5c" }}>
-                {resultMessage || "Payment Failed — no funds were added to your demo wallet."}
+                {resultMessage || "Payment Failed — no funds were added to your virtual wallet."}
               </div>
               <button className={btnClass} onClick={reset}>
                 Try again

@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "PK92 — UI Showcase",
-  description: "A play-money, no-real-currency UI/UX demo built with Next.js.",
+  description: "A professional educational simulation built with Next.js using virtual funds.",
 };
 
 export default function RootLayout({ children }) {

@@ -52,7 +52,7 @@ export async function PATCH(request) {
     actorRole: "admin",
     action: action === "approve" ? "withdraw_approved" : "withdraw_rejected",
     targetUser: tx.user,
-    message: `${action === "approve" ? "Approved" : "Rejected"} a demo withdrawal of Rs${Number(tx.amount).toLocaleString()}.`,
+    message: `${action === "approve" ? "Approved" : "Rejected"} a virtual withdrawal of Rs${Number(tx.amount).toLocaleString()}.`,
     meta: { transactionId: tx._id, amount: tx.amount },
   });
   await notifyUser(tx.user, {
@@ -60,8 +60,8 @@ export async function PATCH(request) {
     title: action === "approve" ? "Withdrawal approved" : "Withdrawal rejected",
     message:
       action === "approve"
-        ? `Your demo withdrawal of Rs${Number(tx.amount).toLocaleString()} has been processed.`
-        : `Your demo withdrawal request of Rs${Number(tx.amount).toLocaleString()} was rejected and refunded to your balance.`,
+        ? `Your virtual withdrawal of Rs${Number(tx.amount).toLocaleString()} has been processed.`
+        : `Your virtual withdrawal request of Rs${Number(tx.amount).toLocaleString()} was rejected and refunded to your balance.`,
   });
 
   return Response.json({ withdrawal: tx });

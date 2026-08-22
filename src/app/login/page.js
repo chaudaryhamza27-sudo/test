@@ -80,7 +80,7 @@ export default function LoginPage() {
               <IconEagle />
               PK92
             </div>
-            <button type="button" className="kk-auth-lang" onClick={() => openNotice("Language selection is a placeholder in this demo.")}>
+            <button type="button" className="kk-auth-lang" onClick={() => openNotice("Language selection is a placeholder in this preview.")}>
               <IconFlagUS className="kk-auth-flag" />
               EN
             </button>
@@ -114,7 +114,7 @@ export default function LoginPage() {
                   Phone number
                 </div>
                 <div className="kk-auth-phone-row">
-                  <button type="button" className="kk-country-select" onClick={() => openNotice("Country code selection is a placeholder in this demo.")}>
+                  <button type="button" className="kk-country-select" onClick={() => openNotice("Country code selection is a placeholder in this preview.")}>
                     +92
                     <IconChevronDown />
                   </button>
@@ -186,13 +186,13 @@ export default function LoginPage() {
           </Link>
 
           <div className="kk-auth-footer">
-            <button type="button" className="kk-auth-footer-item" onClick={() => openNotice("Password recovery is a placeholder in this demo.")}>
+            <button type="button" className="kk-auth-footer-item" onClick={() => openNotice("Password recovery is a placeholder in this preview.")}>
               <span className="kk-auth-footer-icon">
                 <IconLockLine />
               </span>
               Forgot password
             </button>
-            <button type="button" className="kk-auth-footer-item" onClick={() => openNotice("Customer service chat is a placeholder in this demo.")}>
+            <button type="button" className="kk-auth-footer-item" onClick={() => openNotice("Customer service chat is a placeholder in this preview.")}>
               <span className="kk-auth-footer-icon">
                 <IconSupport />
               </span>
@@ -205,7 +205,7 @@ export default function LoginPage() {
       <div className={`popup ${popup ? "active" : ""}`} onClick={closeNotice}>
         <div className="kk-popup-box" onClick={(e) => e.stopPropagation()}>
           <div className="kk-popup-icon">🔐</div>
-          <div className="kk-popup-title">Demo Mode</div>
+          <div className="kk-popup-title">Practice Mode</div>
           <p className="kk-popup-text">{popup}</p>
           <button className="kk-popup-btn" onClick={closeNotice}>
             Got it

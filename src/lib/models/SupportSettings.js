@@ -21,8 +21,6 @@ const SupportSettingsSchema = new mongoose.Schema(
       default: [
         { key: "easypaisa", label: "EasyPaisa", enabled: false },
         { key: "jazzcash", label: "JazzCash", enabled: false },
-        { key: "sadapay", label: "SadaPay", enabled: false },
-        { key: "trc20", label: "TRC20 (USDT)", enabled: false },
         { key: "paybost", label: "Paybost", enabled: false },
       ],
     },
@@ -39,9 +37,6 @@ const SupportSettingsSchema = new mongoose.Schema(
       default: [
         { key: "easypaisa", label: "EasyPaisa", enabled: false },
         { key: "jazzcash", label: "JazzCash", enabled: false },
-        { key: "sadapay", label: "SadaPay", enabled: false },
-        { key: "trc20", label: "TRC20 (USDT)", enabled: false },
-        { key: "paybost", label: "Paybost", enabled: false },
       ],
     },
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },

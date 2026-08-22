@@ -35,7 +35,7 @@
 
 .row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: stretch;
   gap: 10px;
 }
@@ -44,11 +44,20 @@
 
 .spinner {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  padding: 6px 6px 6px 16px;
-  border-radius: 999px;
-  background: #000;
-  border: 1px solid #3c3c42;
+  width: 100%;
+  height: 34px;
+  padding-left: 10px;
+  padding-right: 10px;
+  border-radius: 22px;
+  background-color: #000;
+  color: #fff;
+  border: solid 1px #3c3c42;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  transition: opacity .1s;
 }
 
 .spinner input {
@@ -56,9 +65,10 @@
   min-width: 0;
   border: 0;
   background: none;
-  color: #fff;
-  font-size: 20px;
-  font-weight: 600;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
   text-align: left;
   outline: none;
 }
@@ -94,14 +104,18 @@
 }
 
 .quickGrid button {
-  height: 28px;
+  width: 64px;
+  height: 18px;
+  margin-top: 4px;
   padding: 0;
   border: 1px solid #36363c;
-  border-radius: 999px;
-  background: #252528;
+  border-radius: 100px;
+  background-color: #252528;
   color: #83878e;
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 14px;
+  line-height: 1;
+  text-align: center;
+  box-shadow: none;
   cursor: pointer;
 }
 
@@ -109,9 +123,12 @@
 .quickGrid button:disabled { opacity: .5; cursor: not-allowed; }
 
 .actionCol {
-  flex: 1 1 150px;
+  width: calc(100% - 145px);
+  margin-left: 5px;
   min-width: 0;
   display: flex;
+  justify-content: center;
+  align-items: center;
   flex-direction: column;
   gap: 8px;
 }
@@ -125,6 +142,8 @@
 
 .action {
   flex: 1;
+  align-self: stretch;
+  width: 100%;
   min-height: 92px;
   border: 0;
   border-radius: 20px;

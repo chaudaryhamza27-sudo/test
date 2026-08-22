@@ -5,52 +5,35 @@ import { usePathname } from "next/navigation";
 
 const SoundContext = createContext(null);
 
-const SOUND_KEY = "pk92_sound_on";
-const MUSIC_KEY = "pk92_music_on";
-
-// Short SFX are synthesized live via the Web Audio API — no external sound
-// files to source/license, so "Sound" is genuinely functional the instant
-// it's toggled on. "Music" loops /game/background.mp3.
-const TONES = {
-  click: [{ freq: 720, dur: 0.05, type: "square", gain: 0.05 }],
-  bet: [{ freq: 440, dur: 0.09, type: "triangle", gain: 0.09 }],
-  cashout: [
-    { freq: 523, dur: 0.08, type: "sine", gain: 0.1 },
-    { freq: 659, dur: 0.08, type: "sine", gain: 0.1, delay: 0.07 },
-    { freq: 784, dur: 0.14, type: "sine", gain: 0.11, delay: 0.14 },
-  ],
-  crash: [{ freq: 160, dur: 0.35, type: "sawtooth", gain: 0.12 }],
+// One-shot game SFX, gated by the "Sound" toggle. "Music" is the separate
+// looping /game/background.mp3, gated by its own toggle below.
+const SFX_SRC = {
+  start: "/game/game-start.mp3",
+  cashout: "/game/cashout_2.mp3",
+  crash: "/game/plane-crash.mp3",
 };
 
 export function SoundProvider({ children }) {
-  const [soundOn, setSoundOn] = useState(false);
-  const [musicOn, setMusicOn] = useState(false);
-  const [ready, setReady] = useState(false);
-  const audioCtxRef = useRef(null);
-  const musicElRef = useRef(null);
   const pathname = usePathname();
-  // Background music is a game-page feature — it should never keep playing
-  // once you've navigated away to Wallet/Profile/etc. `musicOn` is still the
-  // user's saved preference either way, this just gates actual playback.
+  // Sound/Music default ON while on a game page (/crash) and OFF everywhere
+  // else. This is a per-page default, not a persisted user preference — it
+  // resets whenever you cross the game/non-game boundary, but toggling still
+  // overrides it for as long as you stay in that boundary.
   const onGamePage = pathname?.startsWith("/crash");
+  const [soundOn, setSoundOn] = useState(onGamePage);
+  const [musicOn, setMusicOn] = useState(onGamePage);
+  const onGamePageRef = useRef(onGamePage);
+  const musicElRef = useRef(null);
+  const sfxElsRef = useRef({});
 
   useEffect(() => {
-    setSoundOn(localStorage.getItem(SOUND_KEY) === "1");
-    // Music defaults ON for first-time visitors (no stored preference yet);
-    // once someone has actually toggled it, that explicit choice sticks.
-    const storedMusic = localStorage.getItem(MUSIC_KEY);
-    setMusicOn(storedMusic === null ? true : storedMusic === "1");
-    setReady(true);
-  }, []);
+    if (onGamePageRef.current === onGamePage) return;
+    onGamePageRef.current = onGamePage;
+    setSoundOn(onGamePage);
+    setMusicOn(onGamePage);
+  }, [onGamePage]);
 
   useEffect(() => {
-    if (!ready) return;
-    localStorage.setItem(SOUND_KEY, soundOn ? "1" : "0");
-  }, [soundOn, ready]);
-
-  useEffect(() => {
-    if (!ready) return;
-    localStorage.setItem(MUSIC_KEY, musicOn ? "1" : "0");
     if (musicOn && onGamePage) {
       // Created lazily, only on first actual use — an unconditional `new
       // Audio(src)` fetches eagerly on mount even while the toggle is off.
@@ -69,13 +52,12 @@ export function SoundProvider({ children }) {
     } else {
       musicElRef.current?.pause();
     }
-  }, [musicOn, onGamePage, ready]);
+  }, [musicOn, onGamePage]);
 
   // Browsers block audio-with-sound autoplay before any user gesture — so
   // when music is on (including the first-visit default) but still paused
   // because of that policy, start it on the visitor's first tap/click/key.
   useEffect(() => {
-    if (!ready) return;
     const tryResume = () => {
       if (musicOn && onGamePage && musicElRef.current?.paused) musicElRef.current.play().catch(() => {});
     };
@@ -85,34 +67,22 @@ export function SoundProvider({ children }) {
       document.removeEventListener("pointerdown", tryResume);
       document.removeEventListener("keydown", tryResume);
     };
-  }, [musicOn, onGamePage, ready]);
+  }, [musicOn, onGamePage]);
 
-  const playTone = useCallback(
+  const playSfx = useCallback(
     (name) => {
       if (!soundOn) return;
-      const steps = TONES[name];
-      if (!steps) return;
-      if (!audioCtxRef.current) {
-        const Ctx = window.AudioContext || window.webkitAudioContext;
-        if (!Ctx) return;
-        audioCtxRef.current = new Ctx();
+      const src = SFX_SRC[name];
+      if (!src) return;
+      // Lazy + cached per name, same reasoning as the music element: don't
+      // fetch every clip on mount, only the ones actually played.
+      let el = sfxElsRef.current[name];
+      if (!el) {
+        el = new Audio(src);
+        sfxElsRef.current[name] = el;
       }
-      const ctx = audioCtxRef.current;
-      if (ctx.state === "suspended") ctx.resume();
-      const now = ctx.currentTime;
-      for (const step of steps) {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = step.type;
-        osc.frequency.value = step.freq;
-        const start = now + (step.delay || 0);
-        gain.gain.setValueAtTime(0, start);
-        gain.gain.linearRampToValueAtTime(step.gain, start + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.0001, start + step.dur);
-        osc.connect(gain).connect(ctx.destination);
-        osc.start(start);
-        osc.stop(start + step.dur + 0.02);
-      }
+      el.currentTime = 0;
+      el.play().catch(() => {});
     },
     [soundOn]
   );
@@ -121,7 +91,7 @@ export function SoundProvider({ children }) {
   const toggleMusic = useCallback(() => setMusicOn((v) => !v), []);
 
   return (
-    <SoundContext.Provider value={{ soundOn, musicOn, toggleSound, toggleMusic, playTone }}>
+    <SoundContext.Provider value={{ soundOn, musicOn, toggleSound, toggleMusic, playSfx }}>
       {children}
     </SoundContext.Provider>
   );

@@ -3,6 +3,7 @@
   height: 320px;
   overflow: hidden;
   border-radius: 16px;
+  border: 1px solid #2a2b2e;
   background: #000;
 }
 
@@ -74,19 +75,28 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  background: rgba(0, 0, 0, .75);
+  /* Low enough that the parked plane silhouette, ray backdrop, and the
+     already-low-contrast axis/grid dots drawn on the canvas underneath all
+     stay visible, not near-black like a heavy scrim. */
+  background: rgba(0, 0, 0, .15);
 }
 
 .waiting p {
   margin: 0;
-  font-size: 14px;
-  letter-spacing: 2px;
+  max-width: 240px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: .5px;
+  text-align: center;
   color: #ccd6e6;
 }
 
+
 .spinner {
-  width: 84px;
-  height: 84px;
+  width: 64px;
+  height: 64px;
   transform-origin: 50% 50%;
   animation: spin360 2.5s linear infinite;
 }
@@ -97,10 +107,10 @@
 }
 
 .bar {
-  width: 180px;
-  height: 5px;
+  width: 62%;
+  height: 8px;
   overflow: hidden;
-  border-radius: 5px;
+  border-radius: 999px;
   background: rgba(255, 255, 255, .12);
 }
 
