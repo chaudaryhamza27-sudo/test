@@ -325,8 +325,8 @@ a{text-decoration:none;color:inherit}
 /* Activity page — promo hub (quick actions, gift cards, banners) */
 .kk-quick-actions{display:flex;justify-content:center;gap:30px;padding:18px 16px 6px;flex-wrap:wrap}
 .kk-quick-action{display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:0;cursor:pointer}
-.kk-quick-action-icon{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;color:#fff;box-shadow:0 8px 18px rgba(15,23,42,.16)}
-.kk-quick-action-icon svg{width:23px;height:23px}
+.kk-quick-action-icon{width:35px;height:35px;border-radius:10px;display:grid;place-items:center;color:#fff;box-shadow:0 8px 18px rgba(15,23,42,.16)}
+.kk-quick-action-icon svg{width:18px;height:18px}
 .kk-quick-action span{font-size:11.5px;font-weight:700;color:var(--kk-text);text-align:center;line-height:1.3;max-width:70px}
 
 .kk-promo-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 16px 0}
@@ -1052,8 +1052,8 @@ a{text-decoration:none;color:inherit}
 
 .kk-action-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:4px 16px 18px}
 .kk-action{display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:0;cursor:pointer}
-.kk-action-icon{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;color:#fff}
-.kk-action-icon svg{width:22px;height:22px}
+.kk-action-icon{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:#fff}
+.kk-action-icon svg{width:18px;height:18px}
 .kk-action span{font-size:11px;color:var(--text-muted);font-weight:600}
 
 .kk-balance-tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 16px}
@@ -1159,6 +1159,23 @@ a{text-decoration:none;color:inherit}
 .deposit-safety-list{list-style:none;display:flex;flex-direction:column;gap:10px}
 .deposit-safety-list li{font-size:12px;color:var(--kk-text);font-weight:600;display:flex;align-items:center;gap:8px}
 
+/* Withdraw page keeps its compact light card treatment on every theme. */
+.withdraw-page .kk-wallet-banner{padding-bottom:54px}
+.withdraw-page .kk-wallet-balance{font-size:28px}
+.withdraw-page .deposit-amount-icon{width:28px;height:28px}
+.withdraw-page .deposit-amount-icon svg{width:15px;height:15px}
+.withdraw-page .deposit-step-card{background:#fff;border-color:#e5e9f2;box-shadow:0 8px 22px rgba(34,52,84,.06)}
+.withdraw-page .deposit-step-card .deposit-instructions{color:#687795}
+.withdraw-page .deposit-step-card .deposit-instructions li{color:#687795}
+.withdraw-page .deposit-safety-card{background:#fff;border-color:#e5e9f2;box-shadow:0 8px 22px rgba(34,52,84,.06)}
+.withdraw-page .deposit-submit-btn{height:50px}
+
+@media (max-width: 480px){
+  .withdraw-page .kk-wallet-balance{font-size:26px}
+  .withdraw-page .deposit-amount-icon{width:26px;height:26px}
+  .withdraw-page .deposit-amount-icon svg{width:14px;height:14px}
+}
+
 .deposit-help-footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin:20px 16px 0;padding:16px;border-radius:16px;background:var(--surface);border:1px solid var(--border)}
 .deposit-help-footer > span{display:flex;align-items:flex-start;gap:8px;color:var(--link);font-weight:800;font-size:13px}
 
@@ -1195,8 +1212,8 @@ a{text-decoration:none;color:inherit}
 .kk-trust-card p{font-size:11.5px;color:rgba(255,255,255,.65);font-weight:600}
 
 .kk-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 16px 0}
-.kk-info-card{background:var(--surface);border-radius:16px;box-shadow:var(--kk-shadow);padding:14px;display:flex;gap:10px;align-items:flex-start;cursor:pointer;border:1px solid var(--border);text-align:left}
-.kk-info-icon{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:#fff;flex-shrink:0}
+.kk-info-card{background:var(--surface);border-radius:10px;box-shadow:var(--kk-shadow);padding:8px;display:flex;gap:10px;align-items:flex-start;cursor:pointer;border:1px solid var(--border);text-align:left}
+.kk-info-icon{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:#fff;flex-shrink:0}
 .kk-info-icon svg{width:18px;height:18px}
 .kk-info-title{font-size:12.5px;font-weight:800;color:var(--kk-text)}
 .kk-info-sub{font-size:10.5px;color:var(--kk-muted);margin-top:2px;line-height:1.3}

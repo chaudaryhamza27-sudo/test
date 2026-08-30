@@ -83,16 +83,38 @@ export default function AgencyPage() {
       </header>
 
       <main>
-        <section className="kk-agency-banner agency-hero">
-          <div className="agency-hero-card">
-            <div className="agency-hero-icon">
-              <IconUsers />
+       <section className="card" style={{ margin: "16px 16px 0", padding: 18 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 800, color: "var(--kk-text)" }}>
+              <IconChartLine style={{ width: 16, height: 16, color: "var(--kk-blue)" }} />
+              Promotion Data
+            </span>
+            <div className="kk-agency-tabs" style={{ margin: 0, gap: 6 }}>
+              <button className={`kk-agency-tab ${range === "month" ? "active" : ""}`} style={{ padding: "6px 10px", fontSize: 11.5 }} onClick={() => setRange("month")}>
+                <IconCalendar style={{ width: 12, height: 12 }} />
+                Month
+              </button>
+              <button className={`kk-agency-tab ${range === "all" ? "active" : ""}`} style={{ padding: "6px 10px",whiteSpace:"nowrap", fontSize: 11.5 }} onClick={() => setRange("all")}>
+                <IconClock style={{ width: 12, height: 12 }} />
+                All time
+              </button>
             </div>
-            <div className="big">{values.referrals}</div>
-            <div className="pill">Your total referrals</div>
-            <div className="note">Share your invite code to grow your referral network</div>
+          </div>
+
+          <div className="wallet-stats-grid" style={{ margin: 0 }}>
+            {STATS.map((s) => (
+              <div className="wallet-stat-card" key={s.key} style={{ background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: 14 }}>
+                <div className="wallet-stat-icon" style={{ background: s.bg }}>
+                  <s.icon />
+                </div>
+                <span style={{ fontSize: 10, color: "var(--text-faint)", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".3px" }}>{s.label}</span>
+                <b>{loading ? "…" : s.money ? `Rs${Number(values[s.key]).toLocaleString()}` : values[s.key]}</b>
+                <span>{s.sub}</span>
+              </div>
+            ))}
           </div>
         </section>
+      
 
         {/* <button type="button" className="kk-qr-btn" onClick={() => openDemo("Download QR Code")}>
           <IconQr />
@@ -149,38 +171,17 @@ export default function AgencyPage() {
             </span>
           </Link>
         </div>
-
-        <section className="card" style={{ margin: "16px 16px 0", padding: 18 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-            <span style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 800, color: "var(--kk-text)" }}>
-              <IconChartLine style={{ width: 16, height: 16, color: "var(--kk-blue)" }} />
-              Promotion Data
-            </span>
-            <div className="kk-agency-tabs" style={{ margin: 0, gap: 6 }}>
-              <button className={`kk-agency-tab ${range === "month" ? "active" : ""}`} style={{ padding: "6px 10px", fontSize: 11.5 }} onClick={() => setRange("month")}>
-                <IconCalendar style={{ width: 12, height: 12 }} />
-                Month
-              </button>
-              <button className={`kk-agency-tab ${range === "all" ? "active" : ""}`} style={{ padding: "6px 10px", fontSize: 11.5 }} onClick={() => setRange("all")}>
-                <IconClock style={{ width: 12, height: 12 }} />
-                All time
-              </button>
+  <section className="kk-agency-banner agency-hero">
+          <div className="agency-hero-card">
+            <div className="agency-hero-icon">
+              <IconUsers />
             </div>
-          </div>
-
-          <div className="wallet-stats-grid" style={{ margin: 0 }}>
-            {STATS.map((s) => (
-              <div className="wallet-stat-card" key={s.key} style={{ background: "var(--surface-sunken)", border: "1px solid var(--border)", borderRadius: 14 }}>
-                <div className="wallet-stat-icon" style={{ background: s.bg }}>
-                  <s.icon />
-                </div>
-                <span style={{ fontSize: 10, color: "var(--text-faint)", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".3px" }}>{s.label}</span>
-                <b>{loading ? "…" : s.money ? `Rs${Number(values[s.key]).toLocaleString()}` : values[s.key]}</b>
-                <span>{s.sub}</span>
-              </div>
-            ))}
+            <div className="big">{values.referrals}</div>
+            <div className="pill">Your total referrals</div>
+            <div className="note">Share your invite code to grow your referral network</div>
           </div>
         </section>
+       
 
         <div className="agency-note">
           <IconShield style={{ width: 13, height: 13 }} />

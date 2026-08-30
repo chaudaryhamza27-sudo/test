@@ -27,7 +27,7 @@ const PAYMENT_METHODS = [
 
 export default function DepositPage() {
   const router = useRouter();
-  const [tab, setTab] = useState("manual");
+  const [tab, setTab] = useState("paybost");
   const [balance, setBalance] = useState(0);
   const [amount, setAmount] = useState(null);
   const [customMode, setCustomMode] = useState(false);
@@ -152,6 +152,18 @@ export default function DepositPage() {
 
         {(manualEnabled || paybostEnabled) && (
           <div className="deposit-tabs">
+            {paybostEnabled && (
+              <button
+                className={`deposit-tab ${tab === "paybost" ? "active" : ""}`}
+                onClick={() => setTab("paybost")}
+              >
+                <span className="deposit-tab-icon purple">🚀</span>
+                <span>
+                  <b>Add Funds (Paybost)</b>
+                  <span>Instant deposit via Paybost</span>
+                </span>
+              </button>
+            )}
             {manualEnabled && (
               <button
                 className={`deposit-tab ${tab === "manual" ? "active" : ""}`}
@@ -166,18 +178,7 @@ export default function DepositPage() {
                 </span>
               </button>
             )}
-            {paybostEnabled && (
-              <button
-                className={`deposit-tab ${tab === "paybost" ? "active" : ""}`}
-                onClick={() => setTab("paybost")}
-              >
-                <span className="deposit-tab-icon purple">🚀</span>
-                <span>
-                  <b>Add Funds (Paybost)</b>
-                  <span>Instant deposit via Paybost</span>
-                </span>
-              </button>
-            )}
+            
           </div>
         )}
 

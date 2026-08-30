@@ -239,7 +239,7 @@ export default function WithdrawPage() {
   );
 
   return (
-    <div className="kk-page">
+    <div className="kk-page withdraw-page">
       <header className="kk-header">
         <Link href="/" className="kk-header-icon-btn">
           <IconChevronLeft />
