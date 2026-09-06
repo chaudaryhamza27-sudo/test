@@ -72,8 +72,8 @@
 
 .crash-history-toggle {
   flex: 0 0 auto;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   border: 1px solid #363738;
   background: rgba(255, 255, 255, .04);
@@ -83,7 +83,7 @@
   cursor: pointer;
 }
 
-.crash-history-toggle svg { width: 13px; height: 13px; }
+.crash-history-toggle svg { width: 11px; height: 11px; }
 .crash-history-toggle.open { border-color: #1565e8; color: #7cb5ff; background: rgba(21, 101, 232, .12); }
 
 .crash-history-dropdown {

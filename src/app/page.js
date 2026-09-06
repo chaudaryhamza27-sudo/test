@@ -5,7 +5,6 @@ import Link from "next/link";
 import { navTabs, categories, sections } from "./data";
 import BottomNav from "./components/BottomNav";
 import {
-  IconEagle,
   IconCoinWallet,
   IconSpeaker,
   IconChevronRight,
@@ -109,9 +108,9 @@ export default function Home() {
     <div className="kk-page">
       <header className="kk-topbar">
         <Link href="/" className="kk-brand">
-          <IconEagle className="kk-brand-logo" />
+          <img src="/logo-mark.png" alt="Lucky73" className="kk-brand-logo" />
           <div className="kk-brand-copy">
-            <span className="kk-brand-name">PK92</span>
+            <span className="kk-brand-name">Lucky73</span>
             <span className="kk-brand-tag">Aviator — Simulation</span>
           </div>
         </Link>
@@ -201,7 +200,7 @@ export default function Home() {
             <IconSpeaker />
           </div>
           <div className="kk-notice-text">
-            Welcome to PK92, the most trusted and fastest site, you can play our games anytime,
+            Welcome to Lucky73, the most trusted and fastest site, you can play our games anytime,
             anywhere.
           </div>
           <button className="kk-notice-btn" onClick={() => openDemo("")}>
@@ -322,8 +321,8 @@ export default function Home() {
         <footer className="kk-footer-box">
           <div className="kk-footer-top">
             <div className="kk-footer-brand">
-              <IconEagle />
-              <span>PK92</span>
+              <img src="/logo-mark.png" alt="Lucky73" />
+              <span>Lucky73</span>
             </div>
             <div className="kk-age-badge">18+</div>
           </div>
@@ -342,17 +341,17 @@ export default function Home() {
             </li>
             <li className="kk-footer-list-item">
               <IconCheck />
-             Pk92 works with more than 10,000 online live game dealers and slot games, all of which are verified fair games.
+             Lucky73 works with more than 10,000 online live game dealers and slot games, all of which are verified fair games.
             </li>
             <li className="kk-footer-list-item">
               <IconCheck />
-             Pk92 supports fast deposit and withdrawal, and looks forward to your visit.
+             Lucky73 supports fast deposit and withdrawal, and looks forward to your visit.
             </li>
             
           </ul>
 
           {/* <div className="kk-footer-warning">
-            Gambling can be addictive — please play responsibly. <b>PK92</b> only simulates
+            Gambling can be addictive — please play responsibly. <b>Lucky73</b> only simulates
             access for users aged 18 and above.
           </div> */}
         </footer>

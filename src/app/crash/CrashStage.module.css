@@ -1,6 +1,6 @@
 .stage {
   position: relative;
-  height: 320px;
+  height: clamp(220px, 46vh, 320px);
   overflow: hidden;
   border-radius: 16px;
   border: 1px solid #2a2b2e;

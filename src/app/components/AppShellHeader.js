@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { IconEagle, IconChevronLeft, IconDeposit } from "../icons";
+import { IconChevronLeft, IconDeposit } from "../icons";
 import ProfileMenu from "./ProfileMenu";
 import CrashProfileMenu from "./CrashProfileMenu";
 
@@ -46,9 +46,9 @@ export default function AppShellHeader({
           <IconChevronLeft />
         </Link>
         <Link href="/" className="brand-logo">
-          <div className="brand-mark"><IconEagle style={{ width: 24, height: 24 }} /></div>
+          <div className="brand-mark"><img src="/logo-mark.png" alt="Lucky73" /></div>
           <div className="brand-copy">
-            <b>PK92</b>
+            <b>Lucky73</b>
             <span>{subtitle}</span>
           </div>
         </Link>

@@ -379,7 +379,7 @@ export default function DepositPage() {
         </div>
 
         <footer className="kk-footer">
-          PK92 is an educational simulation using virtual funds only — no real money or payment gateway is
+          Lucky73 is an educational simulation using virtual funds only — no real money or payment gateway is
           involved. See our <Link href="/legal/terms">Terms</Link> and{" "}
           <Link href="/legal/deposit-policy">Deposit Policy</Link>.
         </footer>

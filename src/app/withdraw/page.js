@@ -350,7 +350,7 @@ export default function WithdrawPage() {
         </div>
 
         <footer className="kk-footer">
-          PK92 is an educational simulation using virtual funds only — no real money or payout is
+          Lucky73 is an educational simulation using virtual funds only — no real money or payout is
           ever issued. See our <Link href="/legal/terms">Terms</Link> and{" "}
           <Link href="/legal/withdrawal-policy">Withdrawal Policy</Link>.
         </footer>

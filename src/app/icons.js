@@ -1,4 +1,4 @@
-// Lightweight inline SVG icon set for the PK92 UI (no external icon library installed).
+// Lightweight inline SVG icon set for the Lucky73 UI (no external icon library installed).
 export const IconEagle = (props) => (
   <svg viewBox="0 0 48 48" fill="none" {...props}>
     <circle cx="24" cy="24" r="24" fill="url(#eagleGrad)" />

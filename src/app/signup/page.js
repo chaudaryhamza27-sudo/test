@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  IconEagle,
   IconChevronLeft,
   IconChevronDown,
   IconPhone,
@@ -98,8 +97,8 @@ export default function SignupPage() {
               <IconChevronLeft />
             </Link>
             <div className="kk-auth-brand">
-              <IconEagle />
-              PK92
+              <img src="/logo-mark.png" alt="" />
+              Lucky73
             </div>
             <button type="button" className="kk-auth-lang" onClick={() => openNotice("Language selection is a placeholder in this preview.")}>
               <IconFlagUS className="kk-auth-flag" />
@@ -279,7 +278,7 @@ export default function SignupPage() {
       <div className={`popup ${popup ? "active" : ""}`} onClick={closeNotice}>
         <div className="kk-popup-box" onClick={(e) => e.stopPropagation()}>
           <div className="kk-popup-icon">✨</div>
-          <div className="kk-popup-title">PK92</div>
+          <div className="kk-popup-title">Lucky73</div>
           <p className="kk-popup-text">{popup}</p>
           <button className="kk-popup-btn" onClick={closeNotice}>
             Got it

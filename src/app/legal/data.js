@@ -1,4 +1,4 @@
-// Static content for the /legal/[slug] pages. Every page here describes PK92
+// Static content for the /legal/[slug] pages. Every page here describes Lucky73
 // as what it actually is: an educational simulation using demo credits, not
 // a real-money gambling product. Do not add claims of licensing, regulatory
 // approval, or certification — none exist, because none apply to a demo app.
@@ -10,9 +10,9 @@ export const LEGAL_PAGES = {
     title: "Terms & Conditions",
     icon: "document",
     blocks: [
-      { type: "callout", tone: "info", text: "PK92 is a free educational simulation. All balances are virtual funds with no monetary value. Nothing on this platform involves real money, real wagering, or a real gambling license." },
-      { type: "h", text: "1. What PK92 is" },
-      { type: "p", text: "PK92 is an educational application built to show how a crash-style prediction game, wallet, and account system could work in an interactive UI. Every account starts with a simulated balance, and every deposit, withdrawal, bet, and payout uses virtual funds. No real currency ever enters or leaves the platform through normal use of the product." },
+      { type: "callout", tone: "info", text: "Lucky73 is a free educational simulation. All balances are virtual funds with no monetary value. Nothing on this platform involves real money, real wagering, or a real gambling license." },
+      { type: "h", text: "1. What Lucky73 is" },
+      { type: "p", text: "Lucky73 is an educational application built to show how a crash-style prediction game, wallet, and account system could work in an interactive UI. Every account starts with a simulated balance, and every deposit, withdrawal, bet, and payout uses virtual funds. No real currency ever enters or leaves the platform through normal use of the product." },
       { type: "h", text: "2. Eligibility and age requirement" },
       { type: "p", text: "You must be at least 18 years old to create an account. The interface simulates gambling-style mechanics (staking credits on a random outcome), and we apply an 18+ age gate as a matter of responsible design even though no real money or prize is at stake. By registering, you confirm you are 18 or older." },
       { type: "h", text: "3. Account registration" },
@@ -20,7 +20,7 @@ export const LEGAL_PAGES = {
       { type: "h", text: "4. Virtual funds" },
       { type: "p", text: "Virtual funds shown in your wallet, in deposit/withdrawal history, and in game results have no cash value, cannot be redeemed for money or goods, and cannot be transferred outside the platform. Any \"deposit\" or \"withdrawal\" flow you complete — including through third-party test/sandbox payment pages — is a simulated transaction for educational purposes only." },
       { type: "h", text: "5. No real-money gambling" },
-      { type: "p", text: "PK92 does not offer real-money wagering, is not a licensed gambling operator in Pakistan or any other jurisdiction, and does not intend to become one through this product. If any part of the interface reads like a real payment or a real bet, it is a simulation of that experience, not the transaction itself." },
+      { type: "p", text: "Lucky73 does not offer real-money wagering, is not a licensed gambling operator in Pakistan or any other jurisdiction, and does not intend to become one through this product. If any part of the interface reads like a real payment or a real bet, it is a simulation of that experience, not the transaction itself." },
       { type: "h", text: "6. Fair use" },
       { type: "p", text: "You agree not to attempt to manipulate game outcomes, wallet balances, or transaction records outside the normal use of the interface, and not to use the platform for any unlawful purpose." },
       { type: "h", text: "7. Changes" },
@@ -56,7 +56,7 @@ export const LEGAL_PAGES = {
     title: "Responsible Gaming",
     icon: "shield",
     blocks: [
-      { type: "callout", tone: "warning", text: "PK92 uses virtual funds with no real value — you cannot lose real money here. This page exists because the interface is modeled on real-money gambling products, and we want to be upfront about the behaviors those products can encourage." },
+      { type: "callout", tone: "warning", text: "Lucky73 uses virtual funds with no real value — you cannot lose real money here. This page exists because the interface is modeled on real-money gambling products, and we want to be upfront about the behaviors those products can encourage." },
       { type: "h", text: "1. Why this page exists" },
       { type: "p", text: "The crash-game format simulated on this platform — staking credits, watching a multiplier climb, deciding when to cash out — is deliberately based on real-money betting products. Even with no money on the line, mechanics like these are designed to be engaging, and it's worth understanding that before you (or anyone) encounters the real thing." },
       { type: "h", text: "2. If you or someone you know struggles with gambling" },
@@ -94,7 +94,7 @@ export const LEGAL_PAGES = {
     title: "Deposit Policy",
     icon: "document",
     blocks: [
-      { type: "callout", tone: "info", text: "All \"deposits\" on PK92 are simulated. No real money is transferred, regardless of which payment method you select." },
+      { type: "callout", tone: "info", text: "All \"deposits\" on Lucky73 are simulated. No real money is transferred, regardless of which payment method you select." },
       { type: "h", text: "1. Simulated deposits" },
       { type: "p", text: "When you submit a deposit request, the amount is added to your virtual wallet balance as a simulated transaction. Where a real payment provider's checkout page is shown (in test/sandbox mode), completing it does not move real funds — it only demonstrates the integration." },
       { type: "h", text: "2. Minimum amount" },
@@ -110,7 +110,7 @@ export const LEGAL_PAGES = {
     title: "Withdrawal Policy",
     icon: "document",
     blocks: [
-      { type: "callout", tone: "info", text: "All \"withdrawals\" on PK92 are simulated. No real money is ever sent to any account." },
+      { type: "callout", tone: "info", text: "All \"withdrawals\" on Lucky73 are simulated. No real money is ever sent to any account." },
       { type: "h", text: "1. Simulated withdrawals" },
       { type: "p", text: "A withdrawal request deducts virtual funds from your wallet balance and creates a Pending transaction record, mirroring the shape of a real withdrawal flow. No real transfer to any bank account, mobile wallet, or card occurs at any point." },
       { type: "h", text: "2. Minimum amount and balance checks" },
@@ -141,7 +141,7 @@ export const LEGAL_PAGES = {
     icon: "shield",
     blocks: [
       { type: "h", text: "1. What we use cookies for" },
-      { type: "p", text: "PK92 sets one essential, httpOnly session cookie when you log in or sign up. It identifies your logged-in session so the platform can show your account, wallet, and history. It cannot be read by page scripts and is not used for advertising." },
+      { type: "p", text: "Lucky73 sets one essential, httpOnly session cookie when you log in or sign up. It identifies your logged-in session so the platform can show your account, wallet, and history. It cannot be read by page scripts and is not used for advertising." },
       { type: "h", text: "2. No tracking or advertising cookies" },
       { type: "p", text: "We do not use third-party analytics, advertising, or cross-site tracking cookies on this platform." },
       { type: "h", text: "3. Managing cookies" },

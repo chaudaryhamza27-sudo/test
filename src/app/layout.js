@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "PK92 — UI Showcase",
+  title: "Lucky73 — UI Showcase",
   description: "A professional educational simulation built with Next.js using virtual funds.",
 };
 

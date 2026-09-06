@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  IconEagle,
   IconChevronLeft,
   IconChevronDown,
   IconPhone,
@@ -77,8 +76,8 @@ export default function LoginPage() {
               <IconChevronLeft />
             </Link>
             <div className="kk-auth-brand">
-              <IconEagle />
-              PK92
+              <img src="/logo-mark.png" alt="" />
+              Lucky73
             </div>
             <button type="button" className="kk-auth-lang" onClick={() => openNotice("Language selection is a placeholder in this preview.")}>
               <IconFlagUS className="kk-auth-flag" />

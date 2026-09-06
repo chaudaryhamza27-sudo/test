@@ -43,9 +43,15 @@ const makeFeedRow = () => {
   };
 };
 
-const FEED_SIZE = 200;
+const FEED_SIZE = 800;
 const FEED_PAGE = 15;
 const makeFeed = (n = FEED_SIZE) => Array.from({ length: n }, makeFeedRow);
+
+// Placeholder round history shown only until the DB has real finished
+// rounds — same random-multiplier spread as the simulated bets feed above,
+// purely cosmetic so the strip isn't blank on a fresh install.
+const makeDummyHistory = (n = 10) =>
+  Array.from({ length: n }, () => Math.round((1 + Math.random() * 9) * 100) / 100);
 
 const TIERS = [
   { max: 2, bg: '#005d91', fg: '#afd9ed' },
@@ -141,6 +147,18 @@ export default function CrashDemoPage() {
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => setBalance(data.user.balance ?? 0))
       .catch(() => setBalance(0));
+  }, []);
+
+  // Seed the round-history strip from the DB on load so it isn't empty on a
+  // fresh page load — new rounds still prepend live via the phase effect below.
+  useEffect(() => {
+    fetch('/api/game/history')
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => {
+        const items = data.items || [];
+        setHistory(items.length ? items.slice(0, 10).map((r) => r.crashPoint / 100) : makeDummyHistory());
+      })
+      .catch(() => setHistory(makeDummyHistory()));
   }, []);
 
   // round-crash bookkeeping shared across both boxes: history strip + the

@@ -1,0 +1,27 @@
+
+> gaming-ui-demo@0.1.0 dev
+> next dev
+
+⚠ Port 3000 is in use by process 17672, using available port 3001 instead.
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://localhost:3001
+- Network:       http://10.206.203.208:3001
+- Environments: .env.local
+✓ Ready in 1599ms
+
+○ Compiling /crash ...
+ GET /login 200 in 10.7s (next.js: 9.7s, application-code: 991ms)
+ GET /crash 200 in 10.7s (next.js: 10.6s, application-code: 173ms)
+ GET /api/auth/me 401 in 2.1s (next.js: 2.1s, application-code: 34ms)
+ GET /api/game/history 200 in 2.2s (next.js: 1908ms, application-code: 292ms)
+ POST /api/auth/signup 200 in 925ms (next.js: 596ms, application-code: 329ms)
+ GET /crash 200 in 203ms (next.js: 31ms, application-code: 172ms)
+ GET /api/auth/me 200 in 44ms (next.js: 10ms, application-code: 34ms)
+ GET /api/game/history 200 in 151ms (next.js: 26ms, application-code: 125ms)
+ POST /api/auth/signup 200 in 225ms (next.js: 7ms, application-code: 219ms)
+ GET /crash 200 in 138ms (next.js: 14ms, application-code: 124ms)
+ GET /api/auth/me 200 in 58ms (next.js: 9ms, application-code: 49ms)
+ GET /api/game/history 200 in 39ms (next.js: 13ms, application-code: 26ms)
+ GET /crash 200 in 212ms (next.js: 43ms, application-code: 169ms)
+ GET /api/auth/me 401 in 41ms (next.js: 11ms, application-code: 29ms)
+ GET /api/game/history 200 in 55ms (next.js: 15ms, application-code: 40ms)

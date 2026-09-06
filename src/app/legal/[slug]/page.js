@@ -10,7 +10,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }) {
   const { slug } = await params;
   const page = LEGAL_PAGES[slug];
-  return { title: page ? `${page.title} — PK92` : "PK92" };
+  return { title: page ? `${page.title} — Lucky73` : "Lucky73" };
 }
 
 export default async function LegalDetailPage({ params }) {

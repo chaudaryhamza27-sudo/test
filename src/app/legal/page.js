@@ -4,7 +4,7 @@ import { LEGAL_PAGES } from "./data";
 
 const ICONS = { document: IconDocument, shield: IconShield };
 
-export const metadata = { title: "Legal & Support — PK92" };
+export const metadata = { title: "Legal & Support — Lucky73" };
 
 export default function LegalIndexPage() {
   return (
@@ -18,7 +18,7 @@ export default function LegalIndexPage() {
       </header>
 
       <p className="legal-index-note">
-        PK92 is an educational app using virtual funds only — no real money is involved. These pages explain how the platform works and how your account data is handled.
+        Lucky73 is an educational app using virtual funds only — no real money is involved. These pages explain how the platform works and how your account data is handled.
       </p>
 
       <div className="kk-list">
