@@ -142,6 +142,19 @@ export default function CrashDemoPage() {
 
   useEffect(() => { setFeed(makeFeed()); }, []);
 
+  // Keeps the simulated "All Bets" feed (and so TOTAL BETS) feeling alive
+  // between rounds too, not just on crash — a few new rows trickle in on a
+  // random cadence, same as other players joining in a real feed.
+  useEffect(() => {
+    let timer;
+    const tick = () => {
+      setFeed((f) => [...Array.from({ length: 1 + Math.floor(Math.random() * 3) }, makeFeedRow), ...f].slice(0, 2000));
+      timer = setTimeout(tick, 2000 + Math.random() * 3000);
+    };
+    timer = setTimeout(tick, 2000 + Math.random() * 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
   useEffect(() => {
     fetch('/api/auth/me')
       .then((res) => (res.ok ? res.json() : Promise.reject()))
