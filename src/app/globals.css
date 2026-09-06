@@ -1054,7 +1054,9 @@ a{text-decoration:none;color:inherit}
 .kk-action{display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:0;cursor:pointer}
 .kk-action-icon{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:#fff}
 .kk-action-icon svg{width:18px;height:18px}
-.kk-action span{font-size:11px;color:var(--text-muted);font-weight:600}
+.kk-action-icon-img{object-fit:contain;background:none}
+.kk-action span{font-size:11px;color:#1e3a7a;font-weight:700}
+.kk-action-vip span{color:#1a9450}
 
 .kk-balance-tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 16px}
 .kk-tile{border-radius:16px;padding:16px;text-align:center;border:0;cursor:pointer}
@@ -1184,14 +1186,16 @@ a{text-decoration:none;color:inherit}
 .kk-account-row{display:flex;align-items:center;gap:14px}
 .kk-avatar{width:60px;height:60px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-size:24px;color:var(--kk-blue);flex-shrink:0;box-shadow:0 4px 10px rgba(0,0,0,.25);overflow:hidden}
 .kk-avatar svg{width:30px;height:30px}
+.kk-avatar img{width:100%;height:100%;object-fit:cover}
 .kk-account-info{min-width:0}
 .kk-account-name{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:800;flex-wrap:wrap}
-.kk-vip-badge{background:rgba(255,255,255,.22);border:0;border-radius:999px;padding:2px 8px;font-size:10px;font-weight:800;color:#ffe27a;cursor:pointer;font-family:inherit}
-.kk-uid-pill{display:inline-flex;align-items:center;gap:6px;margin-top:6px;background:rgba(255,255,255,.18);border-radius:999px;padding:4px 10px;font-size:11px;font-weight:700;border:0;color:#fff;cursor:pointer}
+.kk-vip-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.88);border:0;border-radius:999px;padding:2px 9px;font-size:10px;font-weight:800;color:#5b6472;cursor:pointer;font-family:inherit}
+.kk-vip-badge svg{width:11px;height:11px;color:#8b93a3}
+.kk-uid-pill{display:inline-flex;align-items:center;gap:6px;margin-top:6px;background:linear-gradient(135deg,#ffb23d,#f2861b);border-radius:999px;padding:4px 10px;font-size:11px;font-weight:700;border:0;color:#fff;cursor:pointer}
 .kk-uid-pill svg{width:12px;height:12px}
 .kk-last-login{margin-top:6px;font-size:11px;color:#dce9ff}
 
-.kk-account-card{background:var(--surface);margin:-36px 16px 0;border-radius:20px;box-shadow:var(--kk-shadow);padding:18px;position:relative;z-index:2;border:1px solid var(--border)}
+.kk-account-card{background:var(--surface);margin:-36px 16px 0;border-radius:20px;box-shadow:var(--kk-shadow);padding:18px;position:relative;z-index:2;border:1.5px solid #8ec5ff}
 .kk-account-balance-row{display:flex;align-items:center;justify-content:space-between}
 .kk-account-balance-row .lbl{font-size:11px;color:var(--kk-muted)}
 .kk-account-balance-row b{display:block;font-size:24px;font-weight:900;color:var(--kk-text);margin-top:2px}
@@ -1211,19 +1215,22 @@ a{text-decoration:none;color:inherit}
 .kk-trust-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#33d19a,#4aa8ff,#7c5cff)}
 .kk-trust-card p{font-size:11.5px;color:rgba(255,255,255,.65);font-weight:600}
 
-.kk-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 16px 0}
-.kk-info-card{background:var(--surface);border-radius:10px;box-shadow:var(--kk-shadow);padding:8px;display:flex;gap:10px;align-items:flex-start;cursor:pointer;border:1px solid var(--border);text-align:left}
-.kk-info-icon{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:#fff;flex-shrink:0}
-.kk-info-icon svg{width:18px;height:18px}
-.kk-info-title{font-size:12.5px;font-weight:800;color:var(--kk-text)}
-.kk-info-sub{font-size:10.5px;color:var(--kk-muted);margin-top:2px;line-height:1.3}
+.kk-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 16px 0}
+.kk-info-card{background:var(--surface);border-radius:14px;box-shadow:var(--kk-shadow);padding:12px;display:flex;gap:8px;align-items:flex-start;cursor:pointer;border:1px solid var(--border);text-align:left}
+.kk-info-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:#fff;flex-shrink:0}
+.kk-info-icon svg{width:19px;height:19px}
+.kk-info-icon-img{object-fit:contain;background:none}
+.kk-info-title{color:var(--kk-text);white-space:nowrap;font-size:11px;font-weight:600}
+.kk-info-sub{font-size:11.5px;color:var(--kk-muted);margin-top:3px;line-height:1.3;white-space:nowrap}
 
 .kk-list{margin:14px 16px 0;background:var(--surface);border-radius:16px;box-shadow:var(--kk-shadow);border:1px solid var(--border)}
 .kk-list-item{width:100%;display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;background:none;border:0;text-align:left}
 .kk-list-item + .kk-list-item{border-top:1px solid var(--border)}
 .kk-list-item-icon{width:32px;height:32px;border-radius:10px;background:var(--info-bg);color:var(--kk-blue);display:grid;place-items:center;flex-shrink:0}
 .kk-list-item-icon svg{width:16px;height:16px}
-.kk-list-item .label{flex:1;font-size:13px;font-weight:700;color:var(--kk-text)}
+.kk-list-item-icon-img{object-fit:contain;background:none;padding:4px}
+.kk-list-item .label{color:var(--kk-text);flex:1;font-size:12px;font-weight:500}
+.kk-list-item-value{font-size:12.5px;font-weight:600;color:var(--kk-muted)}
 .kk-list-item .chev{color:var(--text-faint);flex-shrink:0}
 .kk-list-item .chev svg{width:16px;height:16px}
 

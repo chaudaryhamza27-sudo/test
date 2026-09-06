@@ -5,18 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import BottomNav from "../components/BottomNav";
 import {
-  IconAccount,
   IconCopy,
   IconRefresh,
-  IconWallet,
-  IconDeposit,
-  IconWithdraw,
-  IconGameHistory,
-  IconTransaction,
   IconChevronRight,
-  IconGift,
-  IconChartLine,
-  IconGlobe,
   IconLogout,
   IconSettings,
   IconFeedback,
@@ -24,6 +15,7 @@ import {
   IconHeadset,
   IconInfo,
   IconShield,
+  IconVip,
 } from "../icons";
 
 // Trust score is a 0-100 gauge the admin can adjust (see /admin User
@@ -66,6 +58,18 @@ export default function ProfilePage() {
 
   const openDemo = (label) => setNotice({ icon: "🛠️", title: label, text: `"${label}" is a placeholder in this UI showcase.` });
 
+  const openNotifications = async () => {
+    const res = await fetch("/api/notifications");
+    if (!res.ok) return;
+    const data = await res.json();
+    await fetch("/api/notifications/read-all", { method: "PATCH" });
+    const items = data.items || [];
+    const text = items.length
+      ? items.slice(0, 5).map((n) => `• ${n.title}`).join("\n")
+      : "No notifications yet.";
+    setNotice({ icon: "🔔", title: "Notification", text });
+  };
+
   const copyUid = () => {
     navigator.clipboard?.writeText(uid);
     setNotice({ icon: "✅", title: "Copied", text: "UID copied to clipboard." });
@@ -89,12 +93,15 @@ export default function ProfilePage() {
       <section className="kk-account-banner">
         <div className="kk-account-row">
           <div className="kk-avatar">
-            <IconAccount />
+            <img src="/game/avitorimag.png" alt="" />
           </div>
           <div className="kk-account-info">
             <div className="kk-account-name">
               {displayName}
-              <button type="button" className="kk-vip-badge" onClick={showVipInfo}>{tier}</button>
+              <button type="button" className="kk-vip-badge" onClick={showVipInfo}>
+                <IconShield />
+                {tier}
+              </button>
             </div>
             <button className="kk-uid-pill" onClick={copyUid}>
               UID | {uid}
@@ -120,29 +127,23 @@ export default function ProfilePage() {
 
         <div className="kk-account-actions">
           <Link href="/wallet" className="kk-action">
-            <div className="kk-action-icon" style={{ background: "linear-gradient(160deg,#ff6b8f,#d6296a)" }}>
-              <IconWallet />
-            </div>
+            <img src="/game/wallet.png" alt="" className="kk-action-icon kk-action-icon-img" />
             <span>Wallet</span>
           </Link>
           <Link href="/deposit" className="kk-action">
-            <div className="kk-action-icon" style={{ background: "linear-gradient(160deg,#ffb23d,#e8531b)" }}>
-              <IconDeposit />
-            </div>
+            <img src="/game/deposit.png" alt="" className="kk-action-icon kk-action-icon-img" />
             <span>Deposit</span>
           </Link>
           <Link href="/withdraw" className="kk-action">
-            <div className="kk-action-icon" style={{ background: "linear-gradient(160deg,#4aa8ff,#1565e8)" }}>
-              <IconWithdraw />
-            </div>
+            <img src="/game/withdrawa.png" alt="" className="kk-action-icon kk-action-icon-img" />
             <span>Withdraw</span>
           </Link>
-          <Link href="/support" className="kk-action">
+          <button type="button" className="kk-action kk-action-vip" onClick={showVipInfo}>
             <div className="kk-action-icon" style={{ background: "linear-gradient(160deg,#33d19a,#1a9450)" }}>
-              <IconHeadset />
+              <IconVip />
             </div>
-            <span>Support</span>
-          </Link>
+            <span>VIP</span>
+          </button>
         </div>
       </section>
 
@@ -163,36 +164,28 @@ export default function ProfilePage() {
 
       <section className="kk-grid-2">
         <Link href="/crash/history" className="kk-info-card">
-          <div className="kk-info-icon" style={{ background: "linear-gradient(160deg,#4aa8ff,#1565e8)" }}>
-            <IconGameHistory />
-          </div>
+          <img src="/game/gamehis.png" alt="" className="kk-info-icon kk-info-icon-img" />
           <div>
             <div className="kk-info-title">Game History</div>
             <div className="kk-info-sub">My game history</div>
           </div>
         </Link>
         <Link href="/transactions" className="kk-info-card">
-          <div className="kk-info-icon" style={{ background: "linear-gradient(160deg,#33d19a,#1a9450)" }}>
-            <IconTransaction />
-          </div>
+          <img src="/game/histrans.png" alt="" className="kk-info-icon kk-info-icon-img" />
           <div>
             <div className="kk-info-title">Transaction</div>
             <div className="kk-info-sub">My transaction history</div>
           </div>
         </Link>
         <Link href="/transactions?type=deposit" className="kk-info-card">
-          <div className="kk-info-icon" style={{ background: "linear-gradient(160deg,#ffb23d,#e8531b)" }}>
-            <IconDeposit />
-          </div>
+          <img src="/game/hisdeposit.png" alt="" className="kk-info-icon kk-info-icon-img" />
           <div>
             <div className="kk-info-title">Deposit</div>
             <div className="kk-info-sub">My deposit history</div>
           </div>
         </Link>
         <Link href="/transactions?type=withdraw" className="kk-info-card">
-          <div className="kk-info-icon" style={{ background: "linear-gradient(160deg,#ff6b8f,#d6296a)" }}>
-            <IconWithdraw />
-          </div>
+          <img src="/game/hiswithdr.png" alt="" className="kk-info-icon kk-info-icon-img" />
           <div>
             <div className="kk-info-title">Withdraw</div>
             <div className="kk-info-sub">My withdraw history</div>
@@ -200,40 +193,36 @@ export default function ProfilePage() {
         </Link>
       </section>
 
-      <div className="kk-section-head" style={{ padding: "18px 16px 8px" }}>
-        <span className="kk-section-title" style={{ fontSize: 15 }}>Notification</span>
-      </div>
-      <div className="kk-list">
-        <Link href="/activity" className="kk-list-item">
-          <span className="kk-list-item-icon">
-            <IconGift />
+      <div className="kk-list" style={{ marginTop: 18 }}>
+        <button type="button" className="kk-list-item" onClick={openNotifications}>
+          <img src="/game/notification.png" alt="" className="kk-list-item-icon kk-list-item-icon-img" />
+          <span className="label">Notification</span>
+          <span className="chev">
+            <IconChevronRight />
           </span>
+        </button>
+        <Link href="/activity" className="kk-list-item">
+          <img src="/game/gifts.png" alt="" className="kk-list-item-icon kk-list-item-icon-img" />
           <span className="label">Gifts</span>
           <span className="chev">
             <IconChevronRight />
           </span>
         </Link>
         <Link href="/crash/history" className="kk-list-item">
-          <span className="kk-list-item-icon">
-            <IconChartLine />
-          </span>
+          <img src="/game/game.png" alt="" className="kk-list-item-icon kk-list-item-icon-img" />
           <span className="label">Game statistics</span>
           <span className="chev">
             <IconChevronRight />
           </span>
         </Link>
-        {/* <button className="kk-list-item" onClick={() => openDemo("Language")}>
-          <span className="kk-list-item-icon">
-            <IconGlobe />
-          </span>
-          <span className="label">
-            Language
-            <small>English</small>
-          </span>
+        <button type="button" className="kk-list-item" onClick={() => openDemo("Language")}>
+          <img src="/game/lang.png" alt="" className="kk-list-item-icon kk-list-item-icon-img" />
+          <span className="label">Language</span>
+          <span className="kk-list-item-value">English</span>
           <span className="chev">
             <IconChevronRight />
           </span>
-        </button> */}
+        </button>
       </div>
 
       <div className="kk-section-head" style={{ padding: "18px 16px 8px" }}>
@@ -285,7 +274,7 @@ export default function ProfilePage() {
         <div className="kk-popup-box" onClick={(e) => e.stopPropagation()}>
           <div className="kk-popup-icon">{notice?.icon || "👤"}</div>
           <div className="kk-popup-title">{notice?.title || ""}</div>
-          <p className="kk-popup-text">{notice?.text || ""}</p>
+          <p className="kk-popup-text" style={{ whiteSpace: "pre-line" }}>{notice?.text || ""}</p>
           <button className="kk-popup-btn" onClick={closeNotice}>
             Got it
           </button>
