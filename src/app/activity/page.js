@@ -210,7 +210,7 @@ export default function ActivityPage() {
           <button className="kk-promo-card" onClick={() => openDemo("")}>
             <div className="kk-promo-card-art" style={{ background: "linear-gradient(135deg,#ffab91,#ff7043)" }}>📅</div>
             <div className="kk-promo-card-body">
-              <b>Attendance bonus</b>
+              <b>Attendance Bonus</b>
               <p>The more consecutive days you sign in, the higher the reward will be.</p>
             </div>
           </button>

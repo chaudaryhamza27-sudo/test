@@ -54,7 +54,7 @@ export default async function LegalDetailPage({ params }) {
         })}
       </div>
 
-      <footer className="kk-footer">This account and its balance are placeholders for this UI preview. No real money is involved.</footer>
+      {/* <footer className="kk-footer">This account and its balance are placeholders for this UI preview. No real money is involved.</footer> */}
     </div>
   );
 }

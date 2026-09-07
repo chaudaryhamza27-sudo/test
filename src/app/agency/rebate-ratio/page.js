@@ -64,8 +64,8 @@ export default function RebateRatioPage() {
             ))}
           </div>
         ))}
-
-        <div className="agency-note">This is a sample rebate schedule for interface purposes only — no real commission is paid.</div>
+{/* 
+        <div className="agency-note">This is a sample rebate schedule for interface purposes only — no real commission is paid.</div> */}
       </main>
 
       <BottomNav />

@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { IconPromotion, IconActivity, IconGame, IconWallet, IconAccount } from "../icons";
+import { IconPromotion, IconGift, IconWallet, IconAccount } from "../icons";
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -25,12 +26,12 @@ export default function BottomNav() {
       </Link>
 
       <Link href="/activity" className={`nav-link ${isActivity ? "active" : ""}`}>
-        <IconActivity />
+        <IconGift />
         <span>Activity</span>
       </Link>
 
       <Link href="/" className={`center-btn ${isGame ? "active" : ""}`}>
-        <IconGame />
+        <Image src="/game/gameicon.png" alt="" width={28} height={28} />
       </Link>
 
       <Link href="/wallet" className={`nav-link ${isWallet ? "active" : ""}`}>

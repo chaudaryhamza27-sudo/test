@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { navTabs, categories, sections } from "./data";
+import { navTabs, categories, sections, winners, randomWinnerEntry } from "./data";
 import BottomNav from "./components/BottomNav";
 import {
   IconCoinWallet,
@@ -32,6 +32,7 @@ import {
   IconCheck,
   IconInfo,
   IconDocument,
+  IconTrophy,
 } from "./icons";
 
 const HERO_BANNERS = ["/gamesall/banner1.webp", "/gamesall/banner2.webp", "/gamesall/banner3.webp"];
@@ -59,6 +60,9 @@ export default function Home() {
   const [slide, setSlide] = useState(0);
   const [popup, setPopup] = useState(null);
   const [rechargeOpen, setRechargeOpen] = useState(false);
+  const [winnersOpen, setWinnersOpen] = useState(false);
+  const [liveWinners, setLiveWinners] = useState(() => winners.map((w, i) => ({ ...w, id: i })));
+  const winnerIdRef = useRef(winners.length);
   // undefined = auth check still in flight (render nothing in the header
   // slot to avoid a login/register flash before we know); null = logged
   // out; object = logged in.
@@ -68,6 +72,17 @@ export default function Home() {
     const t = setInterval(() => {
       setSlide((s) => (s + 1) % HERO_BANNERS.length);
     }, 4000);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setLiveWinners((prev) => {
+        const next = [{ ...randomWinnerEntry(), id: winnerIdRef.current++ }, ...prev];
+        next.length = prev.length;
+        return next;
+      });
+    }, 3500);
     return () => clearInterval(t);
   }, []);
 
@@ -111,7 +126,7 @@ export default function Home() {
           <img src="/logo-mark.png" alt="Lucky73" className="kk-brand-logo" />
           <div className="kk-brand-copy">
             <span className="kk-brand-name">Lucky73</span>
-            <span className="kk-brand-tag">Aviator — Simulation</span>
+            {/* <span className="kk-brand-tag">.online</span> */}
           </div>
         </Link>
 
@@ -286,6 +301,30 @@ export default function Home() {
           </section>
         ))}
 
+        <section className={`kk-winners ${winnersOpen ? "open" : ""}`} id="winnerBox">
+          <div className="kk-winners-head">
+            <div>
+              <h3>Latest Winners</h3>
+              <span>Masked Gmail list with recent winning amount</span>
+            </div>
+            <IconTrophy />
+          </div>
+          <table className="kk-winner-table">
+            <thead><tr><th>Gmail</th><th style={{textAlign:"end"}}>Winning</th></tr></thead>
+            <tbody>
+              {liveWinners.map((w, i) => (
+                <tr key={w.id} className={i >= 10 ? "kk-extra-winner" : ""}>
+                  <td>{w.gmail}</td>
+                  <td style={{textAlign:"end"}}>{w.amount}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <button type="button" className="kk-more-btn" onClick={() => setWinnersOpen(!winnersOpen)}>
+            {winnersOpen ? "Show Less Winners" : "Show More Winners"}
+          </button>
+        </section>
+
         <div className="kk-section-head" style={{ padding: "18px 16px 8px" }}>
           <span className="kk-section-title" style={{ fontSize: 15 }}>Basic Tools</span>
         </div>
@@ -295,13 +334,13 @@ export default function Home() {
               <span className="kk-quick-action-icon" style={{ background: "#fff", border: "1px solid var(--border)", color: "#1565e8" }}>
                 <IconHeadset />
               </span>
-              <span>24/7 Customer service</span>
+              <span>24/7 <br />Support</span>
             </Link>
             <Link href="/legal" className="kk-quick-action">
               <span className="kk-quick-action-icon" style={{ background: "#fff", border: "1px solid var(--border)", color: "#4a2fd6" }}>
                 <IconInfo />
               </span>
-              <span>About us</span>
+              <span>About Us</span>
             </Link>
             <Link href="/legal/privacy" className="kk-quick-action">
               <span className="kk-quick-action-icon" style={{ background: "#fff", border: "1px solid var(--border)", color: "#1a9450" }}>

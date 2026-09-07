@@ -403,8 +403,8 @@ a{text-decoration:none;color:inherit}
 .nav-link{min-width:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--text-faint);font-size:10px;font-weight:600;background:none;border:0;cursor:pointer}
 .nav-link svg{width:21px;height:21px}
 .nav-link.active{color:var(--kk-blue)}
-.center-btn{width:52px;height:52px;margin-top:-26px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(160deg,#4aa8ff,var(--kk-blue));color:#fff;border:4px solid var(--bg-raised);box-shadow:0 10px 22px rgba(47,136,240,.45);cursor:pointer}
-.center-btn svg{width:24px;height:24px}
+.center-btn{width:74px;height:46px;margin-top:-23px;border-radius:999px;display:grid;place-items:center;background:linear-gradient(160deg,#4aa8ff,var(--kk-blue));color:#fff;border:4px solid var(--bg-raised);box-shadow:0 10px 22px rgba(47,136,240,.45);cursor:pointer}
+.center-btn svg,.center-btn img{width:28px;height:28px;object-fit:contain}
 .center-btn.active{box-shadow:0 0 0 3px var(--info-bg),0 10px 22px rgba(47,136,240,.45)}
 
 /* --- Deposit / Withdraw pages --- */
@@ -893,6 +893,20 @@ a{text-decoration:none;color:inherit}
 .kk-arrow-btn{width:26px;height:26px;border-radius:8px;background:var(--kk-blue-grad);color:#fff;display:grid;place-items:center;border:0;cursor:pointer}
 .kk-arrow-btn svg{width:14px;height:14px}
 
+/* Latest Winners — masked-Gmail table on the homepage */
+.kk-winners{margin:22px 16px 0;border-radius:var(--r-xl);overflow:hidden;background:var(--surface);border:1px solid var(--border);box-shadow:var(--kk-shadow)}
+.kk-winners-head{padding:16px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(90deg,rgba(232,172,66,.12),rgba(25,118,210,.08))}
+.kk-winners-head h3{font-size:16px;font-weight:800;color:var(--kk-text)}
+.kk-winners-head span{font-size:11px;color:var(--kk-muted)}
+.kk-winners-head svg{width:20px;height:20px;color:var(--kk-gold);flex-shrink:0}
+.kk-winner-table{width:100%;border-collapse:collapse}
+.kk-winner-table th,.kk-winner-table td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--border);font-size:12px;color:var(--kk-text)}
+.kk-winner-table th{color:var(--kk-gold);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.kk-winner-table td:last-child{font-weight:800;color:var(--success);text-align:right}
+.kk-extra-winner{display:none}
+.kk-winners.open .kk-extra-winner{display:table-row}
+.kk-more-btn{width:calc(100% - 28px);margin:14px;height:46px;border:0;border-radius:16px;background:var(--kk-blue-grad);color:#fff;font-weight:900;font-size:13px;cursor:pointer}
+
 .kk-games{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 8px 10px}
 .kk-games .kk-game-card:only-child{grid-column:1/-1}
 .kk-games .kk-game-card:only-child .kk-game-media{aspect-ratio:16/9}
@@ -1178,8 +1192,13 @@ a{text-decoration:none;color:inherit}
   .withdraw-page .deposit-amount-icon svg{width:14px;height:14px}
 }
 
-.deposit-help-footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin:20px 16px 0;padding:16px;border-radius:16px;background:var(--surface);border:1px solid var(--border)}
-.deposit-help-footer > span{display:flex;align-items:flex-start;gap:8px;color:var(--link);font-weight:800;font-size:13px}
+.deposit-help-footer{display:flex;flex-direction:column;gap:16px;margin:20px 16px 0;padding:20px;border-radius:20px;background:linear-gradient(160deg,var(--info-bg),var(--surface) 65%);border:1px solid rgba(76,141,255,.22)}
+.deposit-help-footer-head{display:flex;align-items:center;gap:12px}
+.deposit-help-footer-icon{width:42px;height:42px;border-radius:14px;background:var(--surface);border:1px solid var(--border);color:var(--kk-blue);display:grid;place-items:center;flex-shrink:0;box-shadow:0 6px 16px rgba(76,141,255,.16)}
+.deposit-help-footer-icon svg{width:20px;height:20px}
+.deposit-help-footer-head b{display:block;font-size:14.5px;font-weight:800;color:var(--kk-text)}
+.deposit-help-footer-head p{margin-top:2px;font-size:11.5px;color:var(--kk-muted);line-height:1.45}
+.deposit-help-footer-btn{display:flex;align-items:center;justify-content:center;gap:8px;height:46px;border-radius:14px;background:var(--kk-blue-grad);color:#fff;font-size:13px;font-weight:800;text-decoration:none}
 
 /* Account page */
 .kk-account-banner{background:var(--kk-blue-grad);padding:18px 16px 54px;color:#fff;border-radius:0 0 26px 26px}
@@ -1238,6 +1257,14 @@ a{text-decoration:none;color:inherit}
 .kk-empty{margin:70px 16px;text-align:center;color:var(--kk-muted)}
 .kk-empty svg{width:52px;height:52px;color:var(--text-faint);margin-bottom:12px}
 .kk-empty b{display:block;color:var(--kk-text);font-size:15px;margin-bottom:4px}
+
+/* Inline history empty/loading state (Deposit/Withdraw pages) */
+.kk-history-empty{text-align:center;color:var(--kk-muted);padding:30px 20px;font-size:12.5px}
+.kk-history-empty-icon{width:52px;height:52px;margin:0 auto 14px;border-radius:50%;background:var(--info-bg);color:var(--kk-blue);display:grid;place-items:center}
+.kk-history-empty-icon svg{width:24px;height:24px}
+.kk-history-empty-icon-pulse{animation:kk-history-pulse 1.4s ease-in-out infinite}
+@keyframes kk-history-pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.kk-history-empty b{display:block;color:var(--kk-text);font-size:15px;font-weight:800;margin-bottom:4px}
 
 /* Auth pages (login / signup) — Lucky73 */
 .kk-auth-shell{min-height:100vh;background:var(--kk-bg);display:flex;flex-direction:column}

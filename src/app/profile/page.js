@@ -11,11 +11,11 @@ import {
   IconLogout,
   IconSettings,
   IconFeedback,
-  IconMegaphone,
   IconHeadset,
   IconInfo,
   IconShield,
   IconVip,
+  IconDocument,
 } from "../icons";
 
 // Trust score is a 0-100 gauge the admin can adjust (see /admin User
@@ -151,7 +151,7 @@ export default function ProfilePage() {
         <section className="kk-trust-card">
           <div className="kk-trust-head">
             <span>
-              <IconShield style={{ width: 15, height: 15 }} /> Account Health
+              <IconShield style={{ width: 15, height: 15 }} /> Trust Score
             </span>
             <b>{user.trustScore ?? 50}%</b>
           </div>
@@ -226,47 +226,43 @@ export default function ProfilePage() {
       </div>
 
       <div className="kk-section-head" style={{ padding: "18px 16px 8px" }}>
-        <span className="kk-section-title" style={{ fontSize: 15 }}>Service center</span>
+        <span className="kk-section-title" style={{ fontSize: 15 }}>Service Center</span>
       </div>
-      <section className="kk-quick-actions" style={{ justifyContent: "space-between" }}>
-        {/* <button className="kk-quick-action" onClick={() => openDemo("Settings")}>
-          <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#8891A3,#565D6E)" }}>
-            <IconSettings />
-          </span>
-          <span>Settings</span>
-        </button>
-        <button className="kk-quick-action" onClick={() => openDemo("Feedback")}>
-          <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#4aa8ff,#1565e8)" }}>
-            <IconFeedback />
-          </span>
-          <span>Feedback</span>
-        </button> */}
-        <Link href="/support" className="kk-quick-action">
-          <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#ffb23d,#e8531b)" }}>
-            <IconMegaphone />
-          </span>
-          <span>Announcement</span>
-        </Link>
-        <Link href="/support" className="kk-quick-action">
-          <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#33d19a,#1a9450)" }}>
-            <IconHeadset />
-          </span>
-          <span>Customer Service</span>
-        </Link>
-        <Link href="/legal" className="kk-quick-action">
-          <span className="kk-quick-action-icon" style={{ background: "linear-gradient(160deg,#7c5cff,#4a2fd6)" }}>
-            <IconInfo />
-          </span>
-          <span>About us</span>
-        </Link>
+      <section className="card" style={{ margin: "0 16px", padding: "18px 8px" }}>
+        <div className="kk-quick-actions" style={{ padding: "0 8px", justifyContent: "space-between" }}>
+          <Link href="/support" className="kk-quick-action">
+            <span className="kk-quick-action-icon" style={{ background: "#fff", border: "1px solid var(--border)", color: "#1565e8" }}>
+              <IconHeadset />
+            </span>
+            <span>24/7 Customer service</span>
+          </Link>
+          <Link href="/legal" className="kk-quick-action">
+            <span className="kk-quick-action-icon" style={{ background: "#fff", border: "1px solid var(--border)", color: "#4a2fd6" }}>
+              <IconInfo />
+            </span>
+            <span>About us</span>
+          </Link>
+          <Link href="/legal/privacy" className="kk-quick-action">
+            <span className="kk-quick-action-icon" style={{ background: "#fff", border: "1px solid var(--border)", color: "#1a9450" }}>
+              <IconShield />
+            </span>
+            <span>Privacy Policy</span>
+          </Link>
+          <Link href="/legal/terms" className="kk-quick-action">
+            <span className="kk-quick-action-icon" style={{ background: "#fff", border: "1px solid var(--border)", color: "#e8531b" }}>
+              <IconDocument />
+            </span>
+            <span>Terms &amp; Conditions</span>
+          </Link>
+        </div>
       </section>
 
       <button type="button" className="kk-btn-outline" style={{ margin: "20px 16px", width: "calc(100% - 32px)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }} onClick={handleLogout}>
         <IconLogout style={{ width: 18, height: 18 }} />
         Log out
       </button>
-
-      <footer className="kk-footer">This account and its balance are placeholders for this UI preview.</footer>
+{/* 
+      <footer className="kk-footer">This account and its balance are placeholders for this UI preview.</footer> */}
 
       <BottomNav />
 

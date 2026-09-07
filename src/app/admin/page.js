@@ -108,7 +108,7 @@ function PageHead({ title, sub, badge, onRefresh, refreshing }) {
         {sub && <p>{sub}</p>}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        {badge && <span className="admin-demo-badge">EDUCATIONAL SIMULATION · PRACTICE MODE · NO REAL MONEY</span>}
+        {/* {badge && <span className="admin-demo-badge">EDUCATIONAL SIMULATION · PRACTICE MODE · NO REAL MONEY</span>} */}
         {onRefresh && (
           <button
             type="button"

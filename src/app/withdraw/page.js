@@ -9,9 +9,11 @@ import {
   IconShield,
   IconWithdraw,
   IconGlobe,
+  IconHeadset,
   IconX,
 } from "../icons";
 import BottomNav from "../components/BottomNav";
+import HistoryList from "../components/HistoryList";
 
 const QUICK_AMOUNTS = [500,, 5000, 10000, 15000, 25000, 50000];
 const MIN_WITHDRAW = 500;
@@ -336,15 +338,20 @@ export default function WithdrawPage() {
           </div>
         </div>
 
+        <HistoryList type="withdraw" title="Withdrawal History" />
+
         <div className="deposit-help-footer">
-          <span>
-            <IconGlobe style={{ width: 16, height: 16 }} />
-            <b>Need Help?</b>
-            <span style={{ display: "block", fontSize: 11.5, color: "var(--kk-muted)", marginTop: 2 }}>
-              If you face any issues with withdrawal, please contact our support.
+          <div className="deposit-help-footer-head">
+            <span className="deposit-help-footer-icon">
+              <IconGlobe />
             </span>
-          </span>
-          <Link href="/support" className="btn btn-secondary" style={{ textDecoration: "none" }}>
+            <div>
+              <b>Need Help?</b>
+              <p>If you face any issues with withdrawal, please contact our support.</p>
+            </div>
+          </div>
+          <Link href="/support" className="deposit-help-footer-btn">
+            <IconHeadset style={{ width: 16, height: 16 }} />
             Contact Support
           </Link>
         </div>

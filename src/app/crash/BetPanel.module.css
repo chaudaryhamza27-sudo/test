@@ -33,6 +33,15 @@
 .tab { color: #7cb5ff; }
 .tabActive { background: #fff; color: #0b0f17; }
 
+@media (max-width: 759px) {
+  .panel { padding: 6px; }
+  .tabs { margin-bottom: 10px; }
+  .tab, .tabActive {
+    padding: 2px 12px;
+    font-size: 11px;
+  }
+}
+
 .row {
   display: flex;
   flex-wrap: nowrap;

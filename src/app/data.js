@@ -104,3 +104,78 @@ export const sections = [
     ],
   },
 ];
+
+// Masked-Gmail "Latest Winners" list shown on the homepage — first 10 are
+// always visible, the rest reveal behind the "Show More Winners" toggle.
+export const winners = [
+  { gmail: "ali***@gmail.com", amount: "PKR 18,450" },
+  { gmail: "ham***@gmail.com", amount: "PKR 31,200" },
+  { gmail: "ran***@gmail.com", amount: "PKR 9,780" },
+  { gmail: "dev***@gmail.com", amount: "PKR 52,100" },
+  { gmail: "sha***@gmail.com", amount: "PKR 12,900" },
+  { gmail: "kin***@gmail.com", amount: "PKR 66,340" },
+  { gmail: "zub***@gmail.com", amount: "PKR 7,600" },
+  { gmail: "noo***@gmail.com", amount: "PKR 44,220" },
+  { gmail: "far***@gmail.com", amount: "PKR 21,070" },
+  { gmail: "mir***@gmail.com", amount: "PKR 88,800" },
+  { gmail: "pak***@gmail.com", amount: "PKR 5,430" },
+  { gmail: "sam***@gmail.com", amount: "PKR 72,310" },
+  { gmail: "rai***@gmail.com", amount: "PKR 16,990" },
+  { gmail: "ars***@gmail.com", amount: "PKR 33,140" },
+  { gmail: "wah***@gmail.com", amount: "PKR 11,860" },
+  { gmail: "tal***@gmail.com", amount: "PKR 27,450" },
+  { gmail: "ane***@gmail.com", amount: "PKR 91,000" },
+  { gmail: "ima***@gmail.com", amount: "PKR 14,720" },
+  { gmail: "kam***@gmail.com", amount: "PKR 39,990" },
+  { gmail: "yus***@gmail.com", amount: "PKR 22,200" },
+  { gmail: "bil***@gmail.com", amount: "PKR 6,870" },
+  { gmail: "dan***@gmail.com", amount: "PKR 19,030" },
+  { gmail: "uma***@gmail.com", amount: "PKR 41,500" },
+  { gmail: "sad***@gmail.com", amount: "PKR 8,230" },
+  { gmail: "haf***@gmail.com", amount: "PKR 63,750" },
+  { gmail: "nim***@gmail.com", amount: "PKR 25,100" },
+  { gmail: "irf***@gmail.com", amount: "PKR 30,600" },
+  { gmail: "zan***@gmail.com", amount: "PKR 13,440" },
+  { gmail: "abd***@gmail.com", amount: "PKR 75,900" },
+  { gmail: "yas***@gmail.com", amount: "PKR 17,650" },
+  { gmail: "raf***@gmail.com", amount: "PKR 49,870" },
+  { gmail: "sai***@gmail.com", amount: "PKR 10,050" },
+  { gmail: "jaw***@gmail.com", amount: "PKR 58,320" },
+  { gmail: "bas***@gmail.com", amount: "PKR 34,780" },
+  { gmail: "mun***@gmail.com", amount: "PKR 23,910" },
+  { gmail: "qur***@gmail.com", amount: "PKR 15,560" },
+  { gmail: "zia***@gmail.com", amount: "PKR 81,400" },
+  { gmail: "ade***@gmail.com", amount: "PKR 28,300" },
+  { gmail: "mah***@gmail.com", amount: "PKR 36,900" },
+  { gmail: "ria***@gmail.com", amount: "PKR 20,810" },
+  { gmail: "azl***@gmail.com", amount: "PKR 67,700" },
+  { gmail: "har***@gmail.com", amount: "PKR 9,260" },
+  { gmail: "mel***@gmail.com", amount: "PKR 45,510" },
+  { gmail: "zee***@gmail.com", amount: "PKR 24,660" },
+  { gmail: "aaq***@gmail.com", amount: "PKR 12,350" },
+  { gmail: "ars***@gmail.com", amount: "PKR 79,900" },
+  { gmail: "naq***@gmail.com", amount: "PKR 18,870" },
+  { gmail: "faz***@gmail.com", amount: "PKR 55,120" },
+  { gmail: "hum***@gmail.com", amount: "PKR 29,990" },
+  { gmail: "sha***@gmail.com", amount: "PKR 101,300" },
+  { gmail: "zoh***@gmail.com", amount: "PKR 38,500" },
+  { gmail: "rab***@gmail.com", amount: "PKR 11,110" },
+  { gmail: "sab***@gmail.com", amount: "PKR 60,600" },
+  { gmail: "mal***@gmail.com", amount: "PKR 42,220" },
+  { gmail: "was***@gmail.com", amount: "PKR 26,760" },
+  { gmail: "omi***@gmail.com", amount: "PKR 19,940" },
+  { gmail: "jib***@gmail.com", amount: "PKR 31,870" },
+  { gmail: "tam***@gmail.com", amount: "PKR 57,450" },
+  { gmail: "man***@gmail.com", amount: "PKR 14,190" },
+  { gmail: "nas***@gmail.com", amount: "PKR 70,010" },
+];
+
+const WINNER_PREFIXES = winners.map((w) => w.gmail.slice(0, 3));
+
+// Generates a fresh masked-Gmail winner entry, used to make the homepage
+// "Latest Winners" ticker feel live instead of a static fixed list.
+export function randomWinnerEntry() {
+  const prefix = WINNER_PREFIXES[Math.floor(Math.random() * WINNER_PREFIXES.length)];
+  const amount = Math.floor(1000 + Math.random() * 99000);
+  return { gmail: `${prefix}***@gmail.com`, amount: `PKR ${amount.toLocaleString("en-US")}` };
+}

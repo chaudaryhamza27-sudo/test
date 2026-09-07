@@ -2,13 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   IconChevronLeft,
   IconChevronRight,
-  IconDeposit,
-  IconWithdraw,
-  IconHistory,
   IconTrendingUp,
   IconTrophy,
   IconShield,
@@ -42,8 +40,8 @@ export default function WalletPage() {
   // the reference's visual density — never a claim of real historical data,
   // since we only have current totals, not a time series.
   const OVERVIEW = [
-    { key: "totalDeposited", label: "Total Deposited", sub: "Total amount added", icon: IconDeposit, bg: "linear-gradient(160deg,#33d19a,#1a9450)", tone: "win", line: "up", lineColor: "#33d19a" },
-    { key: "totalWithdrawn", label: "Total Withdrawn", sub: "Total amount withdrawn", icon: IconWithdraw, bg: "linear-gradient(160deg,#ff6b6b,#c0392b)", tone: "lose", line: "down", lineColor: "#ff6b6b" },
+    { key: "totalDeposited", label: "Total Deposited", sub: "Total amount added", iconSrc: "/game/deposit.png", tone: "win", line: "up", lineColor: "#33d19a" },
+    { key: "totalWithdrawn", label: "Total Withdrawn", sub: "Total amount withdrawn", iconSrc: "/game/withdrawa.png", tone: "lose", line: "down", lineColor: "#ff6b6b" },
     { key: "gameWagered", label: "Total Wagered", sub: "Amount used in games", icon: IconTrendingUp, bg: "linear-gradient(160deg,#4aa8ff,#1565e8)", line: "wave", lineColor: "#4aa8ff" },
     { key: "gameWon", label: "Total Won", sub: "Total winnings", icon: IconTrophy, bg: "linear-gradient(160deg,#f2ab13,#c97a06)", tone: "win", line: "up", lineColor: "#f2ab13" },
   ];
@@ -55,10 +53,10 @@ export default function WalletPage() {
   };
 
   const QUICK_ACTIONS = [
-    { href: "/deposit", label: "Deposit", sub: "Add money to your wallet", icon: IconDeposit, bg: "linear-gradient(160deg,#33d19a,#1a9450)", color: "#33d19a" },
-    { href: "/withdraw", label: "Withdraw", sub: "Withdraw your earnings", icon: IconWithdraw, bg: "linear-gradient(160deg,#7c5cff,#4a2fd6)", color: "#9d84ff" },
-    { href: "/transactions?type=deposit", label: "Deposit History", sub: "View all deposits", icon: IconHistory, bg: "linear-gradient(160deg,#ff6b8f,#d6296a)", color: "#ff6b8f" },
-    { href: "/transactions?type=withdraw", label: "Withdrawal History", sub: "View all withdrawals", icon: IconHistory, bg: "linear-gradient(160deg,#2dd4bf,#0f9a8a)", color: "#2dd4bf" },
+    { href: "/deposit", label: "Deposit", sub: "Add money to your wallet", iconSrc: "/game/deposit.png", color: "#33d19a" },
+    { href: "/withdraw", label: "Withdraw", sub: "Withdraw your earnings", iconSrc: "/game/withdrawa.png", color: "#9d84ff" },
+    { href: "/transactions?type=deposit", label: "Deposit History", sub: "View all deposits", iconSrc: "/game/hisdeposit.png", color: "#ff6b8f" },
+    { href: "/transactions?type=withdraw", label: "Withdrawal History", sub: "View all withdrawals", iconSrc: "/game/hiswithdr.png", color: "#2dd4bf" },
   ];
 
   return (
@@ -114,9 +112,13 @@ export default function WalletPage() {
         <section className="wallet-stats-grid">
           {OVERVIEW.map((s) => (
             <div className="card wallet-stat-card" key={s.key}>
-              <div className="wallet-stat-icon" style={{ background: s.bg }}>
-                <s.icon />
-              </div>
+              {s.iconSrc ? (
+                <Image src={s.iconSrc} alt="" width={28} height={28} className="wallet-stat-icon" />
+              ) : (
+                <div className="wallet-stat-icon" style={{ background: s.bg }}>
+                  <s.icon />
+                </div>
+              )}
               <span style={{ fontSize: 10, color: "var(--text-faint)", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".3px" }}>{s.label}</span>
               <b className={s.tone}>{stats ? money(stats[s.key]) : "…"}</b>
               <span>{s.sub}</span>
@@ -134,9 +136,7 @@ export default function WalletPage() {
         <div className="wallet-quick-list">
           {QUICK_ACTIONS.map((a) => (
             <Link href={a.href} className="wallet-quick-card" key={a.href}>
-              <span className="kk-list-item-icon" style={{ background: a.bg, color: "#fff" }}>
-                <a.icon />
-              </span>
+              <Image src={a.iconSrc} alt="" width={32} height={32} className="kk-list-item-icon kk-list-item-icon-img" />
               <span className="label" style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <span style={{ color: a.color }}>{a.label}</span>
                 <span style={{ fontSize: 11, color: "var(--kk-muted)", fontWeight: 400 }}>{a.sub}</span>

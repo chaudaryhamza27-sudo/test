@@ -1,0 +1,539 @@
+
+> gaming-ui-demo@0.1.0 dev
+> next dev
+
+⚠ Port 3000 is in use by process 17672, using available port 3001 instead.
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://localhost:3001
+- Network:       http://10.67.142.208:3001
+- Environments: .env.local
+✓ Ready in 2.7s
+
+○ Compiling /deposit ...
+ GET / 200 in 279ms (next.js: 39ms, application-code: 240ms)
+ GET / 200 in 8.4s (next.js: 6.8s, application-code: 1516ms)
+ GET /deposit 200 in 8.4s (next.js: 7.9s, application-code: 553ms)
+ GET /api/support-settings 200 in 2.9s (next.js: 2.4s, application-code: 476ms)
+ GET /api/wallet 200 in 2.9s (next.js: 2.6s, application-code: 280ms)
+ GET /api/transactions?type=deposit&page=1 200 in 3.0s (next.js: 2.8s, application-code: 232ms)
+ GET /api/auth/me 401 in 551ms (next.js: 529ms, application-code: 22ms)
+ GET / 200 in 309ms (next.js: 27ms, application-code: 282ms)
+ POST /api/auth/signup 200 in 1061ms (next.js: 646ms, application-code: 415ms)
+ GET /deposit 200 in 196ms (next.js: 28ms, application-code: 168ms)
+ GET /api/transactions?type=deposit&page=1 200 in 101ms (next.js: 13ms, application-code: 88ms)
+ GET /api/support-settings 200 in 76ms (next.js: 38ms, application-code: 38ms)
+ GET /api/wallet 200 in 83ms (next.js: 19ms, application-code: 64ms)
+ GET /profile 200 in 1593ms (next.js: 1506ms, application-code: 88ms)
+ GET /api/auth/me 200 in 49ms (next.js: 8ms, application-code: 40ms)
+ GET /api/auth/me 200 in 39ms (next.js: 13ms, application-code: 26ms)
+ GET /api/profile/vip 200 in 789ms (next.js: 726ms, application-code: 63ms)
+ GET /profile 200 in 239ms (next.js: 52ms, application-code: 187ms)
+ GET /api/profile/vip 200 in 65ms (next.js: 11ms, application-code: 55ms)
+ GET /wallet 200 in 1374ms (next.js: 1292ms, application-code: 81ms)
+ GET /api/wallet 200 in 69ms (next.js: 21ms, application-code: 49ms)
+ GET /api/wallet 200 in 67ms (next.js: 12ms, application-code: 55ms)
+ GET /api/wallet/stats 200 in 740ms (next.js: 647ms, application-code: 93ms)
+ GET /api/wallet/stats 200 in 83ms (next.js: 15ms, application-code: 68ms)
+ POST /api/auth/signup 200 in 301ms (next.js: 9ms, application-code: 292ms)
+ GET /withdraw 200 in 1396ms (next.js: 1185ms, application-code: 211ms)
+ GET /api/transactions?type=withdraw&page=1 200 in 88ms (next.js: 9ms, application-code: 79ms)
+ GET /api/wallet 200 in 95ms (next.js: 15ms, application-code: 80ms)
+ GET /api/auth/me 200 in 100ms (next.js: 31ms, application-code: 69ms)
+ GET /api/support-settings 200 in 66ms (next.js: 25ms, application-code: 42ms)
+ GET /api/withdraw/eligibility 200 in 577ms (next.js: 536ms, application-code: 41ms)
+ GET /api/auth/me 200 in 46ms (next.js: 22ms, application-code: 24ms)
+ GET /api/auth/me 200 in 59ms (next.js: 18ms, application-code: 41ms)
+ GET /api/profile/vip 200 in 58ms (next.js: 24ms, application-code: 35ms)
+ GET /api/profile/vip 200 in 51ms (next.js: 7ms, application-code: 43ms)
+ GET / 200 in 199ms (next.js: 17ms, application-code: 182ms)
+ GET /api/auth/me 200 in 39ms (next.js: 11ms, application-code: 29ms)
+ GET /profile 200 in 445ms (next.js: 45ms, application-code: 400ms)
+ GET /api/auth/me 200 in 48ms (next.js: 9ms, application-code: 39ms)
+ GET /api/profile/vip 200 in 52ms (next.js: 11ms, application-code: 40ms)
+✓ Compiled in 292ms
+ GET /profile 200 in 578ms (next.js: 223ms, application-code: 356ms)
+ GET / 200 in 171ms (next.js: 55ms, application-code: 115ms)
+ GET / 200 in 172ms (next.js: 116ms, application-code: 55ms)
+✓ Compiled in 262ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /api/auth/me 200 in 221ms (next.js: 156ms, application-code: 66ms)
+ GET / 200 in 1271ms (next.js: 179ms, application-code: 1092ms)
+ GET / 200 in 989ms (next.js: 733ms, application-code: 256ms)
+ GET /profile 200 in 1014ms (next.js: 246ms, application-code: 767ms)
+ GET /api/auth/me 200 in 63ms (next.js: 16ms, application-code: 47ms)
+ GET /api/profile/vip 200 in 197ms (next.js: 163ms, application-code: 34ms)
+ POST /api/auth/signup 200 in 403ms (next.js: 84ms, application-code: 320ms)
+ GET /profile 200 in 403ms (next.js: 14ms, application-code: 389ms)
+ GET /api/auth/me 200 in 47ms (next.js: 8ms, application-code: 39ms)
+ GET /api/profile/vip 200 in 47ms (next.js: 8ms, application-code: 39ms)
+ POST /api/auth/signup 200 in 203ms (next.js: 5ms, application-code: 197ms)
+ GET /profile 200 in 151ms (next.js: 16ms, application-code: 135ms)
+ GET /api/auth/me 200 in 27ms (next.js: 7ms, application-code: 20ms)
+ GET /api/profile/vip 200 in 51ms (next.js: 9ms, application-code: 42ms)
+ GET /wallet 200 in 200ms (next.js: 85ms, application-code: 115ms)
+ GET /api/wallet 200 in 298ms (next.js: 147ms, application-code: 151ms)
+ GET /api/wallet/stats 200 in 319ms (next.js: 252ms, application-code: 68ms)
+ GET /api/wallet 200 in 109ms (next.js: 10ms, application-code: 99ms)
+ GET /api/wallet/stats 200 in 86ms (next.js: 16ms, application-code: 70ms)
+ GET /profile 200 in 109ms (next.js: 25ms, application-code: 85ms)
+ GET /api/auth/me 200 in 62ms (next.js: 18ms, application-code: 43ms)
+ GET /api/auth/me 200 in 60ms (next.js: 17ms, application-code: 43ms)
+ GET /api/profile/vip 200 in 72ms (next.js: 14ms, application-code: 58ms)
+ GET /api/profile/vip 200 in 70ms (next.js: 14ms, application-code: 56ms)
+ GET /withdraw 200 in 117ms (next.js: 53ms, application-code: 64ms)
+ GET /api/wallet 200 in 505ms (next.js: 183ms, application-code: 323ms)
+ GET /api/transactions?type=withdraw&page=1 200 in 532ms (next.js: 165ms, application-code: 366ms)
+ GET /api/support-settings 200 in 353ms (next.js: 111ms, application-code: 242ms)
+ GET /api/auth/me 200 in 540ms (next.js: 199ms, application-code: 341ms)
+ GET /api/withdraw/eligibility 200 in 414ms (next.js: 249ms, application-code: 164ms)
+ GET /api/support-settings 200 in 186ms (next.js: 100ms, application-code: 86ms)
+ GET /api/wallet 200 in 202ms (next.js: 35ms, application-code: 167ms)
+ GET /api/auth/me 200 in 205ms (next.js: 123ms, application-code: 82ms)
+ GET /api/transactions?type=withdraw&page=1 200 in 222ms (next.js: 56ms, application-code: 165ms)
+ GET /api/withdraw/eligibility 200 in 63ms (next.js: 21ms, application-code: 42ms)
+ GET / 200 in 176ms (next.js: 29ms, application-code: 147ms)
+ GET /api/auth/me 200 in 40ms (next.js: 10ms, application-code: 30ms)
+ GET /api/auth/me 200 in 43ms (next.js: 7ms, application-code: 36ms)
+ GET /profile 200 in 123ms (next.js: 25ms, application-code: 99ms)
+ GET /api/auth/me 200 in 47ms (next.js: 23ms, application-code: 24ms)
+ GET /api/auth/me 200 in 42ms (next.js: 10ms, application-code: 32ms)
+ GET /api/profile/vip 200 in 41ms (next.js: 12ms, application-code: 29ms)
+ GET /api/profile/vip 200 in 46ms (next.js: 8ms, application-code: 38ms)
+ GET / 200 in 133ms (next.js: 31ms, application-code: 103ms)
+ GET /api/auth/me 200 in 29ms (next.js: 8ms, application-code: 21ms)
+ GET /api/auth/me 200 in 52ms (next.js: 11ms, application-code: 42ms)
+ GET /wallet 200 in 155ms (next.js: 29ms, application-code: 126ms)
+ GET /api/wallet 200 in 110ms (next.js: 21ms, application-code: 89ms)
+ GET /api/wallet/stats 200 in 161ms (next.js: 55ms, application-code: 106ms)
+ GET /api/wallet 200 in 89ms (next.js: 14ms, application-code: 75ms)
+ GET /api/wallet/stats 200 in 100ms (next.js: 14ms, application-code: 86ms)
+ GET /profile 200 in 260ms (next.js: 97ms, application-code: 163ms)
+ GET /api/auth/me 200 in 78ms (next.js: 30ms, application-code: 48ms)
+ GET /api/auth/me 200 in 42ms (next.js: 11ms, application-code: 30ms)
+ GET /api/profile/vip 200 in 45ms (next.js: 16ms, application-code: 29ms)
+ GET /api/profile/vip 200 in 56ms (next.js: 11ms, application-code: 45ms)
+✓ Compiled in 684ms
+✓ Compiled in 413ms
+ GET / 200 in 592ms (next.js: 151ms, application-code: 441ms)
+ GET /profile 200 in 592ms (next.js: 442ms, application-code: 150ms)
+ GET /profile 200 in 188ms (next.js: 45ms, application-code: 144ms)
+ GET /profile 200 in 451ms (next.js: 181ms, application-code: 270ms)
+ GET / 200 in 180ms (next.js: 35ms, application-code: 145ms)
+ GET /profile 200 in 181ms (next.js: 104ms, application-code: 77ms)
+ GET /profile 200 in 494ms (next.js: 194ms, application-code: 299ms)
+ GET / 200 in 209ms (next.js: 48ms, application-code: 160ms)
+ GET /profile 200 in 102ms (next.js: 14ms, application-code: 89ms)
+✓ Compiled in 317ms
+ GET / 200 in 450ms (next.js: 319ms, application-code: 131ms)
+ GET /profile 200 in 455ms (next.js: 186ms, application-code: 269ms)
+ GET /profile 200 in 77ms (next.js: 13ms, application-code: 64ms)
+✓ Compiled in 445ms
+ GET / 200 in 473ms (next.js: 290ms, application-code: 184ms)
+ GET /profile 200 in 479ms (next.js: 187ms, application-code: 292ms)
+ GET /profile 200 in 95ms (next.js: 15ms, application-code: 81ms)
+ GET / 200 in 353ms (next.js: 15ms, application-code: 338ms)
+ POST /api/auth/signup 200 in 496ms (next.js: 145ms, application-code: 351ms)
+ GET /deposit 200 in 594ms (next.js: 218ms, application-code: 376ms)
+ GET /api/transactions?type=deposit&page=1 200 in 308ms (next.js: 87ms, application-code: 222ms)
+ GET /api/wallet 200 in 198ms (next.js: 91ms, application-code: 108ms)
+ GET /api/support-settings 200 in 204ms (next.js: 169ms, application-code: 34ms)
+ GET /withdraw 200 in 550ms (next.js: 267ms, application-code: 283ms)
+ GET /api/transactions?type=withdraw&page=1 200 in 83ms (next.js: 11ms, application-code: 72ms)
+ GET /api/wallet 200 in 428ms (next.js: 13ms, application-code: 415ms)
+ GET /api/support-settings 200 in 418ms (next.js: 204ms, application-code: 214ms)
+ GET /api/auth/me 200 in 430ms (next.js: 161ms, application-code: 269ms)
+ GET /api/withdraw/eligibility 200 in 446ms (next.js: 358ms, application-code: 88ms)
+ GET / 200 in 110ms (next.js: 12ms, application-code: 99ms)
+ GET /api/auth/me 200 in 42ms (next.js: 10ms, application-code: 32ms)
+ GET /api/auth/me 200 in 54ms (next.js: 16ms, application-code: 38ms)
+✓ Compiled in 481ms
+ GET / 200 in 447ms (next.js: 190ms, application-code: 257ms)
+ GET / 200 in 446ms (next.js: 386ms, application-code: 60ms)
+ GET /profile 200 in 449ms (next.js: 318ms, application-code: 130ms)
+✓ Compiled in 267ms
+ GET / 200 in 503ms (next.js: 432ms, application-code: 71ms)
+ GET / 200 in 509ms (next.js: 171ms, application-code: 338ms)
+ GET /profile 200 in 509ms (next.js: 300ms, application-code: 210ms)
+✓ Compiled in 416ms
+⨯ ./src/app/page.js:337:31
+Expected '</', got 'jsx text'
+  [90m335 |[0m                 <[33mIconHeadset[0m />
+  [90m336 |[0m               </span>
+[31m[1m>[0m [90m337 |[0m               <span>[35m24[0m/[35m7[0m <[35m/br>Support</span[0m>
+  [90m    |[0m                               [31m[1m^^^^^^^[0m
+  [90m338 |[0m             </[33mLink[0m>
+  [90m339 |[0m             <[33mLink[0m href=[32m"/legal"[0m className=[32m"kk-quick-action"[0m>
+  [90m340 |[0m               <span className=[32m"kk-quick-action-icon"[0m style={{ background: [32m"#fff"[0m, border:.[32m..[0m
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.js [Client Component Browser]
+    ./src/app/page.js [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.js [Client Component SSR]
+    ./src/app/page.js [Server Component]
+
+
+⨯ ./src/app/page.js:337:31
+Expected '</', got 'jsx text'
+  [90m335 |[0m                 <[33mIconHeadset[0m />
+  [90m336 |[0m               </span>
+[31m[1m>[0m [90m337 |[0m               <span>[35m24[0m/[35m7[0m <[35m/br>Support</span[0m>
+  [90m    |[0m                               [31m[1m^^^^^^^[0m
+  [90m338 |[0m             </[33mLink[0m>
+  [90m339 |[0m             <[33mLink[0m href=[32m"/legal"[0m className=[32m"kk-quick-action"[0m>
+  [90m340 |[0m               <span className=[32m"kk-quick-action-icon"[0m style={{ background: [32m"#fff"[0m, border:.[32m..[0m
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.js [Client Component Browser]
+    ./src/app/page.js [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.js [Client Component SSR]
+    ./src/app/page.js [Server Component]
+
+
+○ Compiling /_error ...
+ GET / 500 in 6.6s (next.js: 5.7s, application-code: 834ms)
+ GET / 500 in 6.6s (next.js: 6.4s, application-code: 226ms)
+ GET /profile 500 in 6.6s (next.js: 6.5s, application-code: 131ms)
+⨯ ./src/app/page.js:337:31
+Expected '</', got 'jsx text'
+  [90m335 |[0m                 <[33mIconHeadset[0m />
+  [90m336 |[0m               </span>
+[31m[1m>[0m [90m337 |[0m               <span>[35m24[0m/[35m7[0m <[35m/br>Support</span[0m>
+  [90m    |[0m                               [31m[1m^^^^^^^[0m
+  [90m338 |[0m             </[33mLink[0m>
+  [90m339 |[0m             <[33mLink[0m href=[32m"/legal"[0m className=[32m"kk-quick-action"[0m>
+  [90m340 |[0m               <span className=[32m"kk-quick-action-icon"[0m style={{ background: [32m"#fff"[0m, border:.[32m..[0m
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.js [Client Component Browser]
+    ./src/app/page.js [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.js [Client Component SSR]
+    ./src/app/page.js [Server Component]
+
+
+⨯ ./src/app/page.js:337:31
+Expected '</', got 'jsx text'
+  [90m335 |[0m                 <[33mIconHeadset[0m />
+  [90m336 |[0m               </span>
+[31m[1m>[0m [90m337 |[0m               <span>[35m24[0m/[35m7[0m <[35m/br>Support</span[0m>
+  [90m    |[0m                               [31m[1m^^^^^^^[0m
+  [90m338 |[0m             </[33mLink[0m>
+  [90m339 |[0m             <[33mLink[0m href=[32m"/legal"[0m className=[32m"kk-quick-action"[0m>
+  [90m340 |[0m               <span className=[32m"kk-quick-action-icon"[0m style={{ background: [32m"#fff"[0m, border:.[32m..[0m
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.js [Client Component Browser]
+    ./src/app/page.js [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.js [Client Component SSR]
+    ./src/app/page.js [Server Component]
+
+
+ GET / 500 in 620ms (next.js: 388ms, application-code: 232ms)
+ GET /profile 500 in 619ms (next.js: 461ms, application-code: 158ms)
+⨯ ./src/app/page.js:337:31
+Expected '</', got 'jsx text'
+  [90m335 |[0m                 <[33mIconHeadset[0m />
+  [90m336 |[0m               </span>
+[31m[1m>[0m [90m337 |[0m               <span>[35m24[0m/[35m7[0m <[35m/br>Support</span[0m>
+  [90m    |[0m                               [31m[1m^^^^^^^[0m
+  [90m338 |[0m             </[33mLink[0m>
+  [90m339 |[0m             <[33mLink[0m href=[32m"/legal"[0m className=[32m"kk-quick-action"[0m>
+  [90m340 |[0m               <span className=[32m"kk-quick-action-icon"[0m style={{ background: [32m"#fff"[0m, border:.[32m..[0m
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.js [Client Component Browser]
+    ./src/app/page.js [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.js [Client Component SSR]
+    ./src/app/page.js [Server Component]
+
+
+ GET / 500 in 648ms (next.js: 542ms, application-code: 106ms)
+⨯ ./src/app/page.js:337:31
+Expected '</', got 'jsx text'
+  [90m335 |[0m                 <[33mIconHeadset[0m />
+  [90m336 |[0m               </span>
+[31m[1m>[0m [90m337 |[0m               <span>[35m24[0m/[35m7[0m <[35m/br>Support</span[0m>
+  [90m    |[0m                               [31m[1m^^^^^^^[0m
+  [90m338 |[0m             </[33mLink[0m>
+  [90m339 |[0m             <[33mLink[0m href=[32m"/legal"[0m className=[32m"kk-quick-action"[0m>
+  [90m340 |[0m               <span className=[32m"kk-quick-action-icon"[0m style={{ background: [32m"#fff"[0m, border:.[32m..[0m
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.js [Client Component Browser]
+    ./src/app/page.js [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.js [Client Component SSR]
+    ./src/app/page.js [Server Component]
+
+
+ GET /profile 500 in 377ms (next.js: 173ms, application-code: 204ms)
+ GET / 500 in 376ms (next.js: 301ms, application-code: 75ms)
+ GET / 500 in 377ms (next.js: 307ms, application-code: 70ms)
+[browser] Uncaught Error: ./src/app/page.js:337:31
+Expected '</', got 'jsx text'
+  335 |                 <IconHeadset />
+  336 |               </span>
+> 337 |               <span>24/7 </br>Support</span>
+      |                               ^^^^^^^
+  338 |             </Link>
+  339 |             <Link href="/legal" className="kk-quick-action">
+  340 |               <span className="kk-quick-action-icon" style={{ background: "#fff", border:...
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.js [Client Component Browser]
+    ./src/app/page.js [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.js [Client Component SSR]
+    ./src/app/page.js [Server Component]
+
+
+    at <unknown> (Error: ./src/app/page.js:337:31)
+    at <unknown> (Error: (./src/app/page.js:337:31)
+[browser] Uncaught Error: ./src/app/page.js:337:31
+Expected '</', got 'jsx text'
+  335 |                 <IconHeadset />
+  336 |               </span>
+> 337 |               <span>24/7 </br>Support</span>
+      |                               ^^^^^^^
+  338 |             </Link>
+  339 |             <Link href="/legal" className="kk-quick-action">
+  340 |               <span className="kk-quick-action-icon" style={{ background: "#fff", border:...
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.js [Client Component Browser]
+    ./src/app/page.js [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.js [Client Component SSR]
+    ./src/app/page.js [Server Component]
+
+
+    at <unknown> (Error: ./src/app/page.js:337:31)
+    at <unknown> (Error: (./src/app/page.js:337:31)
+[browser] Uncaught Error: ./src/app/page.js:337:31
+Expected '</', got 'jsx text'
+  335 |                 <IconHeadset />
+  336 |               </span>
+> 337 |               <span>24/7 </br>Support</span>
+      |                               ^^^^^^^
+  338 |             </Link>
+  339 |             <Link href="/legal" className="kk-quick-action">
+  340 |               <span className="kk-quick-action-icon" style={{ background: "#fff", border:...
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.js [Client Component Browser]
+    ./src/app/page.js [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.js [Client Component SSR]
+    ./src/app/page.js [Server Component]
+
+
+    at <unknown> (Error: ./src/app/page.js:337:31)
+    at <unknown> (Error: (./src/app/page.js:337:31)
+✓ Compiled in 319ms
+ GET /profile 200 in 1713ms (next.js: 211ms, application-code: 1503ms)
+ GET / 200 in 1720ms (next.js: 963ms, application-code: 756ms)
+ GET / 200 in 1177ms (next.js: 802ms, application-code: 375ms)
+ GET /api/auth/me 200 in 200ms (next.js: 141ms, application-code: 59ms)
+ GET /api/auth/me 200 in 41ms (next.js: 13ms, application-code: 28ms)
+ GET /api/profile/vip 200 in 120ms (next.js: 81ms, application-code: 39ms)
+ GET /api/auth/me 401 in 29ms (next.js: 13ms, application-code: 16ms)
+✓ Compiled in 285ms
+ GET /profile 200 in 768ms (next.js: 212ms, application-code: 555ms)
+ GET / 200 in 454ms (next.js: 214ms, application-code: 240ms)
+ GET / 200 in 453ms (next.js: 299ms, application-code: 154ms)
+✓ Compiled in 453ms
+ GET / 200 in 420ms (next.js: 229ms, application-code: 191ms)
+ GET / 200 in 82ms (next.js: 17ms, application-code: 66ms)
+✓ Compiled in 412ms
+ GET /profile 200 in 631ms (next.js: 294ms, application-code: 338ms)
+ GET / 200 in 569ms (next.js: 373ms, application-code: 196ms)
+ GET / 200 in 104ms (next.js: 22ms, application-code: 81ms)
+✓ Compiled in 469ms
+ GET /profile 200 in 756ms (next.js: 218ms, application-code: 538ms)
+ GET / 200 in 448ms (next.js: 322ms, application-code: 127ms)
+ GET / 200 in 764ms (next.js: 504ms, application-code: 260ms)
+✓ Compiled in 467ms
+ GET / 200 in 623ms (next.js: 495ms, application-code: 128ms)
+ GET / 200 in 628ms (next.js: 415ms, application-code: 213ms)
+ GET /profile 200 in 632ms (next.js: 168ms, application-code: 464ms)
+✓ Compiled in 341ms
+ GET / 200 in 655ms (next.js: 270ms, application-code: 385ms)
+ GET / 200 in 285ms (next.js: 19ms, application-code: 266ms)
+ GET /profile 200 in 182ms (next.js: 71ms, application-code: 112ms)
+ GET /agency 200 in 1488ms (next.js: 1416ms, application-code: 72ms)
+ GET /api/auth/me 200 in 243ms (next.js: 184ms, application-code: 59ms)
+ GET /api/auth/me 200 in 394ms (next.js: 43ms, application-code: 351ms)
+ GET /api/agency/stats?range=all 200 in 660ms (next.js: 606ms, application-code: 54ms)
+ GET /api/agency/stats?range=all 200 in 54ms (next.js: 10ms, application-code: 44ms)
+ GET /agency/subordinate 200 in 1441ms (next.js: 1337ms, application-code: 104ms)
+ GET /api/agency/stats?range=all 200 in 55ms (next.js: 16ms, application-code: 39ms)
+ GET /api/agency/stats?range=all 200 in 54ms (next.js: 13ms, application-code: 41ms)
+ GET /agency 200 in 101ms (next.js: 19ms, application-code: 81ms)
+ GET /api/auth/me 200 in 67ms (next.js: 31ms, application-code: 36ms)
+ GET /api/agency/stats?range=all 200 in 73ms (next.js: 12ms, application-code: 61ms)
+ GET /api/auth/me 200 in 62ms (next.js: 13ms, application-code: 50ms)
+ GET /api/agency/stats?range=all 200 in 74ms (next.js: 29ms, application-code: 44ms)
+ GET /agency/commission 200 in 1584ms (next.js: 1464ms, application-code: 120ms)
+ GET /api/agency/stats?range=all 200 in 40ms (next.js: 10ms, application-code: 30ms)
+ GET /api/agency/stats?range=all 200 in 40ms (next.js: 10ms, application-code: 30ms)
+ GET /agency 200 in 120ms (next.js: 28ms, application-code: 92ms)
+ GET /api/agency/stats?range=all 200 in 88ms (next.js: 18ms, application-code: 70ms)
+ GET /api/auth/me 200 in 49ms (next.js: 19ms, application-code: 30ms)
+ GET /api/agency/stats?range=all 200 in 102ms (next.js: 28ms, application-code: 74ms)
+ GET /api/auth/me 200 in 65ms (next.js: 15ms, application-code: 50ms)
+ GET /agency/commission 200 in 107ms (next.js: 20ms, application-code: 87ms)
+ GET /api/agency/stats?range=all 200 in 72ms (next.js: 26ms, application-code: 47ms)
+ GET /api/agency/stats?range=all 200 in 65ms (next.js: 18ms, application-code: 47ms)
+ GET /agency 200 in 134ms (next.js: 25ms, application-code: 109ms)
+ GET /api/auth/me 200 in 116ms (next.js: 18ms, application-code: 99ms)
+ GET /api/agency/stats?range=all 200 in 128ms (next.js: 70ms, application-code: 58ms)
+ GET /api/auth/me 200 in 68ms (next.js: 14ms, application-code: 54ms)
+ GET /api/agency/stats?range=all 200 in 88ms (next.js: 43ms, application-code: 46ms)
+ GET /support 200 in 1315ms (next.js: 1206ms, application-code: 109ms)
+ GET /api/support-settings 200 in 141ms (next.js: 84ms, application-code: 57ms)
+ GET /api/auth/me 200 in 150ms (next.js: 113ms, application-code: 37ms)
+ GET /api/support-settings 200 in 41ms (next.js: 12ms, application-code: 30ms)
+ GET /api/auth/me 200 in 49ms (next.js: 21ms, application-code: 28ms)
+ GET /agency 200 in 196ms (next.js: 68ms, application-code: 128ms)
+ GET /api/auth/me 200 in 86ms (next.js: 53ms, application-code: 32ms)
+ GET /api/agency/stats?range=all 200 in 92ms (next.js: 12ms, application-code: 80ms)
+ GET /api/auth/me 200 in 64ms (next.js: 12ms, application-code: 52ms)
+ GET /api/agency/stats?range=all 200 in 61ms (next.js: 13ms, application-code: 48ms)
+ GET /support 200 in 261ms (next.js: 172ms, application-code: 90ms)
+ GET /api/support-settings 200 in 63ms (next.js: 12ms, application-code: 51ms)
+ GET /api/auth/me 200 in 73ms (next.js: 40ms, application-code: 34ms)
+ GET /api/support-settings 200 in 37ms (next.js: 13ms, application-code: 24ms)
+ GET /api/auth/me 200 in 37ms (next.js: 15ms, application-code: 22ms)
+ GET /agency 200 in 94ms (next.js: 16ms, application-code: 78ms)
+ GET /api/auth/me 200 in 72ms (next.js: 42ms, application-code: 30ms)
+ GET /api/agency/stats?range=all 200 in 77ms (next.js: 11ms, application-code: 66ms)
+ GET /api/auth/me 200 in 99ms (next.js: 29ms, application-code: 69ms)
+ GET /api/agency/stats?range=all 200 in 156ms (next.js: 60ms, application-code: 96ms)
+ GET /agency/rebate-ratio 200 in 1157ms (next.js: 1090ms, application-code: 68ms)
+✓ Compiled in 1824ms
+ GET /agency/rebate-ratio 200 in 2.0s (next.js: 1647ms, application-code: 395ms)
+○ Compiling /activity ...
+ GET /activity 200 in 5.5s (next.js: 5.1s, application-code: 483ms)
+ GET /activity 200 in 402ms (next.js: 54ms, application-code: 348ms)
+ GET /api/wallet/stats 200 in 656ms (next.js: 409ms, application-code: 248ms)
+ GET /api/wallet/stats 200 in 281ms (next.js: 99ms, application-code: 182ms)
+ GET /api/activity?page=1 200 in 3.4s (next.js: 2.1s, application-code: 1233ms)
+ GET /api/game/my-history?page=1 200 in 2.5s (next.js: 2.1s, application-code: 392ms)
+ GET /api/activity?page=1 200 in 281ms (next.js: 64ms, application-code: 216ms)
+ GET /api/game/my-history?page=1 200 in 282ms (next.js: 130ms, application-code: 152ms)
+✓ Compiled in 706ms
+ GET /activity 200 in 769ms (next.js: 518ms, application-code: 251ms)
+ GET /wallet 200 in 210ms (next.js: 108ms, application-code: 102ms)
+ GET /api/wallet 200 in 500ms (next.js: 210ms, application-code: 290ms)
+ GET /api/wallet/stats 200 in 571ms (next.js: 447ms, application-code: 124ms)
+ GET /api/wallet 200 in 94ms (next.js: 14ms, application-code: 81ms)
+ GET /api/wallet/stats 200 in 71ms (next.js: 12ms, application-code: 59ms)
+ GET /deposit 200 in 165ms (next.js: 79ms, application-code: 86ms)
+ GET /api/wallet 200 in 472ms (next.js: 166ms, application-code: 306ms)
+ GET /api/support-settings 200 in 480ms (next.js: 281ms, application-code: 199ms)
+ GET /api/transactions?type=deposit&page=1 200 in 524ms (next.js: 138ms, application-code: 386ms)
+ GET /api/support-settings 200 in 125ms (next.js: 52ms, application-code: 73ms)
+ GET /api/wallet 200 in 139ms (next.js: 22ms, application-code: 117ms)
+ GET /api/transactions?type=deposit&page=1 200 in 203ms (next.js: 83ms, application-code: 120ms)
+ GET /wallet 200 in 594ms (next.js: 157ms, application-code: 437ms)
+ GET /api/wallet 200 in 199ms (next.js: 70ms, application-code: 130ms)
+ GET /api/wallet/stats 200 in 247ms (next.js: 120ms, application-code: 128ms)
+ GET /api/wallet 200 in 93ms (next.js: 38ms, application-code: 54ms)
+ GET /api/wallet/stats 200 in 63ms (next.js: 19ms, application-code: 44ms)
+ GET /wallet 200 in 88ms (next.js: 22ms, application-code: 66ms)
+ GET /deposit 200 in 83ms (next.js: 20ms, application-code: 63ms)
+ GET /api/support-settings 200 in 86ms (next.js: 53ms, application-code: 33ms)
+ GET /api/wallet 200 in 93ms (next.js: 30ms, application-code: 63ms)
+ GET /api/transactions?type=deposit&page=1 200 in 99ms (next.js: 14ms, application-code: 85ms)
+ GET /api/support-settings 200 in 75ms (next.js: 11ms, application-code: 64ms)
+ GET /api/wallet 200 in 88ms (next.js: 33ms, application-code: 55ms)
+ GET /api/transactions?type=deposit&page=1 200 in 100ms (next.js: 54ms, application-code: 46ms)
+ GET /wallet 200 in 56ms (next.js: 13ms, application-code: 43ms)
+ GET /api/wallet 200 in 70ms (next.js: 23ms, application-code: 47ms)
+ GET /api/wallet/stats 200 in 84ms (next.js: 42ms, application-code: 42ms)
+ GET /api/wallet 200 in 53ms (next.js: 8ms, application-code: 45ms)
+ GET /api/wallet/stats 200 in 43ms (next.js: 8ms, application-code: 35ms)
+ GET /wallet 200 in 66ms (next.js: 14ms, application-code: 51ms)
+ GET /wallet 200 in 62ms (next.js: 10ms, application-code: 52ms)
+ GET /deposit 200 in 85ms (next.js: 19ms, application-code: 67ms)
+ GET /api/transactions?type=deposit&page=1 200 in 121ms (next.js: 21ms, application-code: 100ms)
+ GET /api/support-settings 200 in 78ms (next.js: 42ms, application-code: 37ms)
+ GET /api/wallet 200 in 85ms (next.js: 22ms, application-code: 63ms)
+ GET /api/support-settings 200 in 98ms (next.js: 45ms, application-code: 53ms)
+ GET /api/wallet 200 in 111ms (next.js: 71ms, application-code: 41ms)
+ GET /api/transactions?type=deposit&page=1 200 in 124ms (next.js: 15ms, application-code: 109ms)
+ GET /wallet 200 in 105ms (next.js: 23ms, application-code: 81ms)
+ GET /api/wallet 200 in 66ms (next.js: 12ms, application-code: 54ms)
+ GET /api/wallet/stats 200 in 83ms (next.js: 34ms, application-code: 49ms)
+ GET /api/wallet 200 in 35ms (next.js: 13ms, application-code: 22ms)
+ GET /api/wallet/stats 200 in 58ms (next.js: 15ms, application-code: 43ms)
+ GET /deposit 200 in 88ms (next.js: 20ms, application-code: 69ms)
+ GET /api/transactions?type=deposit&page=1 200 in 103ms (next.js: 19ms, application-code: 83ms)
+ GET /api/support-settings 200 in 71ms (next.js: 35ms, application-code: 35ms)
+ GET /api/wallet 200 in 79ms (next.js: 16ms, application-code: 63ms)
+ GET /api/support-settings 200 in 104ms (next.js: 41ms, application-code: 63ms)
+ GET /api/transactions?type=deposit&page=1 200 in 118ms (next.js: 12ms, application-code: 106ms)
+ GET /api/wallet 200 in 91ms (next.js: 41ms, application-code: 50ms)
+ GET /wallet 200 in 92ms (next.js: 18ms, application-code: 74ms)
+ GET /api/wallet 200 in 87ms (next.js: 26ms, application-code: 62ms)
+ GET /api/wallet/stats 200 in 111ms (next.js: 51ms, application-code: 60ms)
+ GET /api/wallet 200 in 61ms (next.js: 19ms, application-code: 42ms)
+ GET /api/wallet/stats 200 in 84ms (next.js: 16ms, application-code: 68ms)
+ GET /transactions?type=withdraw 200 in 4.0s (next.js: 3.2s, application-code: 776ms)
+ GET /api/transactions?type=all&page=1 200 in 85ms (next.js: 8ms, application-code: 77ms)
+ GET /api/transactions?type=withdraw&page=1 200 in 62ms (next.js: 31ms, application-code: 31ms)
+ GET /api/transactions?type=deposit&page=1 200 in 73ms (next.js: 15ms, application-code: 58ms)
+ GET /api/transactions?type=all&page=1 200 in 52ms (next.js: 12ms, application-code: 40ms)
+ GET /deposit 200 in 801ms (next.js: 241ms, application-code: 560ms)
+ GET /api/support-settings 200 in 86ms (next.js: 56ms, application-code: 30ms)
+ GET /api/wallet 200 in 92ms (next.js: 30ms, application-code: 62ms)
+ GET /api/transactions?type=deposit&page=1 200 in 98ms (next.js: 14ms, application-code: 84ms)
+ GET /profile 200 in 258ms (next.js: 134ms, application-code: 124ms)
+ GET /api/auth/me 200 in 152ms (next.js: 108ms, application-code: 44ms)
+ GET /api/auth/me 200 in 65ms (next.js: 16ms, application-code: 50ms)
+ GET /api/profile/vip 200 in 189ms (next.js: 144ms, application-code: 44ms)
+ GET /api/profile/vip 200 in 53ms (next.js: 11ms, application-code: 42ms)
+✓ Compiled in 406ms
+ GET /profile 200 in 576ms (next.js: 208ms, application-code: 368ms)
+ GET /deposit 200 in 574ms (next.js: 446ms, application-code: 128ms)
+ GET /transactions?type=withdraw 200 in 578ms (next.js: 338ms, application-code: 240ms)
