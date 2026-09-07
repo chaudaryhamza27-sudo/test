@@ -39,13 +39,18 @@ const makeFeedRow = () => {
     stake,
     at,
     running,
-    payout: running ? 0 : Math.round(stake * at * 100) / 100,
+    // Always a real settled payout — whether a row actually reads "Running"
+    // is decided at render time from the live round phase, not baked in here.
+    payout: Math.round(stake * at * 100) / 100,
   };
 };
 
 const FEED_SIZE = 800;
 const FEED_PAGE = 15;
-const makeFeed = (n = FEED_SIZE) => Array.from({ length: n }, makeFeedRow);
+// Randomized around FEED_SIZE so a fresh feed (page load or post-crash reset)
+// never lands on the same suspiciously round number every time.
+const randomFeedSize = () => FEED_SIZE - 150 + Math.floor(Math.random() * 300);
+const makeFeed = (n = randomFeedSize()) => Array.from({ length: n }, makeFeedRow);
 
 // Placeholder round history shown only until the DB has real finished
 // rounds — same random-multiplier spread as the simulated bets feed above,
@@ -308,16 +313,21 @@ export default function CrashDemoPage() {
         <div className="crash-bets-head">
           <span>User</span><span>Bet</span><span>Mult.</span><span>Cash out</span>
         </div>
-        {(betsTab === 'all' ? allBetsDisplay : myAllRows).map((r) => (
-          <div key={r.id} className={`crash-bets-row${r.payout ? ' won' : ''}${r.user === 'You' ? ' mine' : ''}`}>
-            <span className="crash-bets-user">{r.user}</span>
-            <span className="crash-pill crash-pill-stake">{r.stake.toFixed(2)}</span>
-            <span className="crash-pill crash-pill-mult" style={badgeStyle(r.at)}>{r.at.toFixed(2)}x</span>
-            <span className={`crash-cashout${r.payout ? ' won' : ''}`}>
-              {r.running ? 'Running' : r.payout ? r.payout.toFixed(2) : '—'}
-            </span>
-          </div>
-        ))}
+        {(betsTab === 'all' ? allBetsDisplay : myAllRows).map((r) => {
+          // A simulated row only reads "Running" while a round is actually
+          // flying — otherwise every bet has already settled one way or another.
+          const isLive = r.running && round.phase === 'flying';
+          return (
+            <div key={r.id} className={`crash-bets-row${!isLive && r.payout ? ' won' : ''}${r.user === 'You' ? ' mine' : ''}`}>
+              <span className="crash-bets-user">{r.user}</span>
+              <span className="crash-pill crash-pill-stake">{r.stake.toFixed(2)}</span>
+              <span className="crash-pill crash-pill-mult" style={badgeStyle(r.at)}>{r.at.toFixed(2)}x</span>
+              <span className={`crash-cashout${!isLive && r.payout ? ' won' : ''}`}>
+                {isLive ? 'Running' : r.payout ? r.payout.toFixed(2) : '—'}
+              </span>
+            </div>
+          );
+        })}
       </div>
 
       {betsTab === 'all' && visibleCount - myAllRows.length < feed.length && (
