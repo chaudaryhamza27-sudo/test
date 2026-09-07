@@ -117,7 +117,7 @@ export default function ProfilePage() {
       <section className="kk-account-card">
         <div className="kk-account-balance-row">
           <div>
-            <div className="lbl">Total balance</div>
+            <div className="lbl">Total Balance</div>
             <b>Rs{Number(balance).toFixed(2)}</b>
           </div>
           <button className="kk-refresh-btn" onClick={loadUser}>
@@ -151,14 +151,14 @@ export default function ProfilePage() {
         <section className="kk-trust-card">
           <div className="kk-trust-head">
             <span>
-              <IconShield style={{ width: 15, height: 15 }} /> Trust Score
+              <IconShield style={{ width: 15, height: 15 }} />Account Health 
             </span>
-            <b>{user.trustScore ?? 50}%</b>
+            <b>{user.trustScore ?? 15}%</b>
           </div>
           <div className="kk-trust-bar">
-            <div className="kk-trust-fill" style={{ width: `${user.trustScore ?? 50}%` }} />
+            <div className="kk-trust-fill" style={{ width: `${user.trustScore ?? 15}%` }} />
           </div>
-          <p>{trustMessage(user.trustScore ?? 50)}</p>
+          <p>{trustMessage(user.trustScore ?? 15)}</p>
         </section>
       )}
 
@@ -261,8 +261,6 @@ export default function ProfilePage() {
         <IconLogout style={{ width: 18, height: 18 }} />
         Log out
       </button>
-{/* 
-      <footer className="kk-footer">This account and its balance are placeholders for this UI preview.</footer> */}
 
       <BottomNav />
 
