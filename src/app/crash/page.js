@@ -240,6 +240,7 @@ export default function CrashDemoPage() {
         onToggleAnimations={() => setAnimationsOn((v) => !v)}
       />
 
+      <div className="crash-body">
       <div className="crash-history-wrap">
         <div className="crash-history" ref={historyStripRef}>
           {history.slice(0, 8).map((m, i) => (
@@ -275,6 +276,7 @@ export default function CrashDemoPage() {
         elapsed={round.elapsed}
         countdown={round.countdown}
         growthRate={round.growthRate}
+        crashPoint={round.crashPoint}
         animationsOn={animationsOn}
       />
 
@@ -335,6 +337,7 @@ export default function CrashDemoPage() {
           Show more
         </button>
       )}
+      </div>
 
       {showDepositPrompt && (
         <div className="crash-modal-overlay" onClick={() => setShowDepositPrompt(false)}>

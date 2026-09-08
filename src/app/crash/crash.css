@@ -12,6 +12,14 @@
   margin: 0 0 10px;
 }
 
+/* Everything below the full-bleed sticky header is inset to match the
+   header's own 16px side padding — the header spans edge-to-edge on
+   purpose, but the graph/bet-panels/history strip need the same gutter
+   or they read as flush with the device edge while the header isn't. */
+.crash-body {
+  padding: 0 10px;
+}
+
 /* Two independent bet boxes: stacked on mobile, side by side once there's
    enough width for both to breathe (laptop/tablet-landscape and up). */
 .crash-bet-row {

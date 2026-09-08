@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import styles from './CrashStage.module.css';
 import { multiplierAt } from './useCrashRound';
 
@@ -34,11 +34,17 @@ const PROP_GHOST = 0.15;     // trailing blur opacity, 0 = off
 const PROP_TRAIL = 0.5;      // how far the blur trails, radians
 const FLYOFF_MS = 1200;      // how long the plane keeps going after the crash
 
-export default function CrashStage({ phase, multiplier = 1, elapsed = 0, countdown = 0, growthRate, animationsOn = true }) {
+const JOIN_AVATARS = ['/avitor/icon1.webp', '/avitor/icon2.webp', '/avitor/icon4.webp'];
+
+export default function CrashStage({ phase, multiplier = 1, elapsed = 0, countdown = 0, growthRate, crashPoint, animationsOn = true }) {
   const canvasRef = useRef(null);
   const liveRef = useRef({ phase, multiplier, elapsed, growthRate });
   const crashedAtRef = useRef(0);
   const animationsOnRef = useRef(animationsOn);
+  // How many players "joined" this betting window — a new random target each
+  // round, filled in step with the countdown so it reads 0 the instant a
+  // fresh round opens and lands on the target right as betting closes.
+  const [joinTarget, setJoinTarget] = useState(0);
 
   // the animation loop reads props through a ref so it never has to restart
   liveRef.current = { phase, multiplier, elapsed, growthRate };
@@ -46,6 +52,10 @@ export default function CrashStage({ phase, multiplier = 1, elapsed = 0, countdo
 
   useEffect(() => {
     if (phase === 'crashed') crashedAtRef.current = Date.now();
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase === 'betting') setJoinTarget(900 + Math.floor(Math.random() * 500));
   }, [phase]);
 
   useEffect(() => {
@@ -275,6 +285,19 @@ export default function CrashStage({ phase, multiplier = 1, elapsed = 0, countdo
 
   const waiting = phase === 'betting';
 
+  // Counts up to the target while players are joining the betting window,
+  // then back down to 0 over the course of the flight as they cash out —
+  // landing on exactly 0 right as the plane crashes.
+  let joinCount = joinTarget;
+  if (phase === 'betting') {
+    joinCount = joinTarget * countdown;
+  } else if (phase === 'flying') {
+    const flightDuration = crashPoint && growthRate ? Math.log(crashPoint) / growthRate : 5;
+    joinCount = joinTarget * (1 - Math.min(1, elapsed / flightDuration));
+  } else if (phase === 'crashed') {
+    joinCount = 0;
+  }
+
   return (
     <div className={styles.stage}>
       {/* Ray backdrop: a square ~2.5x the board whose CENTRE sits on the graph
@@ -292,19 +315,35 @@ export default function CrashStage({ phase, multiplier = 1, elapsed = 0, countdo
         </div>
       )}
 
+      <div className={styles.joinWidget}>
+        <span className={styles.joinAvatars}>
+          {JOIN_AVATARS.map((src) => (
+            <img key={src} src={src} alt="" />
+          ))}
+        </span>
+        <span className={styles.joinCount}>{Math.round(joinCount)}</span>
+      </div>
+
       {waiting && (
         <div className={styles.waiting}>
-          {/* Same propeller mark as the live build. Held still between rounds;
-              it starts turning when the round starts. */}
-          <svg className={styles.spinner} viewBox="0 0 120 120" aria-hidden="true">
-            <g fill="#E50539" fillRule="nonzero">
-              <path d="M67.785 67.77a10.882 10.882 0 0 0 2.995-5.502l18.37-6.36c.47-.163.876-.471 1.16-.88l29.263-42.18a2.343 2.343 0 0 0-.268-2.993L110.153.704a2.344 2.344 0 0 0-3.314 0L95.73 11.813C71.965-5.861 38.683-3.514 17.58 17.588a60.26 60.26 0 0 0-8.829 11.21 2.343 2.343 0 0 0 4.001 2.441 55.575 55.575 0 0 1 8.142-10.336C40.184 1.613 70.512-.68 92.378 15.165l-5.72 5.72c-8.742-5.967-19.302-8.837-29.947-8.1a47.31 47.31 0 0 0-30.183 13.751 47.722 47.722 0 0 0-5.92 7.207 2.344 2.344 0 0 0 3.897 2.605 42.996 42.996 0 0 1 5.337-6.497c14.233-14.234 36.774-16.445 53.436-5.586l-6.818 6.818a33.418 33.418 0 0 0-19.773-4.186A33.338 33.338 0 0 0 36.47 36.48a2.344 2.344 0 0 0 3.314 3.314c8.787-8.786 22.336-10.795 33.215-5.248L58.38 49.163a10.969 10.969 0 0 0-6.164 3.084 10.882 10.882 0 0 0-2.996 5.504l-18.37 6.36c-.47.163-.876.47-1.159.879L.427 107.17a2.343 2.343 0 0 0 .268 2.992l9.152 9.151a2.337 2.337 0 0 0 1.657.687c.6 0 1.2-.23 1.657-.687l11.109-11.109A59.835 59.835 0 0 0 59.99 120a59.873 59.873 0 0 0 42.43-17.571 60.476 60.476 0 0 0 7.162-8.63 2.343 2.343 0 1 0-3.87-2.643 55.793 55.793 0 0 1-6.606 7.959c-19.321 19.32-49.61 21.598-71.487 5.74l5.722-5.723a47.325 47.325 0 0 0 30.058 8.092A47.318 47.318 0 0 0 93.472 93.48a47.82 47.82 0 0 0 5.15-6.09 2.343 2.343 0 0 0-3.82-2.715 43.106 43.106 0 0 1-4.644 5.49c-14.21 14.211-36.783 16.436-53.436 5.587l6.82-6.82a33.416 33.416 0 0 0 19.825 4.182A33.343 33.343 0 0 0 83.53 83.54a2.344 2.344 0 0 0-3.314-3.315c-8.777 8.778-22.34 10.792-33.215 5.25L61.62 70.855a10.97 10.97 0 0 0 6.165-3.084zm40.711-62.095l6.11 6.11-27.712 39.944-16.207 5.61a10.892 10.892 0 0 0-2.903-5.092 10.953 10.953 0 0 0-3.512-2.348l44.224-44.224zM11.504 114.342l-6.11-6.11 27.712-39.944 16.207-5.61a10.892 10.892 0 0 0 2.903 5.092 10.953 10.953 0 0 0 3.512 2.348l-44.224 44.224zm44.018-49.894a6.223 6.223 0 0 1-1.85-4.44l.003-.094c.036-.19.047-.383.035-.579a6.22 6.22 0 0 1 1.812-3.766A6.33 6.33 0 0 1 60 53.726a6.33 6.33 0 0 1 4.478 1.843 6.223 6.223 0 0 1 1.85 4.44l-.003.094a2.325 2.325 0 0 0-.035.579 6.22 6.22 0 0 1-1.812 3.766c-2.47 2.458-6.487 2.457-8.956 0z" />
-              <path d="M113.341 82.064a2.344 2.344 0 0 0-3.115 1.131l-.026.057a2.343 2.343 0 1 0 4.26 1.955l.013-.028a2.344 2.344 0 0 0-1.132-3.115zM7.65 35.765a2.343 2.343 0 0 0-3.072 1.241l-.021.05a2.338 2.338 0 0 0 2.165 3.228c.922 0 1.8-.55 2.173-1.454.5-1.19-.056-2.56-1.245-3.065z" />
-            </g>
-          </svg>
-          <p>WAITING FOR NEXT ROUND</p>
-          <div className={styles.bar}>
-            <i style={{ width: `${Math.round(countdown * 100)}%` }} />
+          <div className={styles.brandBanner}>
+            <div className={styles.brandRow}>
+              <span className={styles.brandName}>Lucky73</span>
+              <span className={styles.brandDivider} />
+              <span className={styles.brandGame}>Crash</span>
+            </div>
+            <div className={styles.brandSub}>VERIFIED PLATFORM</div>
+            <div className={styles.brandUnderline}>
+              <i style={{ width: `${Math.round(countdown * 100)}%` }} />
+            </div>
+            <div className={styles.fairBadge}>
+              <div className={styles.fairBrand}>Lucky73</div>
+              <div className={styles.fairPill}>
+                Official Game
+                <span className={styles.fairCheck}>✓</span>
+              </div>
+              <div className={styles.fairSince}>Since 2024</div>
+            </div>
           </div>
         </div>
       )}

@@ -20,11 +20,11 @@
 }
 
 .tab, .tabActive {
-  padding: 7px 24px;
+  padding: 2px 12px;
   border: 0;
   border-radius: 8px;
   background: none;
-  font-size: 12.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: .3px;
   cursor: pointer;
@@ -36,10 +36,6 @@
 @media (max-width: 759px) {
   .panel { padding: 6px; }
   .tabs { margin-bottom: 10px; }
-  .tab, .tabActive {
-    padding: 2px 12px;
-    font-size: 11px;
-  }
 }
 
 .row {
@@ -157,16 +153,18 @@
   border: 0;
   border-radius: 20px;
   color: #fff;
-  font-size: 19px;
+  font-size: 22px;
   font-weight: 700;
   letter-spacing: 1px;
+  text-transform: uppercase;
   cursor: pointer;
 }
 
 .action small {
   display: block;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 400;
+  text-transform: none;
   opacity: .9;
 }
 

@@ -26,12 +26,13 @@ export default function BetPanel({
   bet = null, busy = false, onBet, onCancel, onCashOut,
 }) {
   const [tab, setTab] = useState('bet');            // 'bet' | 'auto'
-  const [stake, setStake] = useState(min);
+  const [stake, setStake] = useState(min.toFixed(2));
   const [autoCashOutOn, setAutoCashOutOn] = useState(false);
   const [autoAt, setAutoAt] = useState(AUTO_CASHOUT_DEFAULT);
   const [autoBetOn, setAutoBetOn] = useState(false);
 
   const clamp = (v) => Math.min(max, Math.max(min, Number(v) || min));
+  const fmt = (v) => clamp(v).toFixed(2);
   const locked = !!bet && bet.status !== 'cashed';
   const flying = phase === 'flying';
   const canCashOut = flying && bet?.status === 'placed';
@@ -57,7 +58,7 @@ export default function BetPanel({
   let waiting = null;
   if (canCashOut) {
     label = 'Cash out';
-    sub = (stake * multiplier).toFixed(2);
+    sub = `${(stake * multiplier).toFixed(2)}PKR`;
     tone = styles.cash;
   } else if (locked) {
     label = 'Cancel';
@@ -80,18 +81,18 @@ export default function BetPanel({
               inputMode="decimal"
               disabled={locked}
               onChange={(e) => setStake(e.target.value.replace(/[^0-9.]/g, ''))}
-              onBlur={() => setStake(clamp(stake))}
+              onBlur={() => setStake(fmt(stake))}
               aria-label="Stake"
             />
             <div className={styles.stepperGroup}>
-              <button type="button" onClick={() => setStake(clamp(stake - 1))} disabled={locked}>−</button>
-              <button type="button" onClick={() => setStake(clamp(Number(stake) + 1))} disabled={locked}>+</button>
+              <button type="button" onClick={() => setStake(fmt(Number(stake) - 1))} disabled={locked}>−</button>
+              <button type="button" onClick={() => setStake(fmt(Number(stake) + 1))} disabled={locked}>+</button>
             </div>
           </div>
 
           <div className={styles.quickGrid}>
             {QUICK.map((amt) => (
-              <button key={amt} type="button" disabled={locked} onClick={() => setStake(clamp(amt))}>
+              <button key={amt} type="button" disabled={locked} onClick={() => setStake(fmt(amt))}>
                 {amt}
               </button>
             ))}

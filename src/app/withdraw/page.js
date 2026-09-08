@@ -69,7 +69,7 @@ export default function WithdrawPage() {
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => {
         setBanned(Boolean(data.user?.isBanned));
-        setTrustScore(data.user?.trustScore ?? 50);
+        setTrustScore(data.user?.trustScore);
       })
       .catch(() => {});
     fetch("/api/support-settings")
