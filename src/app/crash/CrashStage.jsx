@@ -328,21 +328,21 @@ export default function CrashStage({ phase, multiplier = 1, elapsed = 0, countdo
         <div className={styles.waiting}>
           <div className={styles.brandBanner}>
             <div className={styles.brandRow}>
-              <span className={styles.brandName}>Lucky73</span>
+              <span className={styles.brandName}>UFC</span>
               <span className={styles.brandDivider} />
-              <span className={styles.brandGame}>Crash</span>
+              <span className={styles.brandGame}><span className={styles.brandPlane}>&#9992;</span> Aviator</span>
             </div>
-            <div className={styles.brandSub}>VERIFIED PLATFORM</div>
+            <div className={styles.brandSub}>OFFICIAL PARTNERS</div>
             <div className={styles.brandUnderline}>
               <i style={{ width: `${Math.round(countdown * 100)}%` }} />
             </div>
             <div className={styles.fairBadge}>
-              <div className={styles.fairBrand}>Lucky73</div>
+              <div className={styles.fairBrand}><span className={styles.spribeMark}>S</span> SPRIBE</div>
               <div className={styles.fairPill}>
                 Official Game
                 <span className={styles.fairCheck}>✓</span>
               </div>
-              <div className={styles.fairSince}>Since 2024</div>
+              <div className={styles.fairSince}>Since 2019</div>
             </div>
           </div>
         </div>

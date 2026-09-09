@@ -223,3 +223,40 @@
 @media (prefers-reduced-motion: reduce) {
   .rays { animation: none; }
 }
+
+/* Next-round banner, sized to leave the parked plane and joining count visible. */
+.stage { height: clamp(280px, 74vw, 320px); }
+.waiting { justify-content: flex-start; padding-top: 14px; }
+.brandName { font-family: Arial, sans-serif; font-size: 32px; font-style: italic; font-weight: 900; }
+.brandDivider { height: 28px; }
+.brandGame { font-size: 21px; font-style: italic; }
+.brandPlane { color: #f7001f; font-style: normal; }
+.brandSub { font-size: 13px; font-weight: 800; letter-spacing: 1.2px; color: #e5e5e5; }
+.brandUnderline { width: 195px; height: 4px; border-radius: 4px; }
+.fairBadge { padding: 9px 20px; border: 2px solid #58a824; background: linear-gradient(#17370fdd, #091506ee); }
+.fairBrand { display: flex; align-items: center; gap: 8px; font-size: 22px; }
+.spribeMark { display: grid; place-items: center; width: 25px; height: 25px; border-radius: 7px; background: #ff2c4c; color: white; font-size: 18px; box-shadow: -10px 2px 18px #ffffff30; }
+.fairPill { border: 2px solid #40d719; border-radius: 9px; background: #143a0c; color: #65ff39; font-size: 13px; }
+.fairCheck { background: #32d600; color: #fff; }
+.fairSince { font-size: 12px; font-weight: 700; color: #c4c8c1; }
+
+/* Compact waiting artwork on phones; leave room for the plane and avatars. */
+@media (max-width: 759px) {
+  .waiting { padding-top: 12px; }
+  .brandBanner { gap: 5px; }
+  .brandRow { gap: 7px; }
+  .brandName { font-size: 25px; line-height: 1.1; }
+  .brandDivider { height: 22px; }
+  .brandGame { font-size: 16px; line-height: 1.1; }
+  .brandSub { font-size: 10px; letter-spacing: .8px; line-height: 1.4; }
+  .brandUnderline { width: 155px; height: 3px; }
+  .fairBadge { width: 145px; box-sizing: border-box; padding: 8px 10px; gap: 5px; border-radius: 11px; }
+  .fairBrand { gap: 6px; font-size: 18px; line-height: 1.2; }
+  .spribeMark { width: 19px; height: 19px; border-radius: 5px; font-size: 14px; }
+  .fairPill { gap: 5px; padding: 3px 7px; border-radius: 7px; font-size: 10px; line-height: 1.2; white-space: nowrap; }
+  .fairCheck { width: 13px; height: 13px; font-size: 9px; }
+  .fairSince { font-size: 9px; line-height: 1.3; }
+  .joinWidget { right: 10px; bottom: 10px; gap: 6px; padding: 4px 9px 4px 5px; }
+  .joinAvatars img { width: 21px; height: 21px; }
+  .joinCount { font-size: 11px; }
+}

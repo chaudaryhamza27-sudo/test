@@ -3,6 +3,7 @@ import Transaction from "../../../lib/models/Transaction";
 import { getCurrentUser } from "../../../lib/auth";
 import { adjustBalance, getWithdrawEligibility } from "../../../lib/wallet";
 import { logActivity } from "../../../lib/activity";
+import { sendTelegramMessage } from "../../../lib/telegram";
 
 const ELIGIBILITY_MESSAGES = {
   pending_deposit: "Your deposit is still pending verification. You can withdraw once it's approved.",
@@ -78,6 +79,10 @@ export async function POST(request) {
     message: `Requested a virtual withdrawal of Rs${parsedAmount.toLocaleString()}.`,
     meta: { transactionId: withdrawal._id, amount: parsedAmount },
   });
+
+  sendTelegramMessage(
+    `🏧 <b>New Withdraw Request</b>\nUser: ${user.name || user.uid} (${user.uid})\nAmount: Rs${parsedAmount.toLocaleString()}\nMethod: ${method}\nAccount: ${accountNumber}`
+  );
 
   return Response.json({ withdrawal, balance: updatedUser.balance });
 }

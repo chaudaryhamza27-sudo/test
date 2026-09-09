@@ -51,7 +51,7 @@ export default function SignupPage() {
   const canSubmit = useMemo(() => {
     const idFilled = tab === "phone" ? phone.trim().length > 0 : email.trim().length > 0;
     return name.trim().length > 0 && idFilled && password.trim().length > 0 && confirm.trim().length > 0 && agree;
-  }, [name, tab, phone, email, password, confirm, agree]);
+  }, [name, tab, phone, email, password,  agree]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -199,7 +199,7 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <div className="kk-auth-field">
+            {/* <div className="kk-auth-field">
               <div className="kk-auth-label">
                 <IconLockLine />
                 Confirm Password
@@ -217,7 +217,7 @@ export default function SignupPage() {
                   {showConfirm ? <IconEye /> : <IconEyeOff />}
                 </button>
               </div>
-            </div>
+            </div> */}
 
             <div className="kk-auth-field">
               <div className="kk-auth-label">

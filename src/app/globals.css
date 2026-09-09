@@ -944,6 +944,10 @@ a{text-decoration:none;color:inherit}
 .support-canvas.announcement:before{background:rgba(232,150,27,.14)}
 .support-announcement-text{position:relative;z-index:1;margin-top:14px;font-size:13px;color:#e8dff3;line-height:1.6;white-space:pre-wrap}
 
+.floating-whatsapp{position:fixed;width:56px;height:56px;border-radius:50%;border:0;background:linear-gradient(160deg,#33d19a,#1a9450);color:#fff;box-shadow:0 8px 20px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:1200;cursor:grab;touch-action:none;padding:0}
+.floating-whatsapp:active{cursor:grabbing}
+.floating-whatsapp svg{width:28px;height:28px}
+
 .kk-footer{margin:20px 16px 0;padding:16px;text-align:center;color:var(--kk-muted);font-size:11px;line-height:1.7}
 
 /* Home-page-only info bar (footer notice) — separate from the shared

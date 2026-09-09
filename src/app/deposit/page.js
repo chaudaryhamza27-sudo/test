@@ -15,6 +15,7 @@ import {
 import PaybostAddFunds from "../components/PaybostAddFunds";
 import BottomNav from "../components/BottomNav";
 import HistoryList from "../components/HistoryList";
+import styles from "./deposit.module.css";
 
 const QUICK_AMOUNTS = [3000, 5000, 10000, 20000, 30000, 50000];
 const MIN_DEPOSIT = 3000;
@@ -38,6 +39,20 @@ export default function DepositPage() {
   const [senderNumber, setSenderNumber] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [popup, setPopup] = useState(null);
+  const [redirectAt, setRedirectAt] = useState(null);
+  const [secondsLeft, setSecondsLeft] = useState(120);
+
+  useEffect(() => {
+    if (!redirectAt) return;
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((redirectAt - Date.now()) / 1000));
+      setSecondsLeft(remaining);
+      if (remaining === 0) router.replace("/crash?deposit=check");
+    };
+    tick();
+    const timer = setInterval(tick, 1000);
+    return () => clearInterval(timer);
+  }, [redirectAt, router]);
 
   useEffect(() => {
     // Paybost redirects back here with ?paybost=success|cancelled — that
@@ -100,7 +115,7 @@ export default function DepositPage() {
       openNotice("Please enter the number you sent the payment from.", "error");
       return;
     }
-    if (submitting) return;
+    if (submitting || redirectAt) return;
     setSubmitting(true);
     try {
       const methodLabel = PAYMENT_METHODS.find((m) => m.key === selectedMethod)?.label || selectedMethod;
@@ -115,6 +130,8 @@ export default function DepositPage() {
         return;
       }
       setSenderNumber("");
+      setSecondsLeft(120);
+      setRedirectAt(Date.now() + 120000);
       openNotice(
         `Deposit Request Submitted — Your ${methodLabel} deposit request has been received and is waiting for admin verification. You'll be notified once it's reviewed.`,
         "success"
@@ -394,7 +411,27 @@ export default function DepositPage() {
 
       <BottomNav />
 
-      <div className={`popup ${popup ? "active" : ""}`} onClick={closeNotice}>
+      {redirectAt && (
+        <div className={styles.overlay}>
+          <section className={styles.card} role="dialog" aria-modal="true" aria-labelledby="deposit-wait-title" aria-describedby="deposit-wait-description" tabIndex={-1} ref={(node) => node?.focus()}>
+            <span className={styles.badge}><IconShield /> Request received</span>
+            <h2 id="deposit-wait-title">You’re almost there</h2>
+            <p id="deposit-wait-description">Your request is waiting for verification. We’ll take you to Crash when the countdown ends.</p>
+            <div className={styles.timerRing} style={{ "--progress": `${((120 - secondsLeft) / 120) * 360}deg` }}>
+            <div className={styles.clock} role="timer" aria-label={`${secondsLeft} seconds remaining`}>
+              <strong>{String(Math.floor(secondsLeft / 60)).padStart(2, "0")}<span>:</span>{String(secondsLeft % 60).padStart(2, "0")}</strong>
+              <small>TIME REMAINING</small>
+            </div>
+            </div>
+            <div className={styles.steps}><span><b>✓</b>Submitted</span><i /><span className={styles.currentStep}><b>2</b>Waiting</span><i /><span><b>3</b>Open Crash</span></div>
+            <div className={styles.destination}><IconDeposit /><div><small>UP NEXT</small><b>Crash game</b></div><IconChevronRight /></div>
+            <span className={styles.caption}>{secondsLeft ? "Please wait · Opening Crash automatically" : "Opening Crash…"}</span>
+            <p className={styles.note}>This countdown does not confirm approval. Your wallet balance will be checked on Crash.</p>
+          </section>
+        </div>
+      )}
+
+      <div className={`popup ${popup && !redirectAt ? "active" : ""}`} onClick={closeNotice}>
         <div className="kk-popup-box" onClick={(e) => e.stopPropagation()}>
           <div className="kk-popup-icon">{popup?.tone === "success" ? "✅" : popup?.tone === "error" ? "⚠️" : "🧪"}</div>
           <div className="kk-popup-title">

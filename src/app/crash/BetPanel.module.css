@@ -109,9 +109,9 @@
 }
 
 .quickGrid button {
-  width: 64px;
-  height: 18px;
-  margin-top: 4px;
+  width: 100%;
+  height: 22px;
+  margin-top: 0;
   padding: 0;
   border: 1px solid #36363c;
   border-radius: 100px;
@@ -128,8 +128,8 @@
 .quickGrid button:disabled { opacity: .5; cursor: not-allowed; }
 
 .actionCol {
-  width: calc(100% - 145px);
-  margin-left: 5px;
+  width: 100%;
+  margin-left: 0;
   min-width: 0;
   display: flex;
   justify-content: center;
@@ -274,4 +274,23 @@
 .tabActive:focus-visible {
   outline: 2px solid #7cb5ff;
   outline-offset: 2px;
+}
+
+/* Keep the controls and action in two predictable columns on small screens. */
+.panel { padding: 12px 10px 24px; }
+.tabs { display: flex; width: min(210px, 100%); margin-bottom: 28px; }
+.tab, .tabActive { flex: 1; padding: 3px 12px; color: #eee; }
+.tabActive { background: #2c2d30; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 6px; }
+.spinner { box-sizing: border-box; height: 36px; padding: 0 6px; }
+.spinner input { text-align: center; }
+.stepperGroup { gap: 2px; padding: 0; }
+.stepperGroup button { width: 20px; height: 20px; }
+.action { min-height: 90px; font-size: clamp(20px, 4vw, 26px); }
+@media (max-width: 350px) {
+  .panel { padding-inline: 8px; }
+  .spinner { padding-inline: 4px; font-size: 16px; }
+  .stepperGroup { gap: 1px; }
+  .action small { font-size: 12px; }
+  .autoRow { gap: 12px; }
 }

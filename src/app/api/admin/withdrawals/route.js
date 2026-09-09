@@ -1,9 +1,11 @@
 import dbConnect from "../../../../lib/mongodb";
 import Transaction from "../../../../lib/models/Transaction";
+import User from "../../../../lib/models/User";
 import { requireAdmin } from "../../../../lib/auth";
 import { adjustBalance } from "../../../../lib/wallet";
 import { logActivity } from "../../../../lib/activity";
 import { notifyUser } from "../../../../lib/notifications";
+import { sendTelegramMessage } from "../../../../lib/telegram";
 
 export async function GET() {
   const admin = await requireAdmin();
@@ -55,6 +57,13 @@ export async function PATCH(request) {
     message: `${action === "approve" ? "Approved" : "Rejected"} a virtual withdrawal of Rs${Number(tx.amount).toLocaleString()}.`,
     meta: { transactionId: tx._id, amount: tx.amount },
   });
+
+  const targetUser = await User.findById(tx.user).select("uid name").lean();
+  sendTelegramMessage(
+    action === "approve"
+      ? `✅ <b>Withdrawal Approved</b>\nUser: ${targetUser?.name || targetUser?.uid || tx.user}\nAmount: Rs${Number(tx.amount).toLocaleString()}`
+      : `❌ <b>Withdrawal Rejected</b>\nUser: ${targetUser?.name || targetUser?.uid || tx.user}\nAmount: Rs${Number(tx.amount).toLocaleString()}`
+  );
   await notifyUser(tx.user, {
     type: action === "approve" ? "withdraw_approved" : "withdraw_rejected",
     title: action === "approve" ? "Withdrawal approved" : "Withdrawal rejected",

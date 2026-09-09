@@ -7,7 +7,8 @@ import BetPanel from './BetPanel';
 import useCrashRound from './useCrashRound';
 import AppShellHeader from '../components/AppShellHeader';
 import { useSound } from '../components/SoundProvider';
-import { IconHistory } from '../icons';
+import { IconHistory, IconHeadset, IconChevronRight } from '../icons';
+import depositStyles from '../deposit/deposit.module.css';
 import './crash.css';
 
 /*
@@ -132,6 +133,7 @@ export default function CrashDemoPage() {
   // sees its actual Rs0.00 here too instead of a fake Rs5,000.
   const [balance, setBalance] = useState(null);
   const [showDepositPrompt, setShowDepositPrompt] = useState(false);
+  const [showSupportPrompt, setShowSupportPrompt] = useState(false);
   const { playSfx } = useSound();
   const slot1 = useBetSlot(round, balance, setBalance, () => setShowDepositPrompt(true), playSfx);
   const slot2 = useBetSlot(round, balance, setBalance, () => setShowDepositPrompt(true), playSfx);
@@ -168,10 +170,23 @@ export default function CrashDemoPage() {
   }, []);
 
   useEffect(() => {
-    fetch('/api/auth/me')
+    let cancelled = false;
+    const checkDeposit = new URLSearchParams(window.location.search).get('deposit') === 'check';
+    fetch('/api/wallet', { cache: 'no-store' })
       .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data) => setBalance(data.user.balance ?? 0))
-      .catch(() => setBalance(0));
+      .then((data) => {
+        if (cancelled) return;
+        if (typeof data.balance !== 'number' || !Number.isFinite(data.balance)) return;
+        setBalance(data.balance);
+        if (checkDeposit) {
+          setShowSupportPrompt(data.balance === 0);
+          const url = new URL(window.location.href);
+          url.searchParams.delete('deposit');
+          window.history.replaceState(null, '', url.toString());
+        }
+      })
+      .catch(() => { /* A failed request does not establish a zero balance. */ });
+    return () => { cancelled = true; };
   }, []);
 
   // Seed the round-history strip from the DB on load so it isn't empty on a
@@ -339,7 +354,22 @@ export default function CrashDemoPage() {
       )}
       </div>
 
-      {showDepositPrompt && (
+      {showSupportPrompt && (
+        <div className={depositStyles.overlay}>
+          <div className={`${depositStyles.card} ${depositStyles.dark}`} role="dialog" aria-modal="true" aria-labelledby="deposit-support-title" aria-describedby="deposit-support-description">
+            <div className={depositStyles.supportIcon}><IconHeadset /></div>
+            <span className={depositStyles.eyebrow}>DEPOSIT UPDATE</span>
+            <h2 id="deposit-support-title">Need a hand?</h2>
+            <p id="deposit-support-description">Your deposit hasn’t reached your wallet yet. Our support team can help you check it.</p>
+            <div className={depositStyles.balance}><span>Current wallet balance</span><strong>Rs 0.00</strong><small>Deposit not reflected yet</small></div>
+            <p className={depositStyles.receipt}>Keep your payment receipt ready so support can review your request.</p>
+            <Link href="/support" className={depositStyles.supportButton} autoFocus><IconHeadset />Contact Support<IconChevronRight /></Link>
+            <button type="button" className={depositStyles.later} onClick={() => setShowSupportPrompt(false)}>Back to Crash</button>
+          </div>
+        </div>
+      )}
+
+      {showDepositPrompt && !showSupportPrompt && (
         <div className="crash-modal-overlay" onClick={() => setShowDepositPrompt(false)}>
           <div className="crash-modal" onClick={(e) => e.stopPropagation()}>
             <h3>Insufficient balance</h3>

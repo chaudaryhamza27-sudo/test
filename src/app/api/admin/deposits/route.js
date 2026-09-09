@@ -6,6 +6,7 @@ import { adjustBalance } from "../../../../lib/wallet";
 import { logActivity } from "../../../../lib/activity";
 import { notifyUser } from "../../../../lib/notifications";
 import { computeTrustScore } from "../../../../lib/trustScore";
+import { sendTelegramMessage } from "../../../../lib/telegram";
 
 const DEPOSIT_STATUSES = ["approved", "completed"];
 
@@ -89,6 +90,13 @@ export async function PATCH(request) {
     message: `${action === "approve" ? "Approved" : "Rejected"} a virtual deposit of Rs${Number(tx.amount).toLocaleString()}.`,
     meta: { transactionId: tx._id, amount: tx.amount, rejectionReason: tx.meta?.rejectionReason || null },
   });
+
+  const targetUser = await User.findById(tx.user).select("uid name").lean();
+  sendTelegramMessage(
+    action === "approve"
+      ? `✅ <b>Deposit Approved</b>\nUser: ${targetUser?.name || targetUser?.uid || tx.user}\nAmount: Rs${Number(tx.amount).toLocaleString()}`
+      : `❌ <b>Deposit Rejected</b>\nUser: ${targetUser?.name || targetUser?.uid || tx.user}\nAmount: Rs${Number(tx.amount).toLocaleString()}`
+  );
   await notifyUser(tx.user, {
     type: action === "approve" ? "deposit_approved" : "deposit_rejected",
     title: action === "approve" ? "Deposit approved" : "Deposit rejected",
