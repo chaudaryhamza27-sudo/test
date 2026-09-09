@@ -7,6 +7,17 @@ import { IconWhatsapp } from "../icons";
 // button stay draggable while still being clickable without moving it.
 const DRAG_THRESHOLD = 6;
 const STORAGE_KEY = "floatingWhatsappPos";
+// The app content is a centered column capped at 480px (see .app-shell /
+// .bottom-nav in globals.css) — on wider screens it sits on a grey backdrop.
+// Clamp the button to that column instead of the full window so it can't be
+// dragged out onto the backdrop.
+const APP_MAX_WIDTH = 480;
+
+function getColumnBounds() {
+  const width = Math.min(window.innerWidth, APP_MAX_WIDTH);
+  const left = (window.innerWidth - width) / 2;
+  return { left, right: left + width };
+}
 
 export default function FloatingWhatsApp() {
   const [waLink, setWaLink] = useState(null);
@@ -26,25 +37,32 @@ export default function FloatingWhatsApp() {
       .catch(() => {});
   }, []);
 
+  const clamp = (x, y, sizeOverride) => {
+    const size = sizeOverride || btnRef.current?.offsetWidth || 56;
+    const { left, right } = getColumnBounds();
+    const maxX = right - size;
+    const maxY = window.innerHeight - size;
+    return { x: Math.min(Math.max(x, left), Math.max(maxX, left)), y: Math.min(Math.max(y, 0), Math.max(maxY, 0)) };
+  };
+
   useEffect(() => {
     let saved = null;
     try {
       saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     } catch {}
     const size = 56;
+    const { right } = getColumnBounds();
     const defaultPos = {
-      x: window.innerWidth - size - 16,
+      x: right - size - 16,
       y: window.innerHeight - size - 84,
     };
-    setPos(saved && Number.isFinite(saved.x) && Number.isFinite(saved.y) ? saved : defaultPos);
-  }, []);
+    const initial = saved && Number.isFinite(saved.x) && Number.isFinite(saved.y) ? saved : defaultPos;
+    setPos(clamp(initial.x, initial.y, size));
 
-  const clamp = (x, y) => {
-    const size = btnRef.current?.offsetWidth || 56;
-    const maxX = window.innerWidth - size;
-    const maxY = window.innerHeight - size;
-    return { x: Math.min(Math.max(x, 0), Math.max(maxX, 0)), y: Math.min(Math.max(y, 0), Math.max(maxY, 0)) };
-  };
+    const onResize = () => setPos((current) => (current ? clamp(current.x, current.y) : current));
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const onPointerDown = (e) => {
     if (!pos) return;
