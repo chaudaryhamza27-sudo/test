@@ -149,10 +149,8 @@ export async function sweepAutoCashouts({ roundId, multiplier }) {
     autoCashoutTarget: { $ne: null, $lte: multiplier },
   });
 
-  const results = [];
-  for (const bet of eligible) {
-    const result = await claimAndCashOut({ roundId, userId: bet.user, multiplier: bet.autoCashoutTarget, slot: bet.slot });
-    if (result) results.push(result);
-  }
-  return results;
+  const results = await Promise.all(
+    eligible.map((bet) => claimAndCashOut({ roundId, userId: bet.user, multiplier: bet.autoCashoutTarget, slot: bet.slot }))
+  );
+  return results.filter(Boolean);
 }

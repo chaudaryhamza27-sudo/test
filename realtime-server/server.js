@@ -119,8 +119,10 @@ io.on("connection", async (socket) => {
       });
       if (result.error) return ack?.({ error: result.error });
       ack?.(result);
-      socket.emit("bet:updated", { slot: result.slot, status: "placed", amount: result.amount, autoCashoutTarget: payload?.autoCashoutTarget ?? null });
-      socket.emit("balance:updated", { balance: result.balance });
+      emitToUser(socket.data.user._id, "bet:updated", { slot: result.slot, status: "placed", amount: result.amount, autoCashoutTarget: payload?.autoCashoutTarget ?? null });
+      emitToUser(socket.data.user._id, "balance:updated", { balance: result.balance });
+      lastPlayerCount = await GameBet.countDocuments({ round: result.roundId });
+      io.emit("round:player-count", { roundId: String(result.roundId), playerCount: lastPlayerCount });
     } catch (err) {
       console.error("[socket] bet:place failed", err);
       ack?.({ error: "Something went wrong. Please try again." });
@@ -134,8 +136,8 @@ io.on("connection", async (socket) => {
       const result = await cashOutBet({ userId: socket.data.user._id, slot: payload?.slot });
       if (result.error) return ack?.({ error: result.error });
       ack?.(result);
-      socket.emit("bet:updated", { slot: result.slot, status: "cashed_out", cashoutMultiplier: result.multiplier, payout: result.payout });
-      socket.emit("balance:updated", { balance: result.balance });
+      emitToUser(socket.data.user._id, "bet:updated", { slot: result.slot, status: "cashed_out", cashoutMultiplier: result.multiplier, payout: result.payout });
+      emitToUser(socket.data.user._id, "balance:updated", { balance: result.balance });
     } catch (err) {
       console.error("[socket] bet:cashout failed", err);
       ack?.({ error: "Something went wrong. Please try again." });
@@ -159,12 +161,17 @@ io.on("connection", async (socket) => {
 // used, just pushed instead of polled. See src/lib/gameEngine.js.
 let lastRoundId = null;
 let lastPhase = null;
+let lastPlayerCount = 0;
 
 async function tick() {
   await dbConnect();
   const round = await getActiveRound();
   const info = getRoundPhase(round);
   const roundId = String(round._id);
+
+  if (roundId !== lastRoundId) {
+    lastPlayerCount = await GameBet.countDocuments({ round: round._id });
+  }
 
   if (info.phase === "RUNNING") {
     const results = await sweepAutoCashouts({ roundId: round._id, multiplier: info.multiplier });
@@ -173,8 +180,6 @@ async function tick() {
       emitToUser(r.userId, "balance:updated", { balance: r.balance });
     }
   }
-
-  const playerCount = await GameBet.countDocuments({ round: round._id });
 
   io.emit("round:update", {
     roundId: round._id,
@@ -186,7 +191,7 @@ async function tick() {
     crashedAt: info.crashedAt ?? null,
     crashPoint: info.phase === "CRASHED" ? round.crashPoint : null,
     now: Date.now(),
-    playerCount,
+    playerCount: lastPlayerCount,
   });
 
   if (roundId !== lastRoundId) {
@@ -205,8 +210,13 @@ async function tick() {
   }
 }
 
+let tickInFlight = false;
 setInterval(() => {
-  tick().catch((err) => console.error("[game-loop] tick failed", err));
+  if (tickInFlight) return;
+  tickInFlight = true;
+  tick().catch((err) => console.error("[game-loop] tick failed", err)).finally(() => {
+    tickInFlight = false;
+  });
 }, TICK_MS);
 
 httpServer.listen(PORT, () => {

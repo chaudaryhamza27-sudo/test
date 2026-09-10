@@ -24,12 +24,15 @@ export function useGameSocket() {
   const modeRef = useRef(SOCKET_URL ? "socket" : "polling"); // "socket" | "polling"
 
   const applyRoundUpdate = useCallback((payload) => {
-    setState((s) => ({
-      ...(s || {}),
-      // A new round must never inherit the previous round's revealed result.
-      ...(s?.roundId && s.roundId !== payload.roundId ? { crashPoint: null, crashedAt: null } : {}),
-      ...payload,
-    }));
+    setState((s) => {
+      const isNewRound = s?.roundId && s.roundId !== payload.roundId;
+      return {
+        ...(s || {}),
+        // A new round must never inherit a previous result or settled bets.
+        ...(isNewRound ? { crashPoint: null, crashedAt: null, myBets: { 1: null, 2: null } } : {}),
+        ...payload,
+      };
+    });
   }, []);
 
   // --- Polling fallback (identical shape/behavior to the pre-Socket.IO version) ---
@@ -133,6 +136,10 @@ export function useGameSocket() {
 
       socket.on("round:waiting", () => setRoundFinishedAt(Date.now()));
 
+      socket.on("round:player-count", (payload) => {
+        setState((s) => (s?.roundId === payload.roundId ? { ...s, playerCount: payload.playerCount } : s));
+      });
+
       socket.on("round:crashed", (payload) => {
         applyRoundUpdate({
           roundId: payload.roundId,
@@ -189,29 +196,49 @@ export function useGameSocket() {
   }, []);
 
   const placeBet = useCallback((amount, autoCashoutTarget, slot = 1) => {
+    const applyResult = (result) => {
+      if (result?.ok) {
+        setState((s) => ({
+          ...(s || {}),
+          balance: result.balance,
+          myBets: { ...(s?.myBets || {}), [result.slot]: { status: "placed", amount: result.amount, autoCashoutTarget } },
+        }));
+      }
+      return result;
+    };
     if (modeRef.current === "socket" && socketRef.current?.connected) {
       return new Promise((resolve) => {
-        socketRef.current.emit("bet:place", { amount, autoCashoutTarget, slot }, (result) => resolve(result));
+        socketRef.current.emit("bet:place", { amount, autoCashoutTarget, slot }, (result) => resolve(applyResult(result)));
       });
     }
     return fetch("/api/game/bet", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ amount, autoCashoutTarget, slot }),
-    }).then((res) => res.json());
+    }).then((res) => res.json()).then(applyResult);
   }, []);
 
   const cashOut = useCallback((slot = 1) => {
+    const applyResult = (result) => {
+      if (result?.ok) {
+        setState((s) => ({
+          ...(s || {}),
+          balance: result.balance,
+          myBets: { ...(s?.myBets || {}), [result.slot]: { ...(s?.myBets?.[result.slot] || {}), status: "cashed_out", payout: result.payout, cashoutMultiplier: result.multiplier } },
+        }));
+      }
+      return result;
+    };
     if (modeRef.current === "socket" && socketRef.current?.connected) {
       return new Promise((resolve) => {
-        socketRef.current.emit("bet:cashout", { slot }, (result) => resolve(result));
+        socketRef.current.emit("bet:cashout", { slot }, (result) => resolve(applyResult(result)));
       });
     }
     return fetch("/api/game/cashout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ slot }),
-    }).then((res) => res.json());
+    }).then((res) => res.json()).then(applyResult);
   }, []);
 
   return { state, authed, connectionStatus, roundFinishedAt, placeBet, cashOut };

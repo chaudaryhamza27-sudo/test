@@ -46,12 +46,7 @@ const makeFeedRow = () => {
   };
 };
 
-const FEED_SIZE = 800;
 const FEED_PAGE = 15;
-// Randomized around FEED_SIZE so a fresh feed (page load or post-crash reset)
-// never lands on the same suspiciously round number every time.
-const randomFeedSize = () => FEED_SIZE - 150 + Math.floor(Math.random() * 300);
-const makeFeed = (n = randomFeedSize()) => Array.from({ length: n }, makeFeedRow);
 
 // Placeholder round history shown only until the DB has real finished
 // rounds — same random-multiplier spread as the simulated bets feed above,
@@ -72,62 +67,39 @@ const badgeStyle = (m) => {
 // One independent betting box: its own stake/bet/history, sharing only the
 // round clock and the wallet balance. Two of these render side by side so a
 // player can run two bets at once, each cashing out on its own schedule.
-function useBetSlot(round, balance, setBalance, onInsufficientFunds, playSfx) {
-  const [bet, setBet] = useState(null);          // { stake, status, autoAt }
-  const [rows, setRows] = useState([]);
-  const prevPhase = useRef(round.phase);
+function useBetSlot({ slot, serverBet, placeBet, cashOut, onInsufficientFunds, playSfx }) {
+  const [busy, setBusy] = useState(false);
+  const bet = serverBet?.status === 'placed'
+    ? { stake: Number(serverBet.amount), status: 'placed', autoAt: serverBet.autoCashoutTarget }
+    : null;
 
-  const placeBet = (stake, autoAt) => {
-    if (balance == null) return;                // real balance hasn't loaded yet
-    if (stake > balance) {
-      onInsufficientFunds?.();
-      return;
+  const place = async (stake, autoAt) => {
+    if (busy || bet) return;
+    setBusy(true);
+    try {
+      const result = await placeBet(stake, autoAt, slot);
+      if (result?.error?.toLowerCase().includes('insufficient balance')) onInsufficientFunds?.();
+    } finally {
+      setBusy(false);
     }
-    setBalance((b) => b - stake);
-    setBet({ stake, autoAt, status: round.phase === 'betting' ? 'placed' : 'queued' });
   };
 
-  const cancelBet = () => {
-    if (!bet) return;
-    setBalance((b) => b + bet.stake);            // refund, queued or not
-    setBet(null);
+  const cashOutBet = async () => {
+    if (busy || !bet) return;
+    setBusy(true);
+    try {
+      const result = await cashOut(slot);
+      if (!result?.error) playSfx?.('cashout');
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const cashOut = (at = round.multiplier) => {
-    if (!bet || bet.status !== 'placed') return;
-    const payout = bet.stake * at;
-    setBalance((b) => b + payout);
-    setRows((r) => [{ id: Date.now() + Math.random(), stake: bet.stake, at, payout }, ...r].slice(0, 12));
-    setBet({ ...bet, status: 'cashed' });
-    playSfx?.('cashout');
-  };
-
-  // auto cash-out
-  useEffect(() => {
-    if (round.phase !== 'flying') return;
-    if (bet?.status === 'placed' && bet.autoAt && round.multiplier >= bet.autoAt) cashOut(bet.autoAt);
-  }, [round.multiplier, round.phase]);          // eslint-disable-line react-hooks/exhaustive-deps
-
-  // round transitions: settle losses, promote queued bets
-  useEffect(() => {
-    if (prevPhase.current === round.phase) return;
-    const was = prevPhase.current;
-    prevPhase.current = round.phase;
-
-    if (round.phase === 'crashed' && bet?.status === 'placed') {
-      setRows((r) => [{ id: Date.now() + Math.random(), stake: bet.stake, at: round.crashPoint, payout: 0 }, ...r].slice(0, 12));
-    }
-
-    if (round.phase === 'betting' && was !== 'betting') {
-      setBet((b) => (b && b.status === 'queued' ? { ...b, status: 'placed' } : null));
-    }
-  }, [round.phase]);                            // eslint-disable-line react-hooks/exhaustive-deps
-
-  return { bet, rows, placeBet, cancelBet, cashOut };
+  return { bet, busy, placeBet: place, cashOut: cashOutBet };
 }
 
 export default function CrashDemoPage() {
-  const { state: gameState } = useGameSocket();
+  const { state: gameState, placeBet, cashOut } = useGameSocket();
   const enginePhase = gameState?.phase;
   const round = {
     phase: enginePhase === 'RUNNING' ? 'flying' : enginePhase === 'CRASHED' ? 'crashed' : 'betting',
@@ -143,12 +115,12 @@ export default function CrashDemoPage() {
   // Starts from the signed-in account's real balance (same source AppShellHeader
   // itself would fetch) rather than a hardcoded demo number, so a fresh account
   // sees its actual Rs0.00 here too instead of a fake Rs5,000.
-  const [balance, setBalance] = useState(null);
+  const balance = typeof gameState?.balance === 'number' ? gameState.balance : null;
   const [showDepositPrompt, setShowDepositPrompt] = useState(false);
   const [showSupportPrompt, setShowSupportPrompt] = useState(false);
   const { playSfx } = useSound();
-  const slot1 = useBetSlot(round, balance, setBalance, () => setShowDepositPrompt(true), playSfx);
-  const slot2 = useBetSlot(round, balance, setBalance, () => setShowDepositPrompt(true), playSfx);
+  const slot1 = useBetSlot({ slot: 1, serverBet: gameState?.myBets?.[1], placeBet, cashOut, onInsufficientFunds: () => setShowDepositPrompt(true), playSfx });
+  const slot2 = useBetSlot({ slot: 2, serverBet: gameState?.myBets?.[2], placeBet, cashOut, onInsufficientFunds: () => setShowDepositPrompt(true), playSfx });
   const [history, setHistory] = useState([]);
   const [feed, setFeed] = useState([]);           // filled client-side only — random, so SSR can't match it
   const [betsTab, setBetsTab] = useState('all');
@@ -159,8 +131,6 @@ export default function CrashDemoPage() {
   const prevPhase = useRef(round.phase);
   const historyStripRef = useRef(null);
 
-  useEffect(() => { setFeed(makeFeed()); }, []);
-
   // Keeps the simulated "All Bets" feed (and so TOTAL BETS) feeling alive
   // between rounds too, not just on crash — it drifts up and down on a
   // random cadence (some players joining, others' rows aging out), softly
@@ -168,16 +138,20 @@ export default function CrashDemoPage() {
   useEffect(() => {
     let timer;
     const tick = () => {
-      setFeed((f) => {
-        const grow = f.length < FEED_SIZE - 100 || (f.length < FEED_SIZE + 100 && Math.random() < 0.55);
-        const n = 1 + Math.floor(Math.random() * 3);
-        return grow
-          ? [...Array.from({ length: n }, makeFeedRow), ...f].slice(0, 2000)
-          : f.slice(0, Math.max(50, f.length - n));
-      });
-      timer = setTimeout(tick, 2000 + Math.random() * 3000);
+      fetch('/api/game/all-bets', { cache: 'no-store' })
+        .then((res) => (res.ok ? res.json() : Promise.reject()))
+        .then((data) => setFeed((data.items || []).map((bet) => ({
+          id: String(bet.id),
+          user: bet.uid || 'Player',
+          stake: Number(bet.amount),
+          at: Number(bet.cashoutMultiplier || bet.crashPoint / 100 || 1),
+          running: false,
+          payout: Number(bet.payout || 0),
+        }))))
+        .catch(() => {});
+      timer = setTimeout(tick, 10000);
     };
-    timer = setTimeout(tick, 2000 + Math.random() * 3000);
+    tick();
     return () => clearTimeout(timer);
   }, []);
 
@@ -189,7 +163,6 @@ export default function CrashDemoPage() {
       .then((data) => {
         if (cancelled) return;
         if (typeof data.balance !== 'number' || !Number.isFinite(data.balance)) return;
-        setBalance(data.balance);
         if (checkDeposit) {
           setShowSupportPrompt(data.balance === 0);
           const url = new URL(window.location.href);
@@ -224,7 +197,6 @@ export default function CrashDemoPage() {
     if (round.phase === 'crashed') {
       playSfx('crash');
       setHistory((h) => [round.crashPoint, ...h].slice(0, 25));
-      setFeed(makeFeed());
       setVisibleCount(FEED_PAGE);
       // The strip prepends the new pill and keeps whatever scroll position
       // the user left it at, so if they'd scrolled right to see older
@@ -234,8 +206,6 @@ export default function CrashDemoPage() {
       requestAnimationFrame(() => { historyStripRef.current?.scrollTo({ left: 0, behavior: 'smooth' }); });
     }
   }, [round.phase]);                            // eslint-disable-line react-hooks/exhaustive-deps
-
-  const myRows = [...slot1.rows, ...slot2.rows].sort((a, b) => b.id - a.id).slice(0, 12);
 
   // Bets still in flight (not yet cashed out or crashed) — shown live, same
   // as the simulated feed's "Running" rows, so the current user's own action
@@ -251,7 +221,7 @@ export default function CrashDemoPage() {
       payout: 0,
     }));
 
-  const myAllRows = [...myLiveRows, ...myRows.map((r) => ({ ...r, user: 'You' }))];
+  const myAllRows = myLiveRows;
   // Current user's bets always lead the All Bets list, the simulated feed fills in below.
   const allBetsDisplay = [...myAllRows, ...feed.slice(0, Math.max(0, visibleCount - myAllRows.length))];
   const totalBetsCount = feed.length + myAllRows.length;
@@ -313,16 +283,16 @@ export default function CrashDemoPage() {
           phase={round.phase}
           multiplier={round.multiplier}
           bet={slot1.bet}
+          busy={slot1.busy}
           onBet={slot1.placeBet}
-          onCancel={slot1.cancelBet}
           onCashOut={() => slot1.cashOut()}
         />
         <BetPanel
           phase={round.phase}
           multiplier={round.multiplier}
           bet={slot2.bet}
+          busy={slot2.busy}
           onBet={slot2.placeBet}
-          onCancel={slot2.cancelBet}
           onCashOut={() => slot2.cashOut()}
         />
       </div>

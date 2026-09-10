@@ -4,16 +4,16 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 
 export default function Deposit() {
-  const [amount, setAmount] = useState(3000);
-  const [manualValue, setManualValue] = useState('3000');
+  const [amount, setAmount] = useState(2000);
+  const [manualValue, setManualValue] = useState('2000');
   const [selectedMethod, setSelectedMethod] = useState('Jazzcash_Direct');
   const [mobileNumber, setMobileNumber] = useState('');
   const formRef = useRef(null);
 
   const setAmountValue = (value, updateManual = true) => {
-    let parsedValue = parseInt(value || 3000, 10);
-    if (isNaN(parsedValue) || parsedValue < 3000) {
-      parsedValue = 3000;
+    let parsedValue = parseInt(value || 2000, 10);
+    if (isNaN(parsedValue) || parsedValue < 2000) {
+      parsedValue = 2000;
     }
     setAmount(parsedValue);
     if (updateManual) {
@@ -22,7 +22,7 @@ export default function Deposit() {
   };
 
   const syncCheckedAmount = (value) => {
-    const parsedValue = parseInt(value || 3000, 10);
+    const parsedValue = parseInt(value || 2000, 10);
     let matched = false;
     document.querySelectorAll('input[name="amount_option"]').forEach((option) => {
       if (parseInt(option.value, 10) === parsedValue) {
@@ -37,7 +37,7 @@ export default function Deposit() {
 
   useEffect(() => {
     // Set initial amount on mount
-    const initialAmount = 3000;
+    const initialAmount = 2000;
     setAmount(initialAmount);
     setManualValue(initialAmount.toString());
     // Sync radio buttons after render
@@ -56,8 +56,8 @@ export default function Deposit() {
     setManualValue(val);
 
     if (val === '') {
-      setAmountValue(3000, false);
-      syncCheckedAmount(3000);
+      setAmountValue(2000, false);
+      syncCheckedAmount(2000);
       return;
     }
 
@@ -76,10 +76,10 @@ export default function Deposit() {
     e.preventDefault();
     let value = parseInt(manualValue || amount || 0, 10);
 
-    if (isNaN(value) || value < 3000) {
-      alert('Minimum deposit Rs 3,000 hai.');
-      setAmountValue(3000, true);
-      syncCheckedAmount(3000);
+    if (isNaN(value) || value < 2000) {
+      alert('Minimum deposit Rs 2,000 hai.');
+      setAmountValue(2000, true);
+      syncCheckedAmount(2000);
       const manualInput = document.getElementById('manualAmount');
       if (manualInput) manualInput.focus();
       return false;
@@ -90,7 +90,7 @@ export default function Deposit() {
     alert(`Deposit of Rs ${value.toLocaleString()} via ${selectedMethod} initiated.`);
   };
 
-  const amountOptions = [3000, 5000, 7500, 10000, 25000, 50000];
+  const amountOptions = [2000, 5000, 7500, 10000, 25000, 50000];
 
   return (
     <>
@@ -131,7 +131,7 @@ export default function Deposit() {
             </h1>
 
             <p className="deposit-sub">
-              Select coin package or enter manual amount. Minimum deposit is Rs 3,000.
+              Select coin package or enter manual amount. Minimum deposit is Rs 2,000.
             </p>
 
             <div className="secure-strip">
@@ -156,7 +156,7 @@ export default function Deposit() {
           <section className="deposit-card">
             <div className="card-title">
               <h2>Select Amount</h2>
-              <span>Minimum Rs 3,000</span>
+              <span>Minimum Rs 2,000</span>
             </div>
 
             <form ref={formRef} method="POST" id="depositForm" onSubmit={handleSubmit}>
@@ -170,7 +170,7 @@ export default function Deposit() {
                       type="radio"
                       name="amount_option"
                       value={optionAmount}
-                      defaultChecked={optionAmount === 3000}
+                      defaultChecked={optionAmount === 2000}
                       onChange={handleAmountOptionChange}
                     />
                     <div className="amount-box">
@@ -189,11 +189,11 @@ export default function Deposit() {
               <div className="manual-box">
                 <div className="manual-label">
                   Manual Amount
-                  <span>Minimum Deposit Rs 3,000</span>
+                  <span>Minimum Deposit Rs 2,000</span>
                 </div>
                 <input
                   type="number"
-                  min="3000"
+                  min="2000"
                   step="1"
                   id="manualAmount"
                   className="manual-input"
@@ -262,7 +262,7 @@ export default function Deposit() {
 
               <div className="min-note">
                 <i className="fa-solid fa-circle-check"></i>
-                Minimum deposit 3000 hai. Manual amount 3000 se kam enter karne par form submit nahi hoga.
+                Minimum deposit 2000 hai. Manual amount 2000 se kam enter karne par form submit nahi hoga.
               </div>
             </form>
           </section>

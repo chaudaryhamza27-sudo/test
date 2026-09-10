@@ -16,8 +16,8 @@ export const MAX_PENDING_ORDERS_PER_MINUTE = 5;
 // https://paybost.com/sandbox/payment/initiate) — so unlike the PayPal (USD)
 // flow, Paybost deposits are PKR and 1 PKR == 1 demo credit, matching the
 // rest of this app's Rs-denominated wallet.
-export const PAYBOST_PRESET_DEPOSIT_AMOUNTS = [3000, 5000, 10000, 25000, 50000];
-export const PAYBOST_MIN_DEPOSIT_AMOUNT = 3000;
+export const PAYBOST_PRESET_DEPOSIT_AMOUNTS = [2000, 5000, 10000, 25000, 50000];
+export const PAYBOST_MIN_DEPOSIT_AMOUNT = 2000;
 export const PAYBOST_MAX_DEPOSIT_AMOUNT = 100000;
 
 export function validatePaybostAmount(amount) {

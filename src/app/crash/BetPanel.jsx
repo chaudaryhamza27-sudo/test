@@ -6,7 +6,7 @@ import styles from './BetPanel.module.css';
 /*
  * BetPanel is presentational. It never decides whether a bet is valid or what
  * a cash-out is worth — it reports intent upward and renders what it is told.
- * The parent turns onBet/onCancel/onCashOut into API calls, and the server
+ * The parent turns onBet/onCashOut into API calls, and the server
  * decides.
  *
  * Props
@@ -15,7 +15,7 @@ import styles from './BetPanel.module.css';
  *   min, max    stake limits from the server
  *   bet         null, or { stake, status: 'placed' | 'queued' | 'cashed' }
  *   busy        true while a bet/cash-out request is in flight
- *   onBet(stake, autoCashOut), onCancel(), onCashOut()
+ *   onBet(stake, autoCashOut), onCashOut()
  */
 
 const QUICK = [64, 160, 320, 1600];
@@ -23,7 +23,7 @@ const AUTO_CASHOUT_DEFAULT = 1.01;
 
 export default function BetPanel({
   phase, multiplier = 1, min = 10, max = 5000,
-  bet = null, busy = false, onBet, onCancel, onCashOut,
+  bet = null, busy = false, onBet, onCashOut,
 }) {
   const [tab, setTab] = useState('bet');            // 'bet' | 'auto'
   const [stake, setStake] = useState(min.toFixed(2));
@@ -33,7 +33,7 @@ export default function BetPanel({
 
   const clamp = (v) => Math.min(max, Math.max(min, Number(v) || min));
   const fmt = (v) => clamp(v).toFixed(2);
-  const locked = !!bet && bet.status !== 'cashed';
+  const locked = !!bet && bet.status === 'placed';
   const flying = phase === 'flying';
   const canCashOut = flying && bet?.status === 'placed';
 
@@ -48,7 +48,7 @@ export default function BetPanel({
 
   const primary = () => {
     if (canCashOut) return onCashOut();
-    if (locked) return onCancel();
+    if (locked) return;
     return place();
   };
 
@@ -61,9 +61,9 @@ export default function BetPanel({
     sub = `${(stake * multiplier).toFixed(2)}PKR`;
     tone = styles.cash;
   } else if (locked) {
-    label = 'Cancel';
+    label = 'Bet placed';
     tone = styles.cancel;
-    waiting = 'Waiting for next round';
+    waiting = 'Waiting for the round to start';
   }
 
   return (
@@ -101,7 +101,7 @@ export default function BetPanel({
 
         <div className={`${styles.actionCol} crash-action-col`}>
           {waiting && <div className={styles.waitingLabel}>{waiting}</div>}
-          <button type="button" className={`${styles.action} ${tone} crash-action-btn`} onClick={primary} disabled={busy}>
+          <button type="button" className={`${styles.action} ${tone} crash-action-btn`} onClick={primary} disabled={busy || (locked && !canCashOut)}>
             {label}
             {sub && <small>{sub}</small>}
           </button>

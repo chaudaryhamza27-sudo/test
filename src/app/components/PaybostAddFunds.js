@@ -6,8 +6,8 @@ import { IconShield, IconX, IconChevronRight, IconWallet, IconUpload, IconCheck 
 
 // This merchant's Paybost sandbox account only accepts PKR — matches this
 // app's existing Rs-denominated wallet, so 1 PKR (test) == 1 demo credit here.
-const PRESET_AMOUNTS = [3000, 5000, 10000, 25000, 35000,50000];
-const MIN_AMOUNT = 3000;
+const PRESET_AMOUNTS = [2000, 5000, 10000, 25000, 35000,50000];
+const MIN_AMOUNT = 2000;
 const MAX_AMOUNT = 50000;
 const POLL_INTERVAL_MS = 2000;
 const POLL_MAX_ATTEMPTS = 15; // ~30s

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import BottomNav from "../components/BottomNav";
@@ -31,15 +31,35 @@ export default function ProfilePage() {
   const [notice, setNotice] = useState(null);
   const [user, setUser] = useState(null);
   const [vip, setVip] = useState(null);
+  const requestVersion = useRef(0);
 
-  const loadUser = () => {
-    fetch("/api/auth/me")
+  const loadUser = useCallback(() => {
+    const version = ++requestVersion.current;
+    return fetch("/api/auth/me", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data) => setUser(data.user))
-      .catch(() => router.push("/login"));
-  };
+      .then((data) => {
+        if (version === requestVersion.current) setUser(data.user);
+      })
+      .catch(() => {
+        if (version === requestVersion.current) router.push("/login");
+      });
+  }, [router]);
 
-  useEffect(loadUser, [router]);
+  useEffect(() => {
+    loadUser();
+  }, [loadUser]);
+
+  // Auto cash-outs and activity in another tab change the database balance.
+  // Profile refreshes from the authoritative endpoint while it is open.
+  useEffect(() => {
+    const refresh = () => loadUser();
+    window.addEventListener("focus", refresh);
+    const timer = window.setInterval(refresh, 10000);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      window.clearInterval(timer);
+    };
+  }, [loadUser]);
 
   useEffect(() => {
     if (!user) return;
