@@ -14,8 +14,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Lucky73 — UI Showcase",
-  description: "A professional educational simulation built with Next.js using virtual funds.",
+  title: {
+    default: "Lucky73 | Virtual Gaming Experience",
+    template: "%s | Lucky73",
+  },
+  description:
+    "Explore Lucky73, a modern virtual gaming experience with interactive games, secure account tools, and dedicated support.",
 };
 
 export default function RootLayout({ children }) {

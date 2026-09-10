@@ -5,6 +5,7 @@ import GameRound from "../../../../lib/models/GameRound";
 import { requireAdmin } from "../../../../lib/auth";
 
 const DAYS = 14;
+const SETTLED_TRANSACTION_STATUSES = ["approved", "completed"];
 
 function dayKey(date) {
   return new Date(date).toISOString().slice(0, 10);
@@ -51,10 +52,19 @@ export async function GET() {
     GameRound.countDocuments({}),
     Transaction.countDocuments({ type: "deposit", status: "pending" }),
     Transaction.countDocuments({ type: "withdraw", status: "pending" }),
-    Transaction.aggregate([{ $match: { type: "deposit", status: "approved" } }, { $group: { _id: null, total: { $sum: "$amount" } } }]),
-    Transaction.aggregate([{ $match: { type: "withdraw", status: "approved" } }, { $group: { _id: null, total: { $sum: "$amount" } } }]),
+    Transaction.aggregate([
+      { $match: { type: "deposit", status: { $in: SETTLED_TRANSACTION_STATUSES } } },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]),
+    Transaction.aggregate([
+      { $match: { type: "withdraw", status: { $in: SETTLED_TRANSACTION_STATUSES } } },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]),
     User.find({ createdAt: { $gte: since } }, "createdAt"),
-    Transaction.find({ type: "deposit", status: "approved", createdAt: { $gte: since } }, "createdAt amount"),
+    Transaction.find(
+      { type: "deposit", status: { $in: SETTLED_TRANSACTION_STATUSES }, createdAt: { $gte: since } },
+      "createdAt amount"
+    ),
   ]);
 
   const days = lastNDays(DAYS);
