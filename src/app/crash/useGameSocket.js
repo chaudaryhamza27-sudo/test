@@ -24,7 +24,12 @@ export function useGameSocket() {
   const modeRef = useRef(SOCKET_URL ? "socket" : "polling"); // "socket" | "polling"
 
   const applyRoundUpdate = useCallback((payload) => {
-    setState((s) => ({ ...(s || {}), ...payload }));
+    setState((s) => ({
+      ...(s || {}),
+      // A new round must never inherit the previous round's revealed result.
+      ...(s?.roundId && s.roundId !== payload.roundId ? { crashPoint: null, crashedAt: null } : {}),
+      ...payload,
+    }));
   }, []);
 
   // --- Polling fallback (identical shape/behavior to the pre-Socket.IO version) ---
@@ -118,12 +123,24 @@ export function useGameSocket() {
           phase: payload.phase,
           multiplier: payload.multiplier,
           waitingEndsAt: payload.waitingEndsAt,
+          startedAt: payload.startedAt,
+          crashedAt: payload.crashedAt,
+          crashPoint: payload.crashPoint,
           now: payload.now,
           playerCount: payload.playerCount,
         });
       });
 
       socket.on("round:waiting", () => setRoundFinishedAt(Date.now()));
+
+      socket.on("round:crashed", (payload) => {
+        applyRoundUpdate({
+          roundId: payload.roundId,
+          phase: "CRASHED",
+          crashPoint: payload.crashPoint,
+          crashedAt: payload.crashedAt ?? Date.now(),
+        });
+      });
 
       socket.on("bet:updated", (payload) => {
         const slot = payload.slot === 2 ? 2 : 1;

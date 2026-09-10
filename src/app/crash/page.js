@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import CrashStage from './CrashStage';
 import BetPanel from './BetPanel';
-import useCrashRound from './useCrashRound';
+import { useGameSocket } from './useGameSocket';
 import AppShellHeader from '../components/AppShellHeader';
 import { useSound } from '../components/SoundProvider';
 import { IconHistory, IconHeadset, IconChevronRight } from '../icons';
@@ -12,10 +12,10 @@ import depositStyles from '../deposit/deposit.module.css';
 import './crash.css';
 
 /*
- * UI harness for the crash stage. It runs the local demo engine so the page
- * works with nothing else running.
+ * The stage receives the authoritative game state over Socket.IO (with REST
+ * polling as its automatic fallback if the realtime server is unavailable).
  *
- * To point it at the real engine:
+ * The old wiring notes below predate the Socket.IO integration:
  *   1. useCrashRound({ source: 'server' })  — SSE from /api/game/stream
  *   2. replace placeBet / cashOut below with POSTs to your existing routes
  *   3. take `balance` from the wallet rather than local state
@@ -127,7 +127,19 @@ function useBetSlot(round, balance, setBalance, onInsufficientFunds, playSfx) {
 }
 
 export default function CrashDemoPage() {
-  const round = useCrashRound({ source: 'demo' });
+  const { state: gameState } = useGameSocket();
+  const enginePhase = gameState?.phase;
+  const round = {
+    phase: enginePhase === 'RUNNING' ? 'flying' : enginePhase === 'CRASHED' ? 'crashed' : 'betting',
+    multiplier: Number(gameState?.multiplier) || 1,
+    // Presentation only: the server remains the source of the multiplier and result.
+    elapsed: Math.max(0, Math.log(Math.max(1, Number(gameState?.multiplier) || 1)) / 0.085),
+    countdown: gameState?.waitingEndsAt
+      ? Math.min(1, Math.max(0, 1 - (gameState.waitingEndsAt - (gameState.now || Date.now())) / 6000))
+      : 0,
+    growthRate: 0.085,
+    crashPoint: gameState?.crashPoint ? gameState.crashPoint / 100 : null,
+  };
   // Starts from the signed-in account's real balance (same source AppShellHeader
   // itself would fetch) rather than a hardcoded demo number, so a fresh account
   // sees its actual Rs0.00 here too instead of a fake Rs5,000.
@@ -246,6 +258,7 @@ export default function CrashDemoPage() {
 
   return (
     <main className="crash-page" style={{ maxWidth: 900, width: '100%', margin: '0 auto', color: '#fff' }}>
+     
       <AppShellHeader
         subtitle="Crash"
         balance={balance}

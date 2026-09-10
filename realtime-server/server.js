@@ -83,6 +83,9 @@ io.on("connection", async (socket) => {
       phase: info.phase,
       multiplier: info.multiplier,
       waitingEndsAt: info.waitingEndsAt ?? null,
+      startedAt: info.startedAt ?? null,
+      crashedAt: info.crashedAt ?? null,
+      crashPoint: info.phase === "CRASHED" ? round.crashPoint : null,
       now: Date.now(),
       playerCount,
     });
@@ -179,6 +182,9 @@ async function tick() {
     phase: info.phase,
     multiplier: info.multiplier,
     waitingEndsAt: info.waitingEndsAt ?? null,
+    startedAt: info.startedAt ?? null,
+    crashedAt: info.crashedAt ?? null,
+    crashPoint: info.phase === "CRASHED" ? round.crashPoint : null,
     now: Date.now(),
     playerCount,
   });
@@ -194,7 +200,7 @@ async function tick() {
     lastPhase = info.phase;
   } else if (info.phase !== lastPhase) {
     if (info.phase === "RUNNING") io.emit("round:started", { roundId: round._id, startedAt: info.startedAt });
-    if (info.phase === "CRASHED") io.emit("round:crashed", { roundId: round._id, crashPoint: round.crashPoint, serverSeed: round.serverSeed });
+    if (info.phase === "CRASHED") io.emit("round:crashed", { roundId: round._id, crashPoint: round.crashPoint, crashedAt: info.crashedAt, serverSeed: round.serverSeed });
     lastPhase = info.phase;
   }
 }
