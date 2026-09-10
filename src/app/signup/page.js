@@ -24,10 +24,8 @@ export default function SignupPage() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
   const [invite, setInvite] = useState("");
   const [showPass, setShowPass] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [agree, setAgree] = useState(false);
   const [popup, setPopup] = useState(null);
   const [error, setError] = useState(null);
@@ -50,17 +48,13 @@ export default function SignupPage() {
 
   const canSubmit = useMemo(() => {
     const idFilled = tab === "phone" ? phone.trim().length > 0 : email.trim().length > 0;
-    return name.trim().length > 0 && idFilled && password.trim().length > 0 && confirm.trim().length > 0 && agree;
+    return name.trim().length > 0 && idFilled && password.trim().length > 0  && agree;
   }, [name, tab, phone, email, password,  agree]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!canSubmit || submitting) return;
     setError(null);
-    if (password !== confirm) {
-      setError("Passwords do not match.");
-      return;
-    }
     setSubmitting(true);
     try {
       const res = await fetch("/api/auth/signup", {
@@ -70,7 +64,7 @@ export default function SignupPage() {
           name,
           ...(tab === "phone" ? { phone } : { email }),
           password,
-          confirmPassword: confirm,
+          confirmPassword: password,
           inviteCode: invite || undefined,
         }),
       });
@@ -198,26 +192,6 @@ export default function SignupPage() {
                 </button>
               </div>
             </div>
-
-            {/* <div className="kk-auth-field">
-              <div className="kk-auth-label">
-                <IconLockLine />
-                Confirm Password
-              </div>
-              <div className="kk-pass-wrap">
-                <input
-                  className="kk-auth-input"
-                  type={showConfirm ? "text" : "password"}
-                  placeholder="Re-enter your password"
-                  value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
-                  autoComplete="new-password"
-                />
-                <button type="button" className="kk-eye-btn" onClick={() => setShowConfirm((v) => !v)} aria-label="Toggle password visibility">
-                  {showConfirm ? <IconEye /> : <IconEyeOff />}
-                </button>
-              </div>
-            </div> */}
 
             <div className="kk-auth-field">
               <div className="kk-auth-label">
