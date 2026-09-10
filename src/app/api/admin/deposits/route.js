@@ -6,7 +6,7 @@ import { adjustBalance } from "../../../../lib/wallet";
 import { logActivity } from "../../../../lib/activity";
 import { notifyUser } from "../../../../lib/notifications";
 import { computeTrustScore } from "../../../../lib/trustScore";
-import { sendTelegramMessage } from "../../../../lib/telegram";
+import { escapeTelegramHtml, sendTelegramMessage } from "../../../../lib/telegram";
 
 const DEPOSIT_STATUSES = ["approved", "completed"];
 
@@ -92,10 +92,10 @@ export async function PATCH(request) {
   });
 
   const targetUser = await User.findById(tx.user).select("uid name").lean();
-  sendTelegramMessage(
+  await sendTelegramMessage(
     action === "approve"
-      ? `✅ <b>Deposit Approved</b>\nUser: ${targetUser?.name || targetUser?.uid || tx.user}\nAmount: Rs${Number(tx.amount).toLocaleString()}`
-      : `❌ <b>Deposit Rejected</b>\nUser: ${targetUser?.name || targetUser?.uid || tx.user}\nAmount: Rs${Number(tx.amount).toLocaleString()}`
+      ? `✅ <b>Deposit Approved</b>\nUser: ${escapeTelegramHtml(targetUser?.name || targetUser?.uid || tx.user)}\nAmount: Rs${Number(tx.amount).toLocaleString()}\nStatus: Approved`
+      : `❌ <b>Deposit Rejected</b>\nUser: ${escapeTelegramHtml(targetUser?.name || targetUser?.uid || tx.user)}\nAmount: Rs${Number(tx.amount).toLocaleString()}\nStatus: Rejected${tx.meta?.rejectionReason ? `\nReason: ${escapeTelegramHtml(tx.meta.rejectionReason)}` : ""}`
   );
   await notifyUser(tx.user, {
     type: action === "approve" ? "deposit_approved" : "deposit_rejected",

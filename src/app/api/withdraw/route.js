@@ -3,7 +3,7 @@ import Transaction from "../../../lib/models/Transaction";
 import { getCurrentUser } from "../../../lib/auth";
 import { adjustBalance, getWithdrawEligibility } from "../../../lib/wallet";
 import { logActivity } from "../../../lib/activity";
-import { sendTelegramMessage } from "../../../lib/telegram";
+import { escapeTelegramHtml, sendTelegramMessage } from "../../../lib/telegram";
 
 const ELIGIBILITY_MESSAGES = {
   pending_deposit: "Your deposit is still pending verification. You can withdraw once it's approved.",
@@ -80,8 +80,8 @@ export async function POST(request) {
     meta: { transactionId: withdrawal._id, amount: parsedAmount },
   });
 
-  sendTelegramMessage(
-    `🏧 <b>New Withdraw Request</b>\nUser: ${user.name || user.uid} (${user.uid})\nAmount: Rs${parsedAmount.toLocaleString()}\nMethod: ${method}\nAccount: ${accountNumber}`
+  await sendTelegramMessage(
+    `🏧 <b>New Withdrawal Request</b>\nUser: ${escapeTelegramHtml(user.name || user.uid)} (${escapeTelegramHtml(user.uid)})\nAmount: Rs${parsedAmount.toLocaleString()}\nMethod: ${escapeTelegramHtml(method)}\nAccount: ${escapeTelegramHtml(accountNumber)}\nStatus: Pending`
   );
 
   return Response.json({ withdrawal, balance: updatedUser.balance });

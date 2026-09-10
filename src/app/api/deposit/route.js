@@ -2,7 +2,7 @@ import dbConnect from "../../../lib/mongodb";
 import Transaction from "../../../lib/models/Transaction";
 import { getCurrentUser } from "../../../lib/auth";
 import { logActivity } from "../../../lib/activity";
-import { sendTelegramMessage } from "../../../lib/telegram";
+import { escapeTelegramHtml, sendTelegramMessage } from "../../../lib/telegram";
 
 const MIN_DEPOSIT = 3000;
 const MAX_PROOF_BYTES = 5 * 1024 * 1024; // 5MB
@@ -77,8 +77,8 @@ export async function POST(request) {
     meta: { transactionId: deposit._id, amount: parsedAmount },
   });
 
-  sendTelegramMessage(
-    `💰 <b>New Deposit Request</b>\nUser: ${user.name || user.uid} (${user.uid})\nAmount: Rs${parsedAmount.toLocaleString()}\nMethod: ${method}\nAccount: ${accountNumber || "-"}`
+  await sendTelegramMessage(
+    `💰 <b>New Deposit Request</b>\nUser: ${escapeTelegramHtml(user.name || user.uid)} (${escapeTelegramHtml(user.uid)})\nAmount: Rs${parsedAmount.toLocaleString()}\nMethod: ${escapeTelegramHtml(method)}\nAccount: ${escapeTelegramHtml(accountNumber || "-")}\nStatus: Pending`
   );
 
   // Don't echo the (potentially large) proof image back in the response —

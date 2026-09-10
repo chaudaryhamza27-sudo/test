@@ -66,8 +66,12 @@ export default function FloatingWhatsApp() {
 
   const onPointerDown = (e) => {
     if (!pos) return;
+    // Only the first primary pointer is allowed to control the button. This
+    // keeps a second finger from interrupting a drag on touch devices.
+    if (!e.isPrimary) return;
     btnRef.current.setPointerCapture(e.pointerId);
     dragRef.current = {
+      pointerId: e.pointerId,
       startX: e.clientX,
       startY: e.clientY,
       originX: pos.x,
@@ -78,17 +82,20 @@ export default function FloatingWhatsApp() {
 
   const onPointerMove = (e) => {
     const d = dragRef.current;
-    if (!d) return;
+    if (!d || d.pointerId !== e.pointerId) return;
     const dx = e.clientX - d.startX;
     const dy = e.clientY - d.startY;
     if (!d.moved && Math.hypot(dx, dy) > DRAG_THRESHOLD) d.moved = true;
     if (d.moved) setPos(clamp(d.originX + dx, d.originY + dy));
   };
 
-  const onPointerUp = () => {
+  const finishDrag = (e, shouldOpenChat) => {
     const d = dragRef.current;
+    if (!d || d.pointerId !== e.pointerId) return;
     dragRef.current = null;
-    if (!d) return;
+    if (btnRef.current?.hasPointerCapture(e.pointerId)) {
+      btnRef.current.releasePointerCapture(e.pointerId);
+    }
     if (d.moved) {
       setPos((current) => {
         try {
@@ -96,10 +103,13 @@ export default function FloatingWhatsApp() {
         } catch {}
         return current;
       });
-    } else if (waLink) {
+    } else if (shouldOpenChat && waLink) {
       window.open(waLink, "_blank", "noopener,noreferrer");
     }
   };
+
+  const onPointerUp = (e) => finishDrag(e, true);
+  const onPointerCancel = (e) => finishDrag(e, false);
 
   if (!waLink || !pos) return null;
 
@@ -113,7 +123,7 @@ export default function FloatingWhatsApp() {
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
+      onPointerCancel={onPointerCancel}
     >
       <IconWhatsapp />
     </button>

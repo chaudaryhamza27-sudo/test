@@ -5,7 +5,7 @@ import { requireAdmin } from "../../../../lib/auth";
 import { adjustBalance } from "../../../../lib/wallet";
 import { logActivity } from "../../../../lib/activity";
 import { notifyUser } from "../../../../lib/notifications";
-import { sendTelegramMessage } from "../../../../lib/telegram";
+import { escapeTelegramHtml, sendTelegramMessage } from "../../../../lib/telegram";
 
 export async function GET() {
   const admin = await requireAdmin();
@@ -59,10 +59,10 @@ export async function PATCH(request) {
   });
 
   const targetUser = await User.findById(tx.user).select("uid name").lean();
-  sendTelegramMessage(
+  await sendTelegramMessage(
     action === "approve"
-      ? `✅ <b>Withdrawal Approved</b>\nUser: ${targetUser?.name || targetUser?.uid || tx.user}\nAmount: Rs${Number(tx.amount).toLocaleString()}`
-      : `❌ <b>Withdrawal Rejected</b>\nUser: ${targetUser?.name || targetUser?.uid || tx.user}\nAmount: Rs${Number(tx.amount).toLocaleString()}`
+      ? `✅ <b>Withdrawal Approved</b>\nUser: ${escapeTelegramHtml(targetUser?.name || targetUser?.uid || tx.user)}\nAmount: Rs${Number(tx.amount).toLocaleString()}\nStatus: Approved`
+      : `❌ <b>Withdrawal Rejected</b>\nUser: ${escapeTelegramHtml(targetUser?.name || targetUser?.uid || tx.user)}\nAmount: Rs${Number(tx.amount).toLocaleString()}\nStatus: Rejected\nFunds refunded to user`
   );
   await notifyUser(tx.user, {
     type: action === "approve" ? "withdraw_approved" : "withdraw_rejected",
