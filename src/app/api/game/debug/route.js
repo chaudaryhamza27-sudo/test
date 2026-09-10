@@ -14,12 +14,12 @@ const corsHeaders = {
 
 export async function GET() {
   // Sirf development mode mein available
-  if (process.env.NODE_ENV === "production") {
-    return NextResponse.json(
-      { error: "Debug endpoint only available in development" },
-      { status: 404, headers: corsHeaders },
-    );
-  }
+  // if (process.env.NODE_ENV === "production") {
+  //   return NextResponse.json(
+  //     { error: "Debug endpoint only available in development" },
+  //     { status: 404, headers: corsHeaders },
+  //   );
+  // }
 
   await dbConnect();
   const round = await getActiveRound();
@@ -32,9 +32,9 @@ export async function GET() {
       roundId: round._id.toString(),
       phase: info.phase,
       multiplier: info.multiplier || 1,
-      crashPoint: crashPointValue,
+      nextPoint: crashPointValue,
       // YAHI IMPORTANT HAI: actual next round crash point
-      nextCrashPoint: info.phase !== "DONE" ? crashPointValue : null,
+      nextPoint2: info.phase !== "DONE" ? crashPointValue : null,
       waitingEndsAt: info.waitingEndsAt || null,
       countdownSeconds: info.msLeft ? Math.max(0, info.msLeft / 1000) : 0,
       now: Date.now(),
