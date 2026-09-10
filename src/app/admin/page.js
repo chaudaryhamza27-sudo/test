@@ -133,6 +133,10 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [deposits, setDeposits] = useState([]);
   const [withdrawals, setWithdrawals] = useState([]);
+  // IDs (rather than booleans) keep a review in one row from disabling every
+  // other request, and prevent a double-click from sending a second review.
+  const [reviewingDeposit, setReviewingDeposit] = useState(null);
+  const [reviewingWithdrawal, setReviewingWithdrawal] = useState(null);
   const [userStatsModal, setUserStatsModal] = useState(null);
   const [userSearch, setUserSearch] = useState("");
   const [banModal, setBanModal] = useState(null); // { user }
@@ -217,9 +221,9 @@ export default function AdminDashboard() {
 
   const loadAll = useCallback(async () => {
     const [usersRes, depositsRes, withdrawalsRes] = await Promise.all([
-      fetch("/api/admin/users"),
-      fetch("/api/admin/deposits"),
-      fetch("/api/admin/withdrawals"),
+      fetch("/api/admin/users", { cache: "no-store" }),
+      fetch("/api/admin/deposits", { cache: "no-store" }),
+      fetch("/api/admin/withdrawals", { cache: "no-store" }),
     ]);
 
     if (usersRes.status === 403 || depositsRes.status === 403 || withdrawalsRes.status === 403) {
@@ -483,18 +487,35 @@ export default function AdminDashboard() {
       rejectionReason = window.prompt("Reason for rejecting this deposit (shown to the user):", "Payment proof did not match the requested amount.");
       if (rejectionReason === null) return; // cancelled
     }
+    setReviewingDeposit(transactionId);
     setError("");
-    const res = await fetch("/api/admin/deposits", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ transactionId, action, rejectionReason }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setError(data.error || "Failed to review deposit.");
-      return;
+    try {
+      const res = await fetch("/api/admin/deposits", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transactionId, action, rejectionReason }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Failed to review deposit.");
+        return;
+      }
+
+      // Reflect the confirmed database status immediately. `loadAll` follows
+      // to refresh the credited balance and the other admin tables.
+      setDeposits((current) =>
+        current.map((deposit) =>
+          deposit._id === transactionId
+            ? { ...deposit, status: data.deposit?.status || (action === "approve" ? "approved" : "rejected"), rejectionReason: data.deposit?.rejectionReason || rejectionReason || null }
+            : deposit
+        )
+      );
+      await loadAll();
+    } catch {
+      setError("Something went wrong reviewing this deposit. Please try again.");
+    } finally {
+      setReviewingDeposit(null);
     }
-    loadAll();
   };
 
   const viewProof = async (transactionId) => {
@@ -511,18 +532,32 @@ export default function AdminDashboard() {
   };
 
   const reviewWithdrawal = async (transactionId, action) => {
+    setReviewingWithdrawal(transactionId);
     setError("");
-    const res = await fetch("/api/admin/withdrawals", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ transactionId, action }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setError(data.error || "Failed to review withdrawal.");
-      return;
+    try {
+      const res = await fetch("/api/admin/withdrawals", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transactionId, action }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Failed to review withdrawal.");
+        return;
+      }
+      setWithdrawals((current) =>
+        current.map((withdrawal) =>
+          withdrawal._id === transactionId
+            ? { ...withdrawal, status: data.withdrawal?.status || (action === "approve" ? "approved" : "rejected") }
+            : withdrawal
+        )
+      );
+      await loadAll();
+    } catch {
+      setError("Something went wrong reviewing this withdrawal. Please try again.");
+    } finally {
+      setReviewingWithdrawal(null);
     }
-    loadAll();
   };
 
   const submitBan = async () => {
@@ -765,6 +800,7 @@ export default function AdminDashboard() {
   const TAB_REFRESHERS = {
     dashboard: loadOverview,
     users: loadAll,
+    deposits: loadAll,
     withdrawals: loadAll,
     balance: loadAll,
     support: loadSupportSettings,
@@ -1026,10 +1062,10 @@ export default function AdminDashboard() {
                     <td>
                       {w.status === "pending" && (
                         <>
-                          <button className="admin-small-btn approve" onClick={() => reviewWithdrawal(w._id, "approve")}>
-                            Approve
+                          <button className="admin-small-btn approve" onClick={() => reviewWithdrawal(w._id, "approve")} disabled={reviewingWithdrawal === w._id}>
+                            {reviewingWithdrawal === w._id ? "Reviewing…" : "Approve"}
                           </button>
-                          <button className="admin-small-btn reject" onClick={() => reviewWithdrawal(w._id, "reject")}>
+                          <button className="admin-small-btn reject" onClick={() => reviewWithdrawal(w._id, "reject")} disabled={reviewingWithdrawal === w._id}>
                             Reject
                           </button>
                         </>
@@ -1172,19 +1208,16 @@ export default function AdminDashboard() {
                       )}
                     </td>
                     <td>
-                      {/* Balance Manager above now handles crediting a user's
-                          account directly, so the approve/reject actions here
-                          are disabled — this table is informational only. */}
-                      {/* {d.status === "pending" && (
+                      {d.status === "pending" && (
                         <>
-                          <button className="admin-small-btn approve" onClick={() => reviewDeposit(d._id, "approve")}>
-                            Approve
+                          <button className="admin-small-btn approve" onClick={() => reviewDeposit(d._id, "approve")} disabled={reviewingDeposit === d._id}>
+                            {reviewingDeposit === d._id ? "Reviewing…" : "Approve"}
                           </button>
-                          <button className="admin-small-btn reject" onClick={() => reviewDeposit(d._id, "reject")}>
+                          <button className="admin-small-btn reject" onClick={() => reviewDeposit(d._id, "reject")} disabled={reviewingDeposit === d._id}>
                             Reject
                           </button>
                         </>
-                      )} */}
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -1272,7 +1305,12 @@ export default function AdminDashboard() {
 
       {tab === "deposits" && (
         <div>
-          <PageHead title="Deposits" sub={`${deposits.length} deposit requests`} />
+          <PageHead
+            title="Deposits"
+            sub={`${deposits.length} deposit requests`}
+            onRefresh={() => refreshTab("deposits", loadAll)}
+            refreshing={refreshingTab === "deposits"}
+          />
           <div className="admin-table-wrap">
             <table className="admin-table">
               <thead>
@@ -1309,10 +1347,10 @@ export default function AdminDashboard() {
                     <td>
                       {d.status === "pending" && (
                         <>
-                          <button className="admin-small-btn approve" onClick={() => reviewDeposit(d._id, "approve")}>
-                            Approve
+                          <button className="admin-small-btn approve" onClick={() => reviewDeposit(d._id, "approve")} disabled={reviewingDeposit === d._id}>
+                            {reviewingDeposit === d._id ? "Reviewing…" : "Approve"}
                           </button>
-                          <button className="admin-small-btn reject" onClick={() => reviewDeposit(d._id, "reject")}>
+                          <button className="admin-small-btn reject" onClick={() => reviewDeposit(d._id, "reject")} disabled={reviewingDeposit === d._id}>
                             Reject
                           </button>
                         </>

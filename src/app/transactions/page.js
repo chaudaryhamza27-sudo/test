@@ -32,6 +32,17 @@ export default function TransactionsPage() {
   const [items, setItems] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [refreshVersion, setRefreshVersion] = useState(0);
+
+  useEffect(() => {
+    const refresh = () => setRefreshVersion((version) => version + 1);
+    const timer = window.setInterval(refresh, 30000);
+    window.addEventListener("focus", refresh);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+    };
+  }, []);
 
   // Seed the initial filter from a `?type=` query param (e.g. linked from the
   // Wallet page's "Deposit history" / "Withdrawal history" shortcuts).
@@ -45,7 +56,7 @@ export default function TransactionsPage() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetch(`/api/transactions?type=${filter}&page=${page}`)
+    fetch(`/api/transactions?type=${filter}&page=${page}`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => {
         if (cancelled) return;
@@ -59,7 +70,7 @@ export default function TransactionsPage() {
     return () => {
       cancelled = true;
     };
-  }, [filter, page]);
+  }, [filter, page, refreshVersion]);
 
   return (
     <div className="kk-page">

@@ -26,11 +26,26 @@ export default function HistoryList({ type, title }) {
   const [items, setItems] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [refreshVersion, setRefreshVersion] = useState(0);
+
+  // Deposit and withdrawal reviews happen in a separate admin session. Refresh
+  // a mounted history when the user returns to it, with a light background
+  // check while it stays open, so a confirmed review cannot remain displayed
+  // as Pending until the user manually reloads the page.
+  useEffect(() => {
+    const refresh = () => setRefreshVersion((version) => version + 1);
+    const timer = window.setInterval(refresh, 30000);
+    window.addEventListener("focus", refresh);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetch(`/api/transactions?type=${type}&page=${page}`)
+    fetch(`/api/transactions?type=${type}&page=${page}`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => {
         if (cancelled) return;
@@ -44,7 +59,7 @@ export default function HistoryList({ type, title }) {
     return () => {
       cancelled = true;
     };
-  }, [type, page]);
+  }, [type, page, refreshVersion]);
 
   const TypeIcon = TYPE_ICONS[type] || IconHistory;
 

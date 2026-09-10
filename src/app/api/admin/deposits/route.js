@@ -106,5 +106,12 @@ export async function PATCH(request) {
         : `Your virtual deposit request of Rs${Number(tx.amount).toLocaleString()} was rejected.${tx.meta?.rejectionReason ? ` Reason: ${tx.meta.rejectionReason}` : ""}`,
   });
 
-  return Response.json({ deposit: { ...tx.toObject(), meta: undefined, hasProof: undefined } });
+  return Response.json({
+    deposit: {
+      ...tx.toObject(),
+      meta: undefined,
+      hasProof: undefined,
+      rejectionReason: tx.meta?.rejectionReason || null,
+    },
+  });
 }
