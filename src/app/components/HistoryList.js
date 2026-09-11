@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { IconChevronRight, IconDeposit, IconWithdraw, IconHistory } from "../icons";
+import TransactionHistoryCard from "./TransactionHistoryCard";
 
 const TYPE_ICONS = {
   deposit: IconDeposit,
@@ -12,13 +13,6 @@ const TYPE_ICONS = {
 const TYPE_LABELS = {
   deposit: "Deposit",
   withdraw: "Withdraw",
-};
-
-const STATUS_TONE = {
-  approved: "green",
-  completed: "green",
-  rejected: "red",
-  pending: "orange",
 };
 
 export default function HistoryList({ type, title }) {
@@ -89,37 +83,8 @@ export default function HistoryList({ type, title }) {
         </div>
       ) : (
         <>
-          <div className="kk-list" style={{ margin: "10px 16px 0" }}>
-            {items.map((tx) => {
-              const tone = STATUS_TONE[tx.status] || "";
-              return (
-                <div className="kk-list-item" key={tx._id} style={{ cursor: "default", alignItems: "flex-start" }}>
-                  <span className="label" style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                    <span>{TYPE_LABELS[tx.type] || tx.type}</span>
-                    <span style={{ fontSize: 11, color: "var(--kk-muted)", fontWeight: 400 }}>
-                      {new Date(tx.createdAt).toLocaleString()}
-                      {tx.method ? ` · ${tx.method}` : ""}
-                    </span>
-                  </span>
-                  <span style={{ textAlign: "right", flexShrink: 0 }}>
-                    <div style={{ fontWeight: 800, fontSize: 14 }}>
-                      {tx.type === "withdraw" ? "-" : "+"}Rs{Number(tx.amount).toLocaleString()}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 800,
-                        textTransform: "uppercase",
-                        marginTop: 2,
-                        color: tone === "green" ? "var(--success)" : tone === "red" ? "var(--danger)" : tone === "orange" ? "var(--warning)" : "var(--kk-muted)",
-                      }}
-                    >
-                      {tx.status}
-                    </div>
-                  </span>
-                </div>
-              );
-            })}
+          <div className="transaction-history-list">
+            {items.map((tx) => <TransactionHistoryCard key={tx._id} transaction={tx} />)}
           </div>
 
           {totalPages > 1 && (

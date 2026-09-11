@@ -1270,6 +1270,35 @@ a{text-decoration:none;color:inherit}
 @keyframes kk-history-pulse{0%,100%{opacity:1}50%{opacity:.45}}
 .kk-history-empty b{display:block;color:var(--kk-text);font-size:15px;font-weight:800;margin-bottom:4px}
 
+/* Transaction receipts — matched to the supplied withdrawal-history design. */
+.transaction-history-page{background:#f1f8f4;color:#52645c}
+.transaction-history-page .kk-header{background:#fff;box-shadow:0 1px 0 #e0e7e3}
+.transaction-history-page .kk-header-title{font-size:22px;color:#1f312a;font-weight:500}
+.transaction-history-page .kk-header-icon-btn{background:transparent;color:#1f312a}
+.transaction-history-page main>div:first-child{background:#f1f8f4;padding:16px 28px 12px!important;gap:10px!important}
+.transaction-history-page main>div:first-child button{min-height:42px;padding:8px 18px!important;border-radius:999px!important;font-size:14px!important;font-weight:700!important}
+.transaction-history-list{display:flex;flex-direction:column;gap:18px;margin:14px 28px 0}
+.transaction-history-card{background:#fff;border:0;border-radius:9px;box-shadow:none;padding:22px 20px 26px;overflow:visible}
+.transaction-history-card-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 0 10px;border-bottom:1px solid #e8ece9}
+.transaction-history-type{display:inline-flex;align-items:center;min-height:48px;padding:0 14px;border-radius:9px;background:#ed3838;color:#fff;font-size:20px;font-weight:600;letter-spacing:.3px;box-shadow:inset 0 -1px 0 rgba(0,0,0,.12)}
+.transaction-history-type.withdraw{background:#ed3838}
+.transaction-history-status{font-size:20px;font-weight:600;letter-spacing:.5px;color:#e0a10b}
+.transaction-history-status.complete{color:#5c7167}
+.transaction-history-status.rejected{color:#e13f3f}
+.transaction-history-details{margin:20px 8px 0;display:flex;flex-direction:column;gap:20px}
+.transaction-history-details>div{display:grid;grid-template-columns:minmax(145px,1fr) minmax(0,1.6fr);align-items:center;gap:18px}
+.transaction-history-details dt{font-size:19px;font-weight:600;letter-spacing:1px;color:#5e7067}
+.transaction-history-details dd{min-width:0;margin:0;text-align:right;font-size:19px;font-weight:600;letter-spacing:.4px;color:#56685f;overflow-wrap:anywhere}
+.transaction-history-details dd.incoming{color:#d9b600}
+.transaction-history-details dd.outgoing{color:#d9b600}
+.transaction-order-number{display:flex;align-items:center;justify-content:flex-end;gap:10px;color:#b5b5c4!important;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:17px!important;font-weight:500!important;letter-spacing:.4px}
+.transaction-order-number>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.transaction-order-number button{width:28px;height:28px;padding:0;display:grid;place-items:center;flex:0 0 auto;border:0;border-radius:5px;background:transparent;color:#607269;cursor:pointer}
+.transaction-order-number button:hover{color:#1d6b48;background:#edf7f1}
+.transaction-order-number button svg{width:21px;height:21px}
+.transaction-order-number small{position:absolute;margin-top:-40px;padding:4px 7px;border-radius:5px;background:#52645c;color:#fff;font:700 10px/1 Arial,sans-serif}
+@media(max-width:520px){.transaction-history-page .kk-header-title{font-size:18px}.transaction-history-page main>div:first-child{padding:14px 16px 8px!important}.transaction-history-list{margin:10px 16px 0;gap:14px}.transaction-history-card{padding:16px 14px 18px}.transaction-history-type{min-height:38px;padding:0 12px;font-size:16px}.transaction-history-status{font-size:16px}.transaction-history-details{margin:15px 2px 0;gap:14px}.transaction-history-details>div{grid-template-columns:104px minmax(0,1fr);gap:8px}.transaction-history-details dt,.transaction-history-details dd{font-size:14px;letter-spacing:.2px}.transaction-order-number{font-size:12.5px!important}.transaction-order-number button svg{width:17px;height:17px}}
+
 /* Auth pages (login / signup) — Lucky73 */
 .kk-auth-shell{min-height:100vh;background:var(--kk-bg);display:flex;flex-direction:column}
 .kk-auth-header{background:var(--kk-blue-grad);padding:14px 16px 26px;color:#fff}

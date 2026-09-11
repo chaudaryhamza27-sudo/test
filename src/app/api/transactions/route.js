@@ -5,6 +5,18 @@ import { getCurrentUser } from "../../../lib/auth";
 const PAGE_SIZE = 15;
 const VALID_TYPES = ["deposit", "withdraw", "game_bet", "game_win"];
 
+// Older transactions do not have a dedicated reference field. This stable,
+// readable value lets players quote an order to support without a migration.
+function getOrderNumber(transaction) {
+  const providerOrderId = transaction.meta?.providerOrderId;
+  if (providerOrderId) return String(providerOrderId);
+
+  const prefix = transaction.type === "withdraw" ? "WD" : transaction.type === "deposit" ? "DP" : "TX";
+  const date = new Date(transaction.createdAt).toISOString().slice(0, 10).replaceAll("-", "");
+  const id = String(transaction._id).slice(-8).toUpperCase();
+  return `${prefix}-${date}-${id}`;
+}
+
 export async function GET(request) {
   const user = await getCurrentUser();
   if (!user) return Response.json({ error: "Not authenticated." }, { status: 401 });
@@ -32,7 +44,11 @@ export async function GET(request) {
     Transaction.countDocuments(filter),
   ]);
   // Strip the (potentially multi-MB) proof image out of list responses.
-  const items = rawItems.map(({ meta, ...t }) => ({ ...t, hasProof: Boolean(meta?.proofImage) }));
+  const items = rawItems.map(({ meta, ...t }) => ({
+    ...t,
+    orderNumber: getOrderNumber({ ...t, meta }),
+    hasProof: Boolean(meta?.proofImage),
+  }));
 
   return Response.json({
     items,

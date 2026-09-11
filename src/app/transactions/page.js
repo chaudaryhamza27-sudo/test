@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { IconChevronLeft } from "../icons";
 import BottomNav from "../components/BottomNav";
+import TransactionHistoryCard from "../components/TransactionHistoryCard";
 
 const FILTERS = [
   { key: "all", label: "All" },
@@ -11,20 +12,6 @@ const FILTERS = [
   { key: "withdraw", label: "Withdraw" },
   { key: "game", label: "Game" },
 ];
-
-const TYPE_LABELS = {
-  deposit: "Deposit",
-  withdraw: "Withdraw",
-  game_bet: "Game bet",
-  game_win: "Game win",
-};
-
-const STATUS_TONE = {
-  approved: "green",
-  completed: "green",
-  rejected: "red",
-  pending: "orange",
-};
 
 export default function TransactionsPage() {
   const [filter, setFilter] = useState("all");
@@ -73,7 +60,7 @@ export default function TransactionsPage() {
   }, [filter, page, refreshVersion]);
 
   return (
-    <div className="kk-page">
+    <div className="kk-page transaction-history-page">
       <header className="kk-header">
         <Link href="/profile" className="kk-header-icon-btn">
           <IconChevronLeft />
@@ -117,55 +104,8 @@ export default function TransactionsPage() {
           </div>
         ) : (
           <>
-            <div className="kk-list" style={{ margin: "10px 16px 0" }}>
-              {items.map((tx) => {
-                const tone = STATUS_TONE[tx.status] || "";
-                const isPayPal = tx.method === "PayPal Sandbox";
-                return (
-                  <div className="kk-list-item" key={tx._id} style={{ cursor: "default", alignItems: "flex-start" }}>
-                    <span className="label" style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                      <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        {isPayPal ? "Virtual Deposit" : TYPE_LABELS[tx.type] || tx.type}
-                        {isPayPal && (
-                          <span
-                            style={{
-                              fontSize: 9,
-                              fontWeight: 900,
-                              padding: "2px 6px",
-                              borderRadius: 999,
-                              background: "var(--info-bg)",
-                              color: "var(--kk-blue)",
-                            }}
-                          >
-                            PAYPAL SANDBOX
-                          </span>
-                        )}
-                      </span>
-                      <span style={{ fontSize: 11, color: "var(--kk-muted)", fontWeight: 400 }}>
-                        {new Date(tx.createdAt).toLocaleString()}
-                        {tx.method ? ` · ${tx.method}` : ""}
-                        {tx._id ? ` · ${tx._id.slice(-8)}` : ""}
-                      </span>
-                    </span>
-                    <span style={{ textAlign: "right", flexShrink: 0 }}>
-                      <div style={{ fontWeight: 800, fontSize: 14 }}>
-                        {tx.type === "withdraw" || tx.type === "game_bet" ? "-" : "+"}Rs{Number(tx.amount).toLocaleString()}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 800,
-                          textTransform: "uppercase",
-                          marginTop: 2,
-                          color: tone === "green" ? "var(--success)" : tone === "red" ? "var(--danger)" : tone === "orange" ? "var(--warning)" : "var(--kk-muted)",
-                        }}
-                      >
-                        {tx.status}
-                      </div>
-                    </span>
-                  </div>
-                );
-              })}
+            <div className="transaction-history-list">
+              {items.map((tx) => <TransactionHistoryCard key={tx._id} transaction={tx} />)}
             </div>
 
             {totalPages > 1 && (
