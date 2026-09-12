@@ -81,7 +81,8 @@ export async function POST(request) {
   });
 
   await sendTelegramMessage(
-    `🏧 <b>New Withdrawal Request</b>\nUser: ${escapeTelegramHtml(user.name || user.uid)} (${escapeTelegramHtml(user.uid)})\nAmount: Rs${parsedAmount.toLocaleString()}\nMethod: ${escapeTelegramHtml(method)}\nAccount: ${escapeTelegramHtml(accountNumber)}\nStatus: Pending`
+    `🏧 <b>New Withdrawal Request</b>\nUser: ${escapeTelegramHtml(user.name || user.uid)} (${escapeTelegramHtml(user.uid)})\nAmount: Rs${parsedAmount.toLocaleString()}\nMethod: ${escapeTelegramHtml(method)}\nAccount: ${escapeTelegramHtml(accountNumber)}\nStatus: Pending`,
+    { withdraw: true }
   );
 
   return Response.json({ withdrawal, balance: updatedUser.balance });

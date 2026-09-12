@@ -1,11 +1,17 @@
-// Admin alerts via Telegram. Configured through TELEGRAM_BOT_TOKEN /
-// TELEGRAM_CHAT_ID env vars. Failures are reported in the server log but never
-// thrown, so a Telegram outage cannot break a deposit/withdraw request.
-export async function sendTelegramMessage(text) {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
+// Admin alerts via Telegram. Deposit alerts use TELEGRAM_BOT_TOKEN; withdrawal
+// alerts use TELEGRAM_WITHDRAW_TOKEN (falling back to TELEGRAM_BOT_TOKEN if
+// unset), both sent to the same TELEGRAM_CHAT_ID. Failures are reported in the
+// server log but never thrown, so a Telegram outage cannot break a
+// deposit/withdraw request.
+export async function sendTelegramMessage(text, { withdraw = false } = {}) {
+  const token = withdraw
+    ? process.env.TELEGRAM_WITHDRAW_TOKEN || process.env.TELEGRAM_BOT_TOKEN
+    : process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
   if (!token || !chatId) {
-    console.error("Telegram notification skipped: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is missing.");
+    console.error(
+      `Telegram notification skipped: ${withdraw ? "TELEGRAM_WITHDRAW_TOKEN/TELEGRAM_BOT_TOKEN" : "TELEGRAM_BOT_TOKEN"} or TELEGRAM_CHAT_ID is missing.`
+    );
     return false;
   }
 

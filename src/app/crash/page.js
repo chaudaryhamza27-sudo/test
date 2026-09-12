@@ -22,28 +22,43 @@ import './crash.css';
  * The three handlers are the only places that need to change.
  */
 
-// "All Bets" is a simulated public feed, same as the rest of this demo's
-// play-money data — there is no real multi-user backend behind it.
-const randUser = () => {
-  const letter = () => String.fromCharCode(65 + Math.floor(Math.random() * 26));
-  const digits = Math.floor(100000 + Math.random() * 900000);
-  return `${letter()}${letter()}${digits}`;
-};
+// "All Bets" mixes real settled bets (from /api/game/all-bets) with a batch
+// of simulated players who "join" each round the moment it starts flying.
+// Each simulated player's cash-out target is picked when they join and is
+// only ever revealed against the round's own live multiplier as it climbs —
+// never a number ahead of where the round actually is — so a running row's
+// point can't outrun the real climbing multiplier shown on the stage.
+// Same shape as a real account's uid (see src/app/api/auth/signup/route.js) —
+// a plain 6-digit number, not a letter-prefixed handle — so a simulated row
+// can't be told apart from a real one just by how the "User" column looks.
+const randUser = () => String(Math.floor(100000 + Math.random() * 900000));
 
-const makeFeedRow = () => {
-  const stake = Math.round((Math.random() * 4000 + 20) * 100) / 100;
-  const running = Math.random() < 0.35;
-  const at = Math.round((1 + Math.random() * 9) * 100) / 100;
-  return {
-    id: Math.random().toString(36).slice(2),
-    user: randUser(),
-    stake,
-    at,
-    running,
-    // Always a real settled payout — whether a row actually reads "Running"
-    // is decided at render time from the live round phase, not baked in here.
-    payout: Math.round(stake * at * 100) / 100,
-  };
+// A fixed pool (not regenerated every round) so the same simulated handles
+// recur across rounds instead of a brand-new name every time.
+const DUMMY_USER_POOL = Array.from({ length: 1200 }, randUser);
+
+const DUMMY_SEEDS_MIN = 300;
+const DUMMY_SEEDS_MAX = 320;
+
+// Picks the players "in" a fresh round and, for each, the cash-out target
+// they'll try to hit — decided once, up front, same as a real player choosing
+// an auto-cashout before the plane takes off. Whether that target is ever
+// actually reached depends on the real round outcome, resolved at render time.
+const makeDummySeeds = () => {
+  const count = DUMMY_SEEDS_MIN + Math.floor(Math.random() * (DUMMY_SEEDS_MAX - DUMMY_SEEDS_MIN + 1));
+  return Array.from({ length: count }, () => {
+    const willCashOut = Math.random() < 0.55;
+    return {
+      id: `dummy-${Math.random().toString(36).slice(2)}`,
+      user: DUMMY_USER_POOL[Math.floor(Math.random() * DUMMY_USER_POOL.length)],
+      stake: Math.round((Math.random() * 4000 + 20) * 100) / 100,
+      // null = rides it out to the crash, same as a real lost bet. Otherwise,
+      // a cube-skewed pick so plenty of players cash out within the first
+      // instant of flight (near 1.0x-1.5x), same as real low-target players,
+      // with a shrinking few holding out for a bigger multiplier.
+      targetAt: willCashOut ? Math.round((1.02 + Math.random() ** 3 * 9) * 100) / 100 : null,
+    };
+  });
 };
 
 const FEED_PAGE = 15;
@@ -130,11 +145,16 @@ export default function CrashDemoPage() {
   const [animationsOn, setAnimationsOn] = useState(true);
   const prevPhase = useRef(round.phase);
   const historyStripRef = useRef(null);
+  // This round's simulated players (id/user/stake/target only — never a
+  // resolved outcome) and the crash point their round settled at, once it
+  // has. Refs, not state: they're read fresh every render alongside the live
+  // round.multiplier/round.phase rather than driving their own re-renders.
+  const dummySeedsRef = useRef([]);
+  const lastCrashPointRef = useRef(null);
 
-  // Keeps the simulated "All Bets" feed (and so TOTAL BETS) feeling alive
-  // between rounds too, not just on crash — it drifts up and down on a
-  // random cadence (some players joining, others' rows aging out), softly
-  // pulled back toward FEED_SIZE so it never wanders too far off.
+  // Keeps the "All Bets" feed (and so TOTAL BETS) topped up with real settled
+  // bets — the simulated players are layered in separately below, tied to
+  // each round's own lifecycle rather than this timer.
   useEffect(() => {
     let timer;
     const tick = () => {
@@ -187,15 +207,23 @@ export default function CrashDemoPage() {
   }, []);
 
   // round-crash bookkeeping shared across both boxes: history strip + the
-  // simulated public feed refresh (each box settles its own rows above)
+  // simulated players' lifecycle (each box settles its own live rows above)
   useEffect(() => {
     if (prevPhase.current === round.phase) return;
     prevPhase.current = round.phase;
     if (round.phase === 'flying') {
       playSfx('start');
+      // A fresh batch "joins" the instant this round starts flying — this is
+      // the only place new simulated players are picked, so the same batch
+      // stays put (and keeps resolving against this same round) for its
+      // whole flight instead of getting reshuffled mid-air.
+      dummySeedsRef.current = makeDummySeeds();
     }
     if (round.phase === 'crashed') {
       playSfx('crash');
+      // Freezes what this round's players resolve against even after the
+      // *next* round's betting phase clears round.crashPoint back to null.
+      lastCrashPointRef.current = round.crashPoint;
       setHistory((h) => [round.crashPoint, ...h].slice(0, 25));
       setVisibleCount(FEED_PAGE);
       // The strip prepends the new pill and keeps whatever scroll position
@@ -222,9 +250,45 @@ export default function CrashDemoPage() {
     }));
 
   const myAllRows = myLiveRows;
-  // Current user's bets always lead the All Bets list, the simulated feed fills in below.
-  const allBetsDisplay = [...myAllRows, ...feed.slice(0, Math.max(0, visibleCount - myAllRows.length))];
-  const totalBetsCount = feed.length + myAllRows.length;
+
+  // This round's simulated players, resolved against the real round state —
+  // never a stored outcome, so a "Running" row's point always reads back as
+  // whatever the live multiplier actually is right now, and a settled one
+  // freezes at either its own target or the round's real crash point.
+  const dummyRows = dummySeedsRef.current.map((seed) => {
+    if (round.phase === 'flying') {
+      const cashedOut = seed.targetAt != null && round.multiplier >= seed.targetAt;
+      return {
+        id: seed.id,
+        user: seed.user,
+        stake: seed.stake,
+        at: cashedOut ? seed.targetAt : round.multiplier,
+        running: !cashedOut,
+        payout: cashedOut ? Math.round(seed.stake * seed.targetAt * 100) / 100 : 0,
+      };
+    }
+    // Betting (next round queued) or crashed: this batch's round is already
+    // over, so settle against the crash point it actually ended at.
+    const crashPoint = lastCrashPointRef.current ?? 1;
+    const won = seed.targetAt != null && seed.targetAt <= crashPoint;
+    return {
+      id: seed.id,
+      user: seed.user,
+      stake: seed.stake,
+      at: won ? seed.targetAt : crashPoint,
+      running: false,
+      payout: won ? Math.round(seed.stake * seed.targetAt * 100) / 100 : 0,
+    };
+  });
+
+  // Current user's bets lead the All Bets list, then this round's simulated
+  // players, then the real settled-bets feed fills in the rest.
+  const allBetsDisplay = [
+    ...myAllRows,
+    ...dummyRows,
+    ...feed.slice(0, Math.max(0, visibleCount - myAllRows.length - dummyRows.length)),
+  ];
+  const totalBetsCount = feed.length + myAllRows.length + dummyRows.length;
 
   return (
     <main className="crash-page" style={{ maxWidth: 900, width: '100%', margin: '0 auto', color: '#fff' }}>
@@ -330,7 +394,7 @@ export default function CrashDemoPage() {
         })}
       </div>
 
-      {betsTab === 'all' && visibleCount - myAllRows.length < feed.length && (
+      {betsTab === 'all' && visibleCount - myAllRows.length - dummyRows.length < feed.length && (
         <button type="button" className="crash-show-more" onClick={() => setVisibleCount((v) => v + FEED_PAGE)}>
           Show more
         </button>

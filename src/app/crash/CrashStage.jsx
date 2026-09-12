@@ -42,9 +42,12 @@ export default function CrashStage({ phase, multiplier = 1, elapsed = 0, countdo
   const crashedAtRef = useRef(0);
   const animationsOnRef = useRef(animationsOn);
   // How many players "joined" this betting window — a new random target each
-  // round, filled in step with the countdown so it reads 0 the instant a
-  // fresh round opens and lands on the target right as betting closes.
+  // round, filled in step with the countdown so it reads at the floor the
+  // instant a fresh round opens and lands on the target right as betting
+  // closes. joinFloor is re-rolled each round too, so the "never below this"
+  // baseline still drifts round to round instead of a single fixed number.
   const [joinTarget, setJoinTarget] = useState(0);
+  const [joinFloor, setJoinFloor] = useState(250);
 
   // the animation loop reads props through a ref so it never has to restart
   liveRef.current = { phase, multiplier, elapsed, growthRate };
@@ -55,7 +58,10 @@ export default function CrashStage({ phase, multiplier = 1, elapsed = 0, countdo
   }, [phase]);
 
   useEffect(() => {
-    if (phase === 'betting') setJoinTarget(900 + Math.floor(Math.random() * 500));
+    if (phase === 'betting') {
+      setJoinFloor(250 + Math.floor(Math.random() * 60));
+      setJoinTarget(900 + Math.floor(Math.random() * 500));
+    }
   }, [phase]);
 
   useEffect(() => {
@@ -285,17 +291,18 @@ export default function CrashStage({ phase, multiplier = 1, elapsed = 0, countdo
 
   const waiting = phase === 'betting';
 
-  // Counts up to the target while players are joining the betting window,
-  // then back down to 0 over the course of the flight as they cash out —
-  // landing on exactly 0 right as the plane crashes.
+  // Counts up from the floor while players are joining the betting window,
+  // then back down toward that same floor over the course of the flight as
+  // they cash out — never all the way to 0, since a live game never actually
+  // reads "0 players in".
   let joinCount = joinTarget;
   if (phase === 'betting') {
-    joinCount = joinTarget * countdown;
+    joinCount = joinFloor + (joinTarget - joinFloor) * countdown;
   } else if (phase === 'flying') {
     const flightDuration = crashPoint && growthRate ? Math.log(crashPoint) / growthRate : 5;
-    joinCount = joinTarget * (1 - Math.min(1, elapsed / flightDuration));
+    joinCount = joinFloor + (joinTarget - joinFloor) * (1 - Math.min(1, elapsed / flightDuration));
   } else if (phase === 'crashed') {
-    joinCount = 0;
+    joinCount = joinFloor;
   }
 
   return (

@@ -62,7 +62,8 @@ export async function PATCH(request) {
   await sendTelegramMessage(
     action === "approve"
       ? `✅ <b>Withdrawal Approved</b>\nUser: ${escapeTelegramHtml(targetUser?.name || targetUser?.uid || tx.user)}\nAmount: Rs${Number(tx.amount).toLocaleString()}\nStatus: Approved`
-      : `❌ <b>Withdrawal Rejected</b>\nUser: ${escapeTelegramHtml(targetUser?.name || targetUser?.uid || tx.user)}\nAmount: Rs${Number(tx.amount).toLocaleString()}\nStatus: Rejected\nFunds refunded to user`
+      : `❌ <b>Withdrawal Rejected</b>\nUser: ${escapeTelegramHtml(targetUser?.name || targetUser?.uid || tx.user)}\nAmount: Rs${Number(tx.amount).toLocaleString()}\nStatus: Rejected\nFunds refunded to user`,
+    { withdraw: true }
   );
   await notifyUser(tx.user, {
     type: action === "approve" ? "withdraw_approved" : "withdraw_rejected",
