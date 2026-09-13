@@ -17,7 +17,7 @@ import BottomNav from "../components/BottomNav";
 import HistoryList from "../components/HistoryList";
 import styles from "./deposit.module.css";
 
-const QUICK_AMOUNTS = [2000, 5000, 10000, 20000, 30000, 50000];
+const QUICK_AMOUNTS = [2000,3000, 5000, 10000, 20000, 30000];
 const MIN_DEPOSIT = 2000;
 const MAX_DEPOSIT = 50000;
 

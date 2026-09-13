@@ -122,12 +122,9 @@ export default function ProfilePage() {
               </button>
               {user && (
                 <div className="kk-health-inline">
-                  <span className="kk-health-inline-label">Health Account</span>
-                  <div className="kk-health-inline-value">
-                    <b>{user.trustScore ?? 15}%</b>
-                    <div className="kk-health-inline-bar">
-                      <div className="kk-health-inline-fill" style={{ width: `${user.trustScore ?? 15}%` }} />
-                    </div>
+                  <div className="kk-health-inline-bar">
+                    <div className="kk-health-inline-fill" style={{ width: `${user.trustScore ?? 15}%` }} />
+                    <span className="kk-health-inline-text">Trust Score | {user.trustScore ?? 15}%</span>
                   </div>
                 </div>
               )}
