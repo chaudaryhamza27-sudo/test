@@ -82,7 +82,7 @@ const badgeStyle = (m) => {
 // One independent betting box: its own stake/bet/history, sharing only the
 // round clock and the wallet balance. Two of these render side by side so a
 // player can run two bets at once, each cashing out on its own schedule.
-function useBetSlot({ slot, serverBet, placeBet, cashOut, onInsufficientFunds, playSfx }) {
+function useBetSlot({ slot, serverBet, placeBet, cashOut, balance, onInsufficientFunds, playSfx }) {
   const [busy, setBusy] = useState(false);
   const bet = serverBet?.status === 'placed'
     ? { stake: Number(serverBet.amount), status: 'placed', autoAt: serverBet.autoCashoutTarget }
@@ -90,6 +90,12 @@ function useBetSlot({ slot, serverBet, placeBet, cashOut, onInsufficientFunds, p
 
   const place = async (stake, autoAt) => {
     if (busy || bet) return;
+    // Give a zero-balance player an immediate, helpful next step instead of
+    // sending a bet request that the server will necessarily reject.
+    if (typeof balance === 'number' && balance <= 0) {
+      onInsufficientFunds?.();
+      return;
+    }
     setBusy(true);
     try {
       const result = await placeBet(stake, autoAt, slot);
@@ -134,8 +140,8 @@ export default function CrashDemoPage() {
   const [showDepositPrompt, setShowDepositPrompt] = useState(false);
   const [showSupportPrompt, setShowSupportPrompt] = useState(false);
   const { playSfx } = useSound();
-  const slot1 = useBetSlot({ slot: 1, serverBet: gameState?.myBets?.[1], placeBet, cashOut, onInsufficientFunds: () => setShowDepositPrompt(true), playSfx });
-  const slot2 = useBetSlot({ slot: 2, serverBet: gameState?.myBets?.[2], placeBet, cashOut, onInsufficientFunds: () => setShowDepositPrompt(true), playSfx });
+  const slot1 = useBetSlot({ slot: 1, serverBet: gameState?.myBets?.[1], placeBet, cashOut, balance, onInsufficientFunds: () => setShowDepositPrompt(true), playSfx });
+  const slot2 = useBetSlot({ slot: 2, serverBet: gameState?.myBets?.[2], placeBet, cashOut, balance, onInsufficientFunds: () => setShowDepositPrompt(true), playSfx });
   const [history, setHistory] = useState([]);
   const [feed, setFeed] = useState([]);           // filled client-side only — random, so SSR can't match it
   const [betsTab, setBetsTab] = useState('all');
@@ -425,8 +431,8 @@ export default function CrashDemoPage() {
       {showDepositPrompt && !showSupportPrompt && (
         <div className="crash-modal-overlay" onClick={() => setShowDepositPrompt(false)}>
           <div className="crash-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Insufficient balance</h3>
-            <p>Your balance is too low for this bet. Deposit funds to keep playing.</p>
+            <h3>Deposit required to place a bet</h3>
+            <p>Your current balance is Rs{Number(balance || 0).toFixed(2)}. Please add funds to your wallet before placing a bet.</p>
             <div className="crash-modal-actions">
               <button type="button" className="crash-modal-cancel" onClick={() => setShowDepositPrompt(false)}>
                 Cancel

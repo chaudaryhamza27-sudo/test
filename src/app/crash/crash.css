@@ -61,15 +61,14 @@
     flex: 1 1 0;
     min-width: 0;
   }
-  /* Each panel is narrower here than when stacked full-width on mobile, so
-     the BET button stretching to match the stepper+grid's full height reads
-     as an oversized square block. Give it a fixed, shorter height instead. */
+  /* Keep the Bet/Cash out action aligned with the desktop control column
+     without allowing flexbox to stretch it beyond the intended height. */
   .crash-bet-row .crash-action-col {
     justify-content: center;
   }
   .crash-bet-row .crash-action-btn {
     flex: none;
-    height: 64px;
+    height: 94px;
     min-height: 0;
   }
 }
