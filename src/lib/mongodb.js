@@ -19,7 +19,12 @@ export default async function dbConnect() {
   }
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI).then((m) => m);
+    // Explicit pool size: the Next.js app and the realtime-server run as two
+    // separate Node processes, each with their own pool off this same
+    // MONGODB_URI, so the real ceiling on concurrent DB work is roughly
+    // 2x this number — keep it a deliberate, known value rather than
+    // whatever the driver's default happens to be.
+    cached.promise = mongoose.connect(MONGODB_URI, { maxPoolSize: 50, minPoolSize: 5 }).then((m) => m);
   }
 
   cached.conn = await cached.promise;

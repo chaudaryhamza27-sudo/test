@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "create-admin": "node scripts/create-admin.js",
-    "dev:socket": "tsx watch realtime-server/server.js"
+    "dev:socket": "tsx watch realtime-server/server.js",
+    "start:socket": "node realtime-server/server.js"
   },
   "dependencies": {
     "@paypal/react-paypal-js": "^10.3.0",

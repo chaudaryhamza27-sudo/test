@@ -4,7 +4,7 @@ import { getCurrentUser } from "../../../lib/auth";
 import { logActivity } from "../../../lib/activity";
 import { escapeTelegramHtml, sendTelegramMessage } from "../../../lib/telegram";
 
-const MIN_DEPOSIT = 2000;
+const MIN_DEPOSIT = 1000;
 const MAX_PROOF_BYTES = 5 * 1024 * 1024; // 5MB
 const ALLOWED_PROOF_TYPES = ["image/jpeg", "image/png", "application/pdf"];
 

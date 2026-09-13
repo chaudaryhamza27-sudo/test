@@ -13,7 +13,7 @@ const UserSchema = new mongoose.Schema(
     role: { type: String, enum: ["user", "admin"], default: "user" },
     isBanned: { type: Boolean, default: false },
     kycApproved: { type: Boolean, default: false },
-    trustScore: { type: Number, default: 50, min: 0, max: 100 },
+    trustScore: { type: Number, default: 15, min: 0, max: 100 },
     trustScoreManual: { type: Boolean, default: false },
     lastLoginAt: { type: Date, default: null },
   },

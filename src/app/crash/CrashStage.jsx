@@ -19,6 +19,11 @@ import { multiplierAt } from './useCrashRound';
  *   animationsOn  false freezes the canvas on its current frame (the round
  *                 clock/multiplier keep running elsewhere on the page — this
  *                 only pauses the plane/graph drawing, e.g. for low-end devices)
+ *   startedAt   server epoch ms the round entered RUNNING — optional; when
+ *               present, lets the display tick smoothly between the
+ *               server's own (throttled) broadcasts instead of stepping
+ *   serverNow   server epoch ms as of the last snapshot, paired with
+ *               startedAt to correct for client/server clock drift
  */
 
 const PAD = 30;              // graph inset, px
@@ -36,7 +41,7 @@ const FLYOFF_MS = 1200;      // how long the plane keeps going after the crash
 
 const JOIN_AVATARS = ['/avitor/icon1.webp', '/avitor/icon2.webp', '/avitor/icon4.webp'];
 
-export default function CrashStage({ phase, multiplier = 1, elapsed = 0, countdown = 0, growthRate, crashPoint, animationsOn = true }) {
+export default function CrashStage({ phase, multiplier = 1, elapsed = 0, countdown = 0, growthRate, crashPoint, animationsOn = true, startedAt = null, serverNow = null }) {
   const canvasRef = useRef(null);
   const liveRef = useRef({ phase, multiplier, elapsed, growthRate });
   const crashedAtRef = useRef(0);
@@ -49,8 +54,34 @@ export default function CrashStage({ phase, multiplier = 1, elapsed = 0, countdo
   const [joinTarget, setJoinTarget] = useState(0);
   const [joinFloor, setJoinFloor] = useState(250);
 
+  // realtime-server throttles round:update broadcasts to keep the socket
+  // cheap at high concurrency (see BROADCAST_MS in realtime-server/server.js)
+  // — but the multiplier is a pure function of wall-clock time, so between
+  // snapshots this ticks it locally instead of visibly stepping every
+  // broadcast. Purely cosmetic: payouts still use the server's own
+  // multiplier at cash-out time, and every fresh snapshot re-syncs this, so
+  // it can't drift. Falls straight back to the raw prop when there's no
+  // startedAt to interpolate from (e.g. an older REST-fallback response).
+  const [display, setDisplay] = useState({ multiplier, elapsed });
+
+  useEffect(() => {
+    if (phase !== 'flying' || !startedAt) {
+      setDisplay({ multiplier, elapsed });
+      return;
+    }
+    const clockOffset = (serverNow ?? Date.now()) - Date.now();
+    const tick = () => {
+      const elapsedSec = Math.max(0, (Date.now() + clockOffset - startedAt) / 1000);
+      const m = crashPoint ? Math.min(multiplierAt(elapsedSec, growthRate), crashPoint) : multiplierAt(elapsedSec, growthRate);
+      setDisplay({ multiplier: m, elapsed: elapsedSec });
+    };
+    tick();
+    const id = setInterval(tick, 100);
+    return () => clearInterval(id);
+  }, [phase, startedAt, serverNow, growthRate, crashPoint, multiplier, elapsed]);
+
   // the animation loop reads props through a ref so it never has to restart
-  liveRef.current = { phase, multiplier, elapsed, growthRate };
+  liveRef.current = { phase, multiplier: display.multiplier, elapsed: display.elapsed, growthRate };
   animationsOnRef.current = animationsOn;
 
   useEffect(() => {
@@ -300,7 +331,7 @@ export default function CrashStage({ phase, multiplier = 1, elapsed = 0, countdo
     joinCount = joinFloor + (joinTarget - joinFloor) * countdown;
   } else if (phase === 'flying') {
     const flightDuration = crashPoint && growthRate ? Math.log(crashPoint) / growthRate : 5;
-    joinCount = joinFloor + (joinTarget - joinFloor) * (1 - Math.min(1, elapsed / flightDuration));
+    joinCount = joinFloor + (joinTarget - joinFloor) * (1 - Math.min(1, display.elapsed / flightDuration));
   } else if (phase === 'crashed') {
     joinCount = joinFloor;
   }
@@ -318,7 +349,7 @@ export default function CrashStage({ phase, multiplier = 1, elapsed = 0, countdo
 
       {!waiting && (
         <div className={`${styles.mult} ${phase === 'crashed' ? styles.crashed : ''}`}>
-          {multiplier.toFixed(2)}x
+          {display.multiplier.toFixed(2)}x
         </div>
       )}
 

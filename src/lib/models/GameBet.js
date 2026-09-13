@@ -17,5 +17,8 @@ const GameBetSchema = new mongoose.Schema(
 );
 
 GameBetSchema.index({ round: 1, user: 1, slot: 1 }, { unique: true });
+// Covers the high-frequency auto-cash-out sweep without scanning every bet
+// in a busy round.
+GameBetSchema.index({ round: 1, status: 1, autoCashoutTarget: 1 });
 
 export default mongoose.models.GameBet || mongoose.model("GameBet", GameBetSchema);

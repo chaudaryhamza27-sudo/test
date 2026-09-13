@@ -162,7 +162,7 @@
 
 .action small {
   display: block;
-  font-size: 15px;
+  font-size: 24px;
   font-weight: 400;
   text-transform: none;
   opacity: .9;
@@ -291,6 +291,32 @@
   .panel { padding-inline: 8px; }
   .spinner { padding-inline: 4px; font-size: 16px; }
   .stepperGroup { gap: 1px; }
-  .action small { font-size: 12px; }
+  .action small { font-size: 15px; }
   .autoRow { gap: 12px; }
+}
+
+/* Both stacked bet boxes need to fit on one mobile screen without scrolling
+   — trims the padding/gaps/button height that were sized for a single,
+   full-width panel rather than two of them stacked back to back. */
+@media (min-width: 351px) and (max-width: 759px) {
+  .panel { padding: 8px 8px 10px; }
+  .tabs { margin-bottom: 8px; }
+  .stake { gap: 6px; }
+  .spinner { height: 30px; }
+  .quickGrid { gap: 4px; }
+  .quickGrid button { height: 20px; }
+  .actionCol { gap: 4px; }
+  .action { min-height: 66px; font-size: clamp(16px, 4vw, 20px); }
+  .action small { font-size: 18px; }
+}
+
+@media (max-width: 350px) {
+  .panel { padding: 6px 6px 8px; }
+  .tabs { margin-bottom: 6px; }
+  .stake { gap: 4px; }
+  .spinner { height: 28px; }
+  .quickGrid { gap: 3px; }
+  .quickGrid button { height: 18px; }
+  .actionCol { gap: 4px; }
+  .action { min-height: 60px; }
 }

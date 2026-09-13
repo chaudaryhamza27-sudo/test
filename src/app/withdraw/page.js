@@ -151,6 +151,8 @@ export default function WithdrawPage() {
       if (!res.ok) {
         if (data.banned) {
           openBannedNotice();
+        } else if (data.pendingWithdrawal) {
+          openNotice(data.error, "withdraw-pending");
         } else {
           openNotice(data.error || "Failed to submit withdraw request.", "error");
         }
@@ -368,7 +370,9 @@ export default function WithdrawPage() {
       <div className={`popup ${popup ? "active" : ""}`} onClick={closeNotice}>
         <div className={`kk-popup-box ${popup?.tone === "trust-blocked" ? "withdraw-trust-popup" : ""}`} onClick={(e) => e.stopPropagation()}>
           <div className="kk-popup-icon">
-            {popup?.tone === "trust-blocked"
+            {popup?.tone === "withdraw-pending"
+              ? <IconShield />
+              : popup?.tone === "trust-blocked"
               ? null
               : popup?.tone === "success"
               ? "✅"
@@ -383,6 +387,8 @@ export default function WithdrawPage() {
               ? "Withdrawal Request Submitted"
               : popup?.tone === "trust-blocked"
               ? "Withdraw Not Approved"
+              : popup?.tone === "withdraw-pending"
+              ? "Withdrawal Request Pending"
               : popup?.tone === "banned"
               ? "You're Banned"
               : popup?.tone === "error"

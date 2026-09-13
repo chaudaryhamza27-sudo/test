@@ -255,7 +255,11 @@ export default function CrashDemoPage() {
   // never a stored outcome, so a "Running" row's point always reads back as
   // whatever the live multiplier actually is right now, and a settled one
   // freezes at either its own target or the round's real crash point.
-  const dummyRows = dummySeedsRef.current.map((seed) => {
+  // Keep the DOM bounded to the rows the player explicitly asked to see.
+  // Rendering the entire simulated population on every round update made the
+  // browser slow even with a handful of connected users.
+  const visibleDummySeeds = dummySeedsRef.current.slice(0, Math.max(0, visibleCount - myAllRows.length));
+  const dummyRows = visibleDummySeeds.map((seed) => {
     if (round.phase === 'flying') {
       const cashedOut = seed.targetAt != null && round.multiplier >= seed.targetAt;
       return {
@@ -288,7 +292,7 @@ export default function CrashDemoPage() {
     ...dummyRows,
     ...feed.slice(0, Math.max(0, visibleCount - myAllRows.length - dummyRows.length)),
   ];
-  const totalBetsCount = feed.length + myAllRows.length + dummyRows.length;
+  const totalBetsCount = feed.length + myAllRows.length + dummySeedsRef.current.length;
 
   return (
     <main className="crash-page" style={{ maxWidth: 900, width: '100%', margin: '0 auto', color: '#fff' }}>
@@ -340,6 +344,8 @@ export default function CrashDemoPage() {
         growthRate={round.growthRate}
         crashPoint={round.crashPoint}
         animationsOn={animationsOn}
+        startedAt={gameState?.startedAt}
+        serverNow={gameState?.now}
       />
 
       <div className="crash-bet-row">
@@ -394,7 +400,7 @@ export default function CrashDemoPage() {
         })}
       </div>
 
-      {betsTab === 'all' && visibleCount - myAllRows.length - dummyRows.length < feed.length && (
+      {betsTab === 'all' && visibleCount < totalBetsCount && (
         <button type="button" className="crash-show-more" onClick={() => setVisibleCount((v) => v + FEED_PAGE)}>
           Show more
         </button>

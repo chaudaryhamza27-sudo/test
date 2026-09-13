@@ -12,6 +12,29 @@
   margin: 0 0 10px;
 }
 
+@media (max-width: 759px) {
+  .crash-page .topbar {
+    margin-bottom: 6px;
+  }
+  .crash-history-wrap {
+    margin-bottom: 4px;
+  }
+  .crash-bets-tabs {
+    margin: 8px auto 8px;
+  }
+}
+
+/* Just the value, no "BALANCE" caption — keeps the header compact on small
+   screens without losing the number entirely. */
+@media (max-width: 759px) {
+  .crash-page .game-balance-block .lbl {
+    display: none;
+  }
+  .crash-page .game-balance-block .val {
+    font-size: 13px;
+  }
+}
+
 /* Everything below the full-bleed sticky header is inset to match the
    header's own 16px side padding — the header spans edge-to-edge on
    purpose, but the graph/bet-panels/history strip need the same gutter
@@ -25,8 +48,8 @@
 .crash-bet-row {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 6px;
+  margin-top: 6px;
 }
 
 @media (min-width: 760px) {
@@ -66,6 +89,12 @@
   padding: 6px 2px;
   flex: 1;
   min-width: 0;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge */
+}
+
+.crash-history::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Chromium Edge */
 }
 
 .crash-history-pill {

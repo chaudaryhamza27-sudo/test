@@ -55,6 +55,21 @@ export async function POST(request) {
     return Response.json({ error: ELIGIBILITY_MESSAGES[eligibility.reason] }, { status: 403 });
   }
 
+  const existingPendingWithdrawal = await Transaction.exists({
+    user: user._id,
+    type: "withdraw",
+    status: "pending",
+  });
+  if (existingPendingWithdrawal) {
+    return Response.json(
+      {
+        error: "Your withdrawal request is already pending approval. Please wait for an administrator to approve .",
+        pendingWithdrawal: true,
+      },
+      { status: 409 }
+    );
+  }
+
   // Hold the funds immediately via an atomic, balance-guarded decrement so that
   // two concurrent withdraw requests can't both succeed against the same balance.
   const updatedUser = await adjustBalance(user._id, -parsedAmount);
@@ -62,15 +77,32 @@ export async function POST(request) {
     return Response.json({ error: "Insufficient balance." }, { status: 400 });
   }
 
-  const withdrawal = await Transaction.create({
-    user: user._id,
-    type: "withdraw",
-    amount: parsedAmount,
-    method,
-    accountNumber,
-    status: "pending",
-    meta: parsedAmount >= LARGE_WITHDRAW_THRESHOLD ? { highValue: true } : null,
-  });
+  let withdrawal;
+  try {
+    withdrawal = await Transaction.create({
+      user: user._id,
+      type: "withdraw",
+      amount: parsedAmount,
+      method,
+      accountNumber,
+      status: "pending",
+      meta: parsedAmount >= LARGE_WITHDRAW_THRESHOLD ? { highValue: true } : null,
+    });
+  } catch (error) {
+    // If two requests passed the pre-check together, the unique index accepts
+    // one and rejects the other. Refund the rejected attempt before replying.
+    await adjustBalance(user._id, parsedAmount);
+    if (error?.code === 11000) {
+      return Response.json(
+        {
+          error: "Your withdrawal request is already pending approval. Please wait for an administrator to approve it. ",
+          pendingWithdrawal: true,
+        },
+        { status: 409 }
+      );
+    }
+    return Response.json({ error: "Unable to submit your withdrawal request. Please try again." }, { status: 500 });
+  }
 
   await logActivity({
     user: user._id,

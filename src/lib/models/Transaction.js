@@ -17,5 +17,12 @@ const TransactionSchema = new mongoose.Schema(
 
 TransactionSchema.index({ user: 1, createdAt: -1 });
 TransactionSchema.index({ type: 1, createdAt: -1 });
+// A user may have only one withdrawal awaiting an admin decision. The partial
+// unique index makes this rule safe even when two submit requests race each
+// other at the database level.
+TransactionSchema.index(
+  { user: 1, type: 1 },
+  { unique: true, partialFilterExpression: { type: "withdraw", status: "pending" } }
+);
 
 export default mongoose.models.Transaction || mongoose.model("Transaction", TransactionSchema);

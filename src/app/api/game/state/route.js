@@ -37,6 +37,7 @@ export async function GET() {
       phase: info.phase,
       multiplier: info.multiplier,
       waitingEndsAt: info.waitingEndsAt ?? null,
+      startedAt: info.startedAt ?? null,
       now: Date.now(),
       balance: user ? user.balance : null,
       myBets,

@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { IconWhatsapp } from "../icons";
+
+// Hidden on the admin panel (not customer-facing) and the crash game page
+// (button would float over the game canvas/controls).
+const HIDDEN_PATH_PREFIXES = ["/admin", "/crash"];
 
 // Movement smaller than this counts as a tap/click, not a drag — lets the
 // button stay draggable while still being clickable without moving it.
@@ -20,10 +25,14 @@ function getColumnBounds() {
 }
 
 export default function FloatingWhatsApp() {
+  const pathname = usePathname();
   const [waLink, setWaLink] = useState(null);
   const [pos, setPos] = useState(null);
   const btnRef = useRef(null);
   const dragRef = useRef(null);
+  const hidden = HIDDEN_PATH_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname?.startsWith(`${prefix}/`)
+  );
 
   useEffect(() => {
     fetch("/api/support-settings")
@@ -111,7 +120,7 @@ export default function FloatingWhatsApp() {
   const onPointerUp = (e) => finishDrag(e, true);
   const onPointerCancel = (e) => finishDrag(e, false);
 
-  if (!waLink || !pos) return null;
+  if (hidden || !waLink || !pos) return null;
 
   return (
     <button

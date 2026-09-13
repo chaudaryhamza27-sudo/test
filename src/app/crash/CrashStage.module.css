@@ -224,8 +224,11 @@
   .rays { animation: none; }
 }
 
-/* Next-round banner, sized to leave the parked plane and joining count visible. */
-.stage { height: clamp(280px, 74vw, 320px); }
+/* Next-round banner, sized to leave the parked plane and joining count
+   visible. Capped by viewport height too (not just width) — on a short
+   screen a width-only size would hold steady while eating the room the
+   bet panels below need, forcing a scroll to see both of them. */
+.stage { height: clamp(200px, min(74vw, 42vh), 320px); }
 .waiting { justify-content: flex-start; padding-top: 14px; }
 .brandName { font-family: Arial, sans-serif; font-size: 32px; font-style: italic; font-weight: 900; }
 .brandDivider { height: 28px; }

@@ -793,6 +793,9 @@ export default function AdminDashboard() {
   }
 
   const balanceLookupUser = balanceEmail.trim() ? findUserByEmail(balanceEmail) : null;
+  const balanceLookupDeposits = balanceLookupUser
+    ? deposits.filter((d) => d.user?.uid === balanceLookupUser.uid)
+    : [];
   const trustLookupUser = trustEmail.trim() ? findUserByEmail(trustEmail) : null;
 
   // Lets the sidebar refresh a tab's data directly, without switching to it
@@ -1154,14 +1157,53 @@ export default function AdminDashboard() {
                 )}
               </div>
 
+              {balanceLookupUser && (
+                <div className="admin-quick-card">
+                  <div className="admin-quick-card-head">
+                    <h3>Deposit History — {balanceLookupUser.uid}</h3>
+                    <p>Every deposit this user has made, most recent first.</p>
+                  </div>
+                  <div className="admin-quick-divider" />
+                  <div className="admin-table-wrap">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Amount</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {balanceLookupDeposits.map((d) => (
+                          <tr key={d._id}>
+                            <td>{new Date(d.createdAt).toLocaleString()}</td>
+                            <td>Rs {Number(d.amount).toLocaleString()}</td>
+                            <td>
+                              <StatusPill status={d.status} />
+                            </td>
+                          </tr>
+                        ))}
+                        {balanceLookupDeposits.length === 0 && (
+                          <tr>
+                            <td colSpan={3} className="empty">
+                              No deposits yet.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
               <div className="admin-quick-card">
                 <div className="admin-quick-card-head">
                   <h3>Trust Score Logic</h3>
                   <p>
-                    This only adjusts wallet balance. Trust score is auto-set on every approved deposit based on the
-                    user's lifetime total (40% up to Rs3,000, 70% up to Rs10,000, 90% up to Rs17,000, 100% above that),
-                    but can still be fetched and manually increased or decreased from the Trust Score panel in User
-                    Control.
+                    This only adjusts wallet balance. Trust score starts at 15% when the account is created and is
+                    auto-set to 40% once the user's lifetime approved deposits reach Rs3,000. It never climbs past
+                    40% on its own — any further increase or decrease has to be done by hand from the Trust Score
+                    panel in User Control.
                   </p>
                 </div>
               </div>
@@ -1588,7 +1630,7 @@ export default function AdminDashboard() {
       {tab === "support" && (
         <div>
           <PageHead
-            title="Manual Payment"
+            title="Deposit Funds"
             sub="Support status, contact number, and which deposit methods are advertised as available. Content only — no payment gateway is connected."
             onRefresh={() => refreshTab("support", loadSupportSettings)}
             refreshing={refreshingTab === "support"}

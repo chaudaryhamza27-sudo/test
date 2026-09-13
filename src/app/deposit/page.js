@@ -17,8 +17,8 @@ import BottomNav from "../components/BottomNav";
 import HistoryList from "../components/HistoryList";
 import styles from "./deposit.module.css";
 
-const QUICK_AMOUNTS = [2000, 5000, 10000, 20000, 30000, 50000];
-const MIN_DEPOSIT = 2000;
+const QUICK_AMOUNTS = [1000, 2000, 5000, 10000, 20000, 30000, 50000];
+const MIN_DEPOSIT = 1000;
 const MAX_DEPOSIT = 50000;
 
 const formatShort = (v) => (v >= 1000 ? `${v / 1000}K` : `${v}`);
@@ -192,7 +192,7 @@ export default function DepositPage() {
                   <IconDeposit />
                 </span>
                 <span>
-                  <b>Manual Deposit</b>
+                  <b>Deposit Funds</b>
                   <span>Deposit manually</span>
                 </span>
               </button>
@@ -360,7 +360,7 @@ export default function DepositPage() {
                   </>
                 ) : (
                   <p style={{ fontSize: 12.5, color: "var(--kk-muted)" }}>
-                    Paybost deposits are currently unavailable. Please use Manual Deposit instead.
+                    Paybost deposits are currently unavailable. Please use Deposit Funds instead.
                   </p>
                 )}
               </section>

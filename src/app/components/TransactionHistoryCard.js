@@ -50,7 +50,7 @@ export default function TransactionHistoryCard({ transaction }) {
   return (
     <article className="transaction-history-card">
       <div className="transaction-history-card-head">
-        <span className={`transaction-history-type ${transaction.type}`}>{typeLabel}</span>
+        <span className={`transaction-history-type ${transaction.type} ${isComplete ? "complete" : transaction.status}`}>{typeLabel}</span>
         <span className={`transaction-history-status ${isComplete ? "complete" : transaction.status}`}>{status}</span>
       </div>
 

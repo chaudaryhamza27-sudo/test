@@ -4,7 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL;
-const POLL_MS = 250;
+// Polling is an outage fallback only. A one-second cadence prevents a missing
+// realtime server from turning a large audience into thousands of database
+// reads per second; normal play uses Socket.IO above.
+const POLL_MS = 1000;
 const CONNECT_TIMEOUT_MS = 4000;
 
 // Drives the Aviator game screen from the realtime-server when it's

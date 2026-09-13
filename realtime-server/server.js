@@ -16,7 +16,11 @@ const JWT_SECRET = process.env.JWT_SECRET;
 // dev override (see .env.local) so nothing about local dev changes.
 const PORT = process.env.PORT || process.env.SOCKET_PORT || 4001;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+// Settlement needs fine-grained checks, but clients can interpolate the round
+// clock between snapshots. Keeping these separate prevents a large audience
+// from receiving ten complete broadcasts per second.
 const TICK_MS = 100;
+const BROADCAST_MS = 250;
 
 if (!JWT_SECRET) throw new Error("JWT_SECRET is not set — add it to .env.local");
 if (!process.env.MONGODB_URI) throw new Error("MONGODB_URI is not set — add it to .env.local");
@@ -29,15 +33,45 @@ const io = new Server(httpServer, {
 // userId -> Set<socketId>, so server-initiated events (auto cash-out,
 // balance updates) reach every tab/device a given user has open.
 const userSockets = new Map();
+let latestRoundUpdate = null;
+let latestRoundUpdatePromise = null;
+
+function makeRoundUpdate(round, info, playerCount, now = Date.now()) {
+  return {
+    roundId: String(round._id),
+    serverSeedHash: round.serverSeedHash,
+    phase: info.phase,
+    multiplier: info.multiplier,
+    waitingEndsAt: info.waitingEndsAt ?? null,
+    startedAt: info.startedAt ?? null,
+    crashedAt: info.crashedAt ?? null,
+    crashPoint: info.phase === "CRASHED" ? round.crashPoint : null,
+    now,
+    playerCount,
+  };
+}
+
+async function getLatestRoundUpdate() {
+  if (latestRoundUpdate) return latestRoundUpdate;
+  if (!latestRoundUpdatePromise) {
+    latestRoundUpdatePromise = (async () => {
+      await dbConnect();
+      const round = await getActiveRound();
+      const info = getRoundPhase(round);
+      const playerCount = await GameBet.countDocuments({ round: round._id });
+      latestRoundUpdate = makeRoundUpdate(round, info, playerCount);
+      return latestRoundUpdate;
+    })().finally(() => {
+      latestRoundUpdatePromise = null;
+    });
+  }
+  return latestRoundUpdatePromise;
+}
 
 function emitToUser(userId, event, payload) {
   const sockets = userSockets.get(String(userId));
   if (!sockets) return;
   for (const id of sockets) io.to(id).emit(event, payload);
-}
-
-function broadcastPlayerPresence() {
-  io.emit("players:update", { count: io.engine.clientsCount });
 }
 
 // Socket auth: verifies the short-lived, purpose-scoped token issued by
@@ -68,30 +102,18 @@ io.on("connection", async (socket) => {
     if (!userSockets.has(uid)) userSockets.set(uid, new Set());
     userSockets.get(uid).add(socket.id);
   }
-  broadcastPlayerPresence();
 
   // Round synchronization: a client that connects mid-round gets the full
   // authoritative current state immediately, not just the next tick.
   try {
-    await dbConnect();
-    const round = await getActiveRound();
-    const info = getRoundPhase(round);
-    const playerCount = await GameBet.countDocuments({ round: round._id });
-    socket.emit("round:update", {
-      roundId: round._id,
-      serverSeedHash: round.serverSeedHash,
-      phase: info.phase,
-      multiplier: info.multiplier,
-      waitingEndsAt: info.waitingEndsAt ?? null,
-      startedAt: info.startedAt ?? null,
-      crashedAt: info.crashedAt ?? null,
-      crashPoint: info.phase === "CRASHED" ? round.crashPoint : null,
-      now: Date.now(),
-      playerCount,
-    });
+    // A connection storm (for example after a deploy) must not make every
+    // spectator repeat the same active-round and count queries. The game loop
+    // refreshes this shared snapshot at least four times per second.
+    const roundUpdate = await getLatestRoundUpdate();
+    socket.emit("round:update", roundUpdate);
 
     if (socket.data.user) {
-      const bets = await GameBet.find({ round: round._id, user: socket.data.user._id });
+      const bets = await GameBet.find({ round: roundUpdate.roundId, user: socket.data.user._id });
       const bySlot = { 1: null, 2: null };
       for (const bet of bets) bySlot[bet.slot] = bet;
       for (const slot of [1, 2]) {
@@ -122,6 +144,9 @@ io.on("connection", async (socket) => {
       emitToUser(socket.data.user._id, "bet:updated", { slot: result.slot, status: "placed", amount: result.amount, autoCashoutTarget: payload?.autoCashoutTarget ?? null });
       emitToUser(socket.data.user._id, "balance:updated", { balance: result.balance });
       lastPlayerCount = await GameBet.countDocuments({ round: result.roundId });
+      if (latestRoundUpdate?.roundId === String(result.roundId)) {
+        latestRoundUpdate = { ...latestRoundUpdate, playerCount: lastPlayerCount };
+      }
       io.emit("round:player-count", { roundId: String(result.roundId), playerCount: lastPlayerCount });
     } catch (err) {
       console.error("[socket] bet:place failed", err);
@@ -150,7 +175,6 @@ io.on("connection", async (socket) => {
       userSockets.get(uid)?.delete(socket.id);
       if (userSockets.get(uid)?.size === 0) userSockets.delete(uid);
     }
-    broadcastPlayerPresence();
   });
 });
 
@@ -162,12 +186,15 @@ io.on("connection", async (socket) => {
 let lastRoundId = null;
 let lastPhase = null;
 let lastPlayerCount = 0;
+let lastBroadcastAt = 0;
 
 async function tick() {
   await dbConnect();
   const round = await getActiveRound();
   const info = getRoundPhase(round);
   const roundId = String(round._id);
+  const roundChanged = roundId !== lastRoundId;
+  const phaseChanged = info.phase !== lastPhase;
 
   if (roundId !== lastRoundId) {
     lastPlayerCount = await GameBet.countDocuments({ round: round._id });
@@ -181,20 +208,7 @@ async function tick() {
     }
   }
 
-  io.emit("round:update", {
-    roundId: round._id,
-    serverSeedHash: round.serverSeedHash,
-    phase: info.phase,
-    multiplier: info.multiplier,
-    waitingEndsAt: info.waitingEndsAt ?? null,
-    startedAt: info.startedAt ?? null,
-    crashedAt: info.crashedAt ?? null,
-    crashPoint: info.phase === "CRASHED" ? round.crashPoint : null,
-    now: Date.now(),
-    playerCount: lastPlayerCount,
-  });
-
-  if (roundId !== lastRoundId) {
+  if (roundChanged) {
     // getActiveRound() rotates lazily — by the time DONE is externally
     // visible it has already become a brand-new WAITING round, so we infer
     // "the previous round just finished" from the id changing rather than
@@ -203,10 +217,19 @@ async function tick() {
     io.emit("round:waiting", { roundId: round._id, waitingEndsAt: info.waitingEndsAt });
     lastRoundId = roundId;
     lastPhase = info.phase;
-  } else if (info.phase !== lastPhase) {
+  } else if (phaseChanged) {
     if (info.phase === "RUNNING") io.emit("round:started", { roundId: round._id, startedAt: info.startedAt });
     if (info.phase === "CRASHED") io.emit("round:crashed", { roundId: round._id, crashPoint: round.crashPoint, crashedAt: info.crashedAt, serverSeed: round.serverSeed });
     lastPhase = info.phase;
+  }
+
+  const now = Date.now();
+  // Always push lifecycle edges immediately; during a stable phase, cap full
+  // snapshots at 4/sec. Auto cash-outs above still run every 100ms.
+  if (roundChanged || phaseChanged || now - lastBroadcastAt >= BROADCAST_MS) {
+    latestRoundUpdate = makeRoundUpdate(round, info, lastPlayerCount, now);
+    io.emit("round:update", latestRoundUpdate);
+    lastBroadcastAt = now;
   }
 }
 

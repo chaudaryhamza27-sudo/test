@@ -18,14 +18,6 @@ import {
   IconDocument,
 } from "../icons";
 
-// Trust score is a 0-100 gauge the admin can adjust (see /admin User
-// Control's Trust Score panel); this is just the user-facing readout.
-function trustMessage(score) {
-  if (score >= 70) return "Your account has an excellent trust rating.";
-  if (score >= 30) return "Your account is active and verified for smooth gaming access.";
-  return "Your account trust score is low — some features may be limited.";
-}
-
 export default function ProfilePage() {
   const router = useRouter();
   const [notice, setNotice] = useState(null);
@@ -123,10 +115,23 @@ export default function ProfilePage() {
                 {tier}
               </button>
             </div>
-            <button className="kk-uid-pill" onClick={copyUid}>
-              UID | {uid}
-              <IconCopy />
-            </button>
+            <div className="kk-uid-row">
+              <button className="kk-uid-pill" onClick={copyUid}>
+                UID | {uid}
+                <IconCopy />
+              </button>
+              {user && (
+                <div className="kk-health-inline">
+                  <span className="kk-health-inline-label">Health Account</span>
+                  <div className="kk-health-inline-value">
+                    <b>{user.trustScore ?? 15}%</b>
+                    <div className="kk-health-inline-bar">
+                      <div className="kk-health-inline-fill" style={{ width: `${user.trustScore ?? 15}%` }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
             <div className="kk-last-login">
               Last login: {user?.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : "…"}
             </div>
@@ -166,21 +171,6 @@ export default function ProfilePage() {
           </button>
         </div>
       </section>
-
-      {user && (
-        <section className="kk-trust-card">
-          <div className="kk-trust-head">
-            <span>
-              <IconShield style={{ width: 15, height: 15 }} />Account Health 
-            </span>
-            <b>{user.trustScore ?? 15}%</b>
-          </div>
-          <div className="kk-trust-bar">
-            <div className="kk-trust-fill" style={{ width: `${user.trustScore ?? 15}%` }} />
-          </div>
-          <p>{trustMessage(user.trustScore ?? 15)}</p>
-        </section>
-      )}
 
       <section className="kk-grid-2">
         <Link href="/crash/history" className="kk-info-card">
