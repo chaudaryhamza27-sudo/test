@@ -133,7 +133,7 @@ export const winners = [
   { uid: "831***", amount: "PKR 41,500" },
   { uid: "988***", amount: "PKR 8,230" },
   { uid: "556***", amount: "PKR 63,750" },
-  { uid: "691***", amount: "PKR 25,100" },
+  { uid: "691***", amount: "PKR  25,100" },
   { uid: "871***", amount: "PKR 30,600" },
   { uid: "968***", amount: "PKR 13,440" },
   { uid: "829***", amount: "PKR 75,900" },
