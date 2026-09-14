@@ -305,16 +305,16 @@ export default function Home() {
           <div className="kk-winners-head">
             <div>
               <h3>Latest Winners</h3>
-              <span>Masked Gmail list with recent winning amount</span>
+              <span>Masked UID list with recent winning amount</span>
             </div>
             <IconTrophy />
           </div>
           <table className="kk-winner-table">
-            <thead><tr><th>Gmail</th><th style={{textAlign:"end"}}>Winning</th></tr></thead>
+            <thead><tr><th>UID</th><th style={{textAlign:"end"}}>Winning</th></tr></thead>
             <tbody>
               {liveWinners.map((w, i) => (
                 <tr key={w.id} className={i >= 10 ? "kk-extra-winner" : ""}>
-                  <td>{w.gmail}</td>
+                  <td>{w.uid}</td>
                   <td style={{textAlign:"end"}}>{w.amount}</td>
                 </tr>
               ))}
