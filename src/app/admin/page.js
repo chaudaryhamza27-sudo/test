@@ -100,7 +100,7 @@ function BarChart({ data, valueKey, color, formatValue }) {
   );
 }
 
-function PageHead({ title, sub, badge, onRefresh, refreshing }) {
+function PageHead({ title, sub, badge, onRefresh, refreshing, children }) {
   return (
     <div className="admin-page-head">
       <div>
@@ -109,6 +109,7 @@ function PageHead({ title, sub, badge, onRefresh, refreshing }) {
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         {/* {badge && <span className="admin-demo-badge">EDUCATIONAL SIMULATION · PRACTICE MODE · NO REAL MONEY</span>} */}
+        {children}
         {onRefresh && (
           <button
             type="button"
@@ -137,6 +138,9 @@ export default function AdminDashboard() {
   // other request, and prevent a double-click from sending a second review.
   const [reviewingDeposit, setReviewingDeposit] = useState(null);
   const [reviewingWithdrawal, setReviewingWithdrawal] = useState(null);
+  const [withdrawSearch, setWithdrawSearch] = useState("");
+  const [selectedWithdrawals, setSelectedWithdrawals] = useState(new Set());
+  const [bulkWithdrawAction, setBulkWithdrawAction] = useState(null); // "approve" | "reject" | null
   const [userStatsModal, setUserStatsModal] = useState(null);
   const [userSearch, setUserSearch] = useState("");
   const [banModal, setBanModal] = useState(null); // { user }
@@ -557,6 +561,54 @@ export default function AdminDashboard() {
       setError("Something went wrong reviewing this withdrawal. Please try again.");
     } finally {
       setReviewingWithdrawal(null);
+    }
+  };
+
+  const toggleWithdrawalSelected = (id) => {
+    setSelectedWithdrawals((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAllWithdrawals = (pendingIds) => {
+    setSelectedWithdrawals((current) => {
+      const allSelected = pendingIds.length > 0 && pendingIds.every((id) => current.has(id));
+      return allSelected ? new Set() : new Set(pendingIds);
+    });
+  };
+
+  const bulkReviewWithdrawals = async (action) => {
+    const ids = [...selectedWithdrawals];
+    if (ids.length === 0) return;
+    setBulkWithdrawAction(action);
+    setError("");
+    try {
+      for (const id of ids) {
+        const res = await fetch("/api/admin/withdrawals", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ transactionId: id, action }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+          setWithdrawals((current) =>
+            current.map((withdrawal) =>
+              withdrawal._id === id
+                ? { ...withdrawal, status: data.withdrawal?.status || (action === "approve" ? "approved" : "rejected") }
+                : withdrawal
+            )
+          );
+        }
+      }
+      setSelectedWithdrawals(new Set());
+      await loadAll();
+    } catch {
+      setError("Something went wrong reviewing the selected withdrawals. Please try again.");
+    } finally {
+      setBulkWithdrawAction(null);
     }
   };
 
@@ -1021,73 +1073,144 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {tab === "withdrawals" && (
-        <div>
-          <PageHead
-            title="Withdraws"
-            sub={`${withdrawals.length} withdrawal requests`}
-            onRefresh={() => refreshTab("withdrawals", loadAll)}
-            refreshing={refreshingTab === "withdrawals"}
-          />
-          <div className="admin-table-wrap">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>User ID</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Amount</th>
-                  <th>Method</th>
-                  <th>Account</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {withdrawals.map((w) => (
-                  <tr key={w._id}>
-                    <td>{w.user?.uid || "—"}</td>
-                    <td>{w.user?.name || "—"}</td>
-                    <td>{w.user?.email || "—"}</td>
-                    <td>
-                      Rs {Number(w.amount).toLocaleString()}
-                      {w.meta?.highValue && (
-                        <span className="admin-small-btn" style={{ marginLeft: 6, cursor: "default", background: "rgba(232,172,66,.16)", color: "#e8ac42" }}>
-                          Priority Review
-                        </span>
-                      )}
-                    </td>
-                    <td>{w.method}</td>
-                    <td>{w.accountNumber}</td>
-                    <td>
-                      <StatusPill status={w.status} />
-                    </td>
-                    <td>
-                      {w.status === "pending" && (
-                        <>
-                          <button className="admin-small-btn approve" onClick={() => reviewWithdrawal(w._id, "approve")} disabled={reviewingWithdrawal === w._id}>
-                            {reviewingWithdrawal === w._id ? "Reviewing…" : "Approve"}
-                          </button>
-                          <button className="admin-small-btn reject" onClick={() => reviewWithdrawal(w._id, "reject")} disabled={reviewingWithdrawal === w._id}>
-                            Reject
-                          </button>
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-                {withdrawals.length === 0 && (
+      {tab === "withdrawals" && (() => {
+        const q = withdrawSearch.trim().toLowerCase();
+        const filteredWithdrawals = !q
+          ? withdrawals
+          : withdrawals.filter((w) =>
+              w.user?.uid?.toLowerCase().includes(q) ||
+              w.user?.name?.toLowerCase().includes(q) ||
+              w.user?.email?.toLowerCase().includes(q) ||
+              w.method?.toLowerCase().includes(q) ||
+              w.accountNumber?.toLowerCase().includes(q)
+            );
+        const pendingIds = filteredWithdrawals.filter((w) => w.status === "pending").map((w) => w._id);
+        const allPendingSelected = pendingIds.length > 0 && pendingIds.every((id) => selectedWithdrawals.has(id));
+
+        return (
+          <div>
+            <PageHead
+              title="Withdraws"
+              sub={`${withdrawals.length} withdrawal requests`}
+              onRefresh={() => refreshTab("withdrawals", loadAll)}
+              refreshing={refreshingTab === "withdrawals"}
+            >
+              <div className="admin-page-search">
+                <IconSearch />
+                <input
+                  placeholder="Search by name, email, UID or account…"
+                  value={withdrawSearch}
+                  onChange={(e) => {
+                    setWithdrawSearch(e.target.value);
+                    setSelectedWithdrawals(new Set());
+                  }}
+                />
+              </div>
+            </PageHead>
+
+            {selectedWithdrawals.size > 0 && (
+              <div className="admin-page-head" style={{ paddingTop: 0 }}>
+                <div>
+                  <p>{selectedWithdrawals.size} selected</p>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <button
+                    className="admin-small-btn approve"
+                    onClick={() => bulkReviewWithdrawals("approve")}
+                    disabled={bulkWithdrawAction !== null}
+                  >
+                    {bulkWithdrawAction === "approve" ? "Approving…" : "Approve Selected"}
+                  </button>
+                  <button
+                    className="admin-small-btn reject"
+                    onClick={() => bulkReviewWithdrawals("reject")}
+                    disabled={bulkWithdrawAction !== null}
+                  >
+                    {bulkWithdrawAction === "reject" ? "Rejecting…" : "Reject Selected"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
                   <tr>
-                    <td colSpan={8} className="empty">
-                      No withdraw requests yet.
-                    </td>
+                    <th>
+                      <input
+                        type="checkbox"
+                        checked={allPendingSelected}
+                        onChange={() => toggleSelectAllWithdrawals(pendingIds)}
+                        disabled={pendingIds.length === 0}
+                        aria-label="Select all pending withdrawals"
+                      />
+                    </th>
+                    <th>User ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Account</th>
+                    <th>Status</th>
+                    <th>Action</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredWithdrawals.map((w) => (
+                    <tr key={w._id}>
+                      <td>
+                        {w.status === "pending" && (
+                          <input
+                            type="checkbox"
+                            checked={selectedWithdrawals.has(w._id)}
+                            onChange={() => toggleWithdrawalSelected(w._id)}
+                            aria-label={`Select withdrawal ${w._id}`}
+                          />
+                        )}
+                      </td>
+                      <td>{w.user?.uid || "—"}</td>
+                      <td>{w.user?.name || "—"}</td>
+                      <td>{w.user?.email || "—"}</td>
+                      <td>
+                        Rs {Number(w.amount).toLocaleString()}
+                        {w.meta?.highValue && (
+                          <span className="admin-small-btn" style={{ marginLeft: 6, cursor: "default", background: "rgba(232,172,66,.16)", color: "#e8ac42" }}>
+                            Priority Review
+                          </span>
+                        )}
+                      </td>
+                      <td>{w.method}</td>
+                      <td>{w.accountNumber}</td>
+                      <td>
+                        <StatusPill status={w.status} />
+                      </td>
+                      <td>
+                        {w.status === "pending" && (
+                          <>
+                            <button className="admin-small-btn approve" onClick={() => reviewWithdrawal(w._id, "approve")} disabled={reviewingWithdrawal === w._id}>
+                              {reviewingWithdrawal === w._id ? "Reviewing…" : "Approve"}
+                            </button>
+                            <button className="admin-small-btn reject" onClick={() => reviewWithdrawal(w._id, "reject")} disabled={reviewingWithdrawal === w._id}>
+                              Reject
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredWithdrawals.length === 0 && (
+                    <tr>
+                      <td colSpan={9} className="empty">
+                        No withdraw requests yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {tab === "balance" && (
         <div>
