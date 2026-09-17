@@ -1588,7 +1588,7 @@ export default function AdminDashboard() {
 
       {tab === "payments" && (
         <div>
-          <PageHead title="Payments" sub="PayPal Sandbox / Paybost gateway records." />
+          <PageHead title="Payments" sub="PayPal Sandbox / CashMaal gateway records." />
           <div className="admin-filter-bar">
             <select
               value={paymentFilters.status}
@@ -1612,7 +1612,7 @@ export default function AdminDashboard() {
             >
               <option value="all">All providers</option>
               <option value="paypal">PayPal</option>
-              <option value="paybost">Paybost</option>
+              <option value="cashmaal">CashMaal</option>
             </select>
             <input
               placeholder="Provider order ID"
@@ -1722,10 +1722,11 @@ export default function AdminDashboard() {
                   <dd>{selectedPayment.creditedAt ? new Date(selectedPayment.creditedAt).toLocaleString() : "—"}</dd>
                 </dl>
                 <p className="admin-modal-note">
-                  {selectedPayment.provider === "paybost" ? (
+                  {selectedPayment.provider === "cashmaal" ? (
                     <>
-                      Paybost has no status/query API — this payment can only ever move to COMPLETED via a verified, signature-checked IPN webhook from
-                      Paybost itself. There is nothing to re-verify manually; an admin can never mark it COMPLETED by hand.
+                      Re-verify calls CashMaal&apos;s verify_v2 API against the transaction ID reported by their IPN and reconciles our record against it.
+                      Until CashMaal&apos;s IPN reports a transaction ID, there is nothing to re-verify — this payment can only move to COMPLETED via a
+                      verified IPN or a successful re-verify. An admin can never mark it COMPLETED by hand.
                     </>
                   ) : (
                     <>
@@ -1735,11 +1736,9 @@ export default function AdminDashboard() {
                   )}
                 </p>
                 <div style={{ display: "flex", gap: 10 }}>
-                  {selectedPayment.provider !== "paybost" && (
-                    <button className="admin-small-btn approve" disabled={verifying} onClick={() => reverifyPayment(selectedPayment._id)}>
-                      {verifying ? "Verifying…" : "Re-verify with PayPal"}
-                    </button>
-                  )}
+                  <button className="admin-small-btn approve" disabled={verifying} onClick={() => reverifyPayment(selectedPayment._id)}>
+                    {verifying ? "Verifying…" : selectedPayment.provider === "cashmaal" ? "Re-verify with CashMaal" : "Re-verify with PayPal"}
+                  </button>
                   <button className="admin-small-btn" onClick={() => setSelectedPayment(null)}>
                     Close
                   </button>

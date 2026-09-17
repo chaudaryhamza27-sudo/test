@@ -2,13 +2,15 @@ import dbConnect from "../../../../../../lib/mongodb";
 import Payment from "../../../../../../lib/models/Payment";
 import { requireAdmin } from "../../../../../../lib/auth";
 import { getOrder, PayPalError } from "../../../../../../lib/paypal";
+import { verifyTransaction, CashmaalError } from "../../../../../../lib/cashmaal";
 import { creditVerifiedPayment } from "../../../../../../lib/payments";
 import { logActivity } from "../../../../../../lib/activity";
 
-// Re-fetches the order from PayPal and reconciles our local record against it.
-// This is the ONLY path by which an admin can move a payment toward COMPLETED —
-// it always goes through creditVerifiedPayment(), which only credits when PayPal
-// itself reports a completed capture. There is no direct "mark as completed" action.
+// Re-fetches the order/transaction from the provider and reconciles our local
+// record against it. This is the ONLY path by which an admin can move a
+// payment toward COMPLETED — it always goes through creditVerifiedPayment(),
+// which only credits when the provider itself reports a completed payment.
+// There is no direct "mark as completed" action.
 export async function POST(request, ctx) {
   const admin = await requireAdmin();
   if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
@@ -20,18 +22,8 @@ export async function POST(request, ctx) {
   const payment = await Payment.findById(id);
   if (!payment) return Response.json({ error: "Payment not found." }, { status: 404 });
 
-  if (payment.provider === "paybost") {
-    // Paybost's published API has no "get payment status" endpoint — only an
-    // Initiate Payment call and an inbound IPN webhook. There is nothing to
-    // re-fetch here, so an admin cannot force-reconcile a Paybost payment; it
-    // can only ever move to COMPLETED via a verified, signature-checked IPN.
-    return Response.json(
-      {
-        error:
-          "Paybost has no status API to re-verify against. This payment will only complete when Paybost's IPN webhook arrives — it cannot be reconciled manually.",
-      },
-      { status: 501 }
-    );
+  if (payment.provider === "cashmaal") {
+    return verifyCashmaalPayment(admin, payment);
   }
 
   let order;
@@ -80,6 +72,71 @@ export async function POST(request, ctx) {
     if (mapped) {
       payment.status = mapped;
       payment.rawCaptureResponse = order;
+      await payment.save();
+    }
+  }
+
+  return Response.json({ payment, reconciled: false });
+}
+
+// CashMaal's IPN is the primary confirmation path, but their verify_v2 API
+// lets an admin re-fetch a transaction by CM_TID. We only ever learn a CM_TID
+// from an IPN delivery (successful or otherwise), so until one has arrived
+// there's nothing here to re-fetch — the payment can only complete via IPN.
+async function verifyCashmaalPayment(admin, payment) {
+  if (!payment.providerCaptureId) {
+    return Response.json(
+      {
+        error:
+          "CashMaal hasn't reported a transaction ID for this order yet — nothing to re-verify. This payment will only move forward once CashMaal's IPN webhook arrives.",
+      },
+      { status: 501 }
+    );
+  }
+
+  let result;
+  try {
+    result = await verifyTransaction(payment.providerCaptureId);
+  } catch (err) {
+    if (err instanceof CashmaalError) {
+      console.error("[admin/payments/verify] verifyTransaction failed", err.detail);
+    } else {
+      console.error("[admin/payments/verify] Unexpected error", err);
+    }
+    return Response.json({ error: "Could not reach CashMaal to re-verify this payment." }, { status: 502 });
+  }
+
+  await logActivity({
+    user: admin._id,
+    actorRole: "admin",
+    action: "payment_reverified",
+    targetUser: payment.userId,
+    message: `Re-verified CashMaal transaction ${payment.providerCaptureId} against CashMaal (reported status: ${result.status}).`,
+    meta: { paymentId: payment._id, cashmaalStatus: result.status },
+  });
+
+  // status: 1 (Successful) | 2 (Pending) | 3 (Rejected) | 0 (Cancelled)
+  if (String(result.status) === "1") {
+    const reportedAmountCents = Math.round(Number(result.PKR_amount) * 100);
+    const amountMatches = reportedAmountCents === payment.amount && payment.currency === "PKR";
+
+    if (!amountMatches) {
+      payment.status = "FAILED";
+      payment.rawCaptureResponse = result;
+      await payment.save();
+      return Response.json({ payment, reconciled: false, mismatch: true });
+    }
+
+    const credited = await creditVerifiedPayment(payment._id, { captureId: payment.providerCaptureId, rawCaptureResponse: result });
+    return Response.json({ payment: credited.payment, reconciled: !credited.alreadyCredited, alreadyCompleted: credited.alreadyCredited });
+  }
+
+  if (payment.status !== "COMPLETED") {
+    const statusMap = { "3": "FAILED", "2": "PENDING", "0": "CANCELLED" };
+    const mapped = statusMap[String(result.status)];
+    if (mapped) {
+      payment.status = mapped;
+      payment.rawCaptureResponse = result;
       await payment.save();
     }
   }

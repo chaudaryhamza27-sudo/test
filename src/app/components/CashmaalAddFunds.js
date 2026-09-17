@@ -4,8 +4,8 @@
 import { useEffect, useRef, useState } from "react";
 import { IconShield, IconX, IconChevronRight, IconWallet, IconUpload, IconCheck } from "../icons";
 
-// This merchant's Paybost sandbox account only accepts PKR — matches this
-// app's existing Rs-denominated wallet, so 1 PKR (test) == 1 demo credit here.
+// This merchant's CashMaal account is used in PKR — matches this app's
+// existing Rs-denominated wallet, so 1 PKR (test) == 1 demo credit here.
 const PRESET_AMOUNTS = [2000, 5000, 10000, 25000, 35000,50000];
 const MIN_AMOUNT = 2000;
 const MAX_AMOUNT = 50000;
@@ -14,19 +14,20 @@ const POLL_MAX_ATTEMPTS = 15; // ~30s
 
 const HOW_IT_WORKS = [
   { step: 1, title: "Choose Amount", desc: "Select or enter the amount you want", icon: IconWallet, bg: "linear-gradient(160deg,#a855f7,#6d28d9)" },
-  { step: 2, title: "Pay with Paybost", desc: "Complete the payment using Paybost", icon: null, emoji: "🚀", bg: "linear-gradient(160deg,#4aa8ff,#1565e8)" },
+  { step: 2, title: "Pay with CashMaal", desc: "Complete the payment using CashMaal", icon: null, emoji: "🚀", bg: "linear-gradient(160deg,#4aa8ff,#1565e8)" },
   { step: 3, title: "Auto Credit", desc: "Amount will be added to your wallet instantly", icon: IconUpload, bg: "linear-gradient(160deg,#4aa8ff,#1565e8)" },
   { step: 4, title: "Start Playing", desc: "Use your balance to play and enjoy", icon: IconCheck, bg: "linear-gradient(160deg,#33d19a,#1a9450)" },
 ];
 
-// Paybost is a redirect-based hosted checkout (no embedded JS SDK), so this
-// component works differently from PayPalAddFunds: clicking "Pay" navigates
-// the whole page to Paybost, and the user is redirected back to this same
-// page afterwards. On mount we check the URL for that return trip and pick
-// up wherever the popup left off.
+// CashMaal is a redirect-based hosted checkout reached by POSTing a real HTML
+// form straight to their gateway (no embedded JS SDK, and no server-side call
+// that returns a checkout URL) — so clicking "Pay" builds and submits a
+// hidden form that navigates the whole page to CashMaal, and the user is
+// redirected back to this same page afterwards. On mount we check the URL
+// for that return trip and pick up wherever the redirect left off.
 const formatShort = (v) => (v >= 1000 ? `${v / 1000}K` : `${v}`);
 
-export default function PaybostAddFunds({ theme = "dark", triggerClassName, triggerLabel = "Add Funds (Paybost — Test Mode)", onBalanceChange, disabled = false }) {
+export default function CashmaalAddFunds({ theme = "dark", triggerClassName, triggerLabel = "Add Funds (CashMaal — Test Mode)", onBalanceChange, disabled = false }) {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState(null);
   const [phase, setPhase] = useState("select"); // select | redirecting | polling | success | cancelled | error
@@ -40,22 +41,22 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const paybostResult = params.get("paybost");
-    if (!paybostResult) return;
+    const cashmaalResult = params.get("cashmaal");
+    if (!cashmaalResult) return;
 
     // Strip the query params so a page refresh doesn't re-trigger this.
     const url = new URL(window.location.href);
-    url.searchParams.delete("paybost");
+    url.searchParams.delete("cashmaal");
     url.searchParams.delete("identifier");
     window.history.replaceState({}, "", url.toString());
 
-    if (paybostResult === "cancelled") {
+    if (cashmaalResult === "cancelled") {
       setOpen(true);
       setPhase("cancelled");
       return;
     }
 
-    if (paybostResult === "success") {
+    if (cashmaalResult === "success") {
       const identifier = params.get("identifier");
       if (!identifier) return;
       setOpen(true);
@@ -69,7 +70,7 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
 
   const pollStatus = async (identifier, attempt) => {
     try {
-      const res = await fetch(`/api/paybost/status?identifier=${encodeURIComponent(identifier)}`);
+      const res = await fetch(`/api/cashmaal/status?identifier=${encodeURIComponent(identifier)}`);
       const data = await res.json();
       if (res.ok && data.status === "COMPLETED") {
         setPhase("success");
@@ -89,7 +90,7 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
     if (attempt + 1 >= POLL_MAX_ATTEMPTS) {
       setPhase("error");
       setResultMessage(
-        "Still waiting on confirmation from Paybost. If your balance doesn't update in a minute, this test payment likely wasn't completed."
+        "Still waiting on confirmation from CashMaal. If your balance doesn't update in a minute, this test payment likely wasn't completed."
       );
       return;
     }
@@ -115,24 +116,42 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
     setAmount(v === "" ? null : Number(v) || 0);
   };
 
+  // Navigates the browser to CashMaal's hosted checkout by submitting a real
+  // (invisible) form — CashMaal's "Receive Money" API is a direct form POST,
+  // not a fetch-and-redirect like the previous gateway.
+  const submitCashmaalForm = ({ action, fields }) => {
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = action;
+    for (const [name, value] of Object.entries(fields)) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = name;
+      input.value = value ?? "";
+      form.appendChild(input);
+    }
+    document.body.appendChild(form);
+    form.submit();
+  };
+
   const handlePay = async () => {
     setPhase("redirecting");
     try {
-      const res = await fetch("/api/paybost/create-order", {
+      const res = await fetch("/api/cashmaal/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount }),
       });
       const data = await res.json();
-      if (!res.ok || !data.url) {
+      if (!res.ok || !data.action || !data.fields) {
         setPhase("error");
-        setResultMessage(data.error || "Could not start Paybost checkout.");
+        setResultMessage(data.error || "Could not start CashMaal checkout.");
         return;
       }
-      window.location.href = data.url;
+      submitCashmaalForm(data);
     } catch {
       setPhase("error");
-      setResultMessage("Could not start Paybost checkout. Please try again.");
+      setResultMessage("Could not start CashMaal checkout. Please try again.");
     }
   };
 
@@ -148,16 +167,12 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
             <IconX />
           </button>
 
-          {/* <div className="paybost-modal-badge">
-            <span>🚀</span> PAYBOST <span className="dot">•</span> TEST MODE <span className="dot">•</span> NO REAL MONEY
-          </div> */}
-
           {phase === "select" && (
             <>
               <div className="kk-popup-title paybost-title">
-                Add Funds via Paybost
+                Add Funds via CashMaal
               </div>
-              <p className={textClass}>Add  funds instantly using Paybost.</p>
+              <p className={textClass}>Add  funds instantly using CashMaal.</p>
 
               <div className="deposit-amount-head" style={{ marginTop: 14 }}>
                 <span className="deposit-amount-icon">
@@ -183,7 +198,7 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
               <div className="deposit-amount-inputbar">
                 <span className="inputbar-rs">Rs</span>
                 <input
-                  id="paybost-custom-input"
+                  id="cashmaal-custom-input"
                   type="number"
                   inputMode="decimal"
                   min={MIN_AMOUNT}
@@ -211,13 +226,13 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
                 disabled={!amount || amount < MIN_AMOUNT || amount > MAX_AMOUNT}
                 onClick={handlePay}
               >
-                🚀 Pay Rs{amount || 0} with Paybost
+                🚀 Pay Rs{amount || 0} with CashMaal
                 <IconChevronRight style={{ width: 16, height: 16 }} />
               </button>
               <div className="paybost-how-card">
                 <div className="paybost-how-head">
                   <IconShield style={{ width: 15, height: 15, color: "var(--link)" }} />
-                  How Paybost Test Mode Works
+                  How CashMaal Test Mode Works
                 </div>
                 <div className="paybost-how-steps">
                   {HOW_IT_WORKS.map((s, i) => (
@@ -233,25 +248,16 @@ export default function PaybostAddFunds({ theme = "dark", triggerClassName, trig
                 </div>
               </div>
 
-              {/* <div className="alert alert-info" style={{ marginTop: 14 }}>
-                <IconShield style={{ width: 15, height: 15, flexShrink: 0 }} />
-                <span>
-                  <b>This is a test mode using Paybost sandbox.</b> No real money is involved. Funds are for practice
-                  purposes only.
-                </span>
-              </div> */}
-
-              
               <button type="button" className="paybost-cancel-btn" onClick={close}>
                 Cancel
               </button>
             </>
           )}
 
-          {phase === "redirecting" && <div className={textClass} style={{ marginTop: 16 }}>Redirecting you to Paybost…</div>}
+          {phase === "redirecting" && <div className={textClass} style={{ marginTop: 16 }}>Redirecting you to CashMaal…</div>}
 
           {phase === "polling" && (
-            <div className={textClass} style={{ marginTop: 16 }}>Confirming your payment with Paybost…</div>
+            <div className={textClass} style={{ marginTop: 16 }}>Confirming your payment with CashMaal…</div>
           )}
 
           {phase === "success" && (
