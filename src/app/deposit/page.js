@@ -17,8 +17,8 @@ import BottomNav from "../components/BottomNav";
 import HistoryList from "../components/HistoryList";
 import styles from "./deposit.module.css";
 
-const QUICK_AMOUNTS = [2000,3000, 5000, 10000, 20000, 30000];
-const MIN_DEPOSIT = 2000;
+const QUICK_AMOUNTS = [3000, 5000, 10000, 20000, 30000];
+const MIN_DEPOSIT = 3000;
 const MAX_DEPOSIT = 50000;
 
 const formatShort = (v) => (v >= 1000 ? `${v / 1000}K` : `${v}`);
@@ -352,10 +352,10 @@ export default function DepositPage() {
                 <h2 style={{ marginBottom: 8 }}>Instant Deposit via CashMaal</h2>
                 {cashmaalEnabled ? (
                   <>
-                    <p style={{ fontSize: 12.5, color: "var(--kk-muted)", marginBottom: 18 }}>
+                    {/* <p style={{ fontSize: 12.5, color: "var(--kk-muted)", marginBottom: 18 }}>
                       Add virtual funds through CashMaal&apos;s sandbox checkout — running in test mode, fully
                       simulated, with no real money involved.
-                    </p>
+                    </p> */}
                     <CashmaalAddFunds theme="light" triggerClassName="deposit-submit-btn" triggerLabel="🚀 Add Funds Instantly via CashMaal" onBalanceChange={setBalance} />
                   </>
                 ) : (
@@ -402,11 +402,11 @@ export default function DepositPage() {
           </Link>
         </div>
 
-        <footer className="kk-footer">
+        {/* <footer className="kk-footer">
           Lucky73 is an educational simulation using virtual funds only — no real money or payment gateway is
           involved. See our <Link href="/legal/terms">Terms</Link> and{" "}
           <Link href="/legal/deposit-policy">Deposit Policy</Link>.
-        </footer>
+        </footer> */}
       </main>
 
       <BottomNav />

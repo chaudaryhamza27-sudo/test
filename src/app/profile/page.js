@@ -120,14 +120,6 @@ export default function ProfilePage() {
                 UID | {uid}
                 <IconCopy />
               </button>
-              {user && (
-                <div className="kk-health-inline">
-                  <div className="kk-health-inline-bar">
-                    <div className="kk-health-inline-fill" style={{ width: `${user.trustScore ?? 15}%` }} />
-                    <span className="kk-health-inline-text">Trust Score | {user.trustScore ?? 15}%</span>
-                  </div>
-                </div>
-              )}
             </div>
             <div className="kk-last-login">
               Last login: {user?.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : "…"}
@@ -167,6 +159,27 @@ export default function ProfilePage() {
             <span>VIP</span>
           </button>
         </div>
+      </section>
+
+      <section className="kk-account-health" aria-label="Account health">
+        <div className="kk-account-health-head">
+          <span className="kk-account-health-title">
+            <span className="kk-account-health-icon"><IconShield /></span>
+            Account Health
+          </span>
+          <b>{user?.trustScore ?? 15}%</b>
+        </div>
+        <div
+          className="kk-account-health-track"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow={user?.trustScore ?? 15}
+          aria-label="Account health score"
+        >
+          <div className="kk-account-health-fill" style={{ width: `${Math.min(100, Math.max(0, user?.trustScore ?? 15))}%` }} />
+        </div>
+        <p>Your account is active and verified for smooth gaming access.</p>
       </section>
 
       <section className="kk-grid-2">

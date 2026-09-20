@@ -1,5 +1,5 @@
 // Static content for the /legal/[slug] pages. Every page here describes Lucky73
-// as what it actually is: an educational simulation using demo credits, not
+// as what it actually is: an  simulation using demo credits, not
 // a real-money gambling product. Do not add claims of licensing, regulatory
 // approval, or certification — none exist, because none apply to a demo app.
 
@@ -10,21 +10,21 @@ export const LEGAL_PAGES = {
     title: "Terms & Conditions",
     icon: "document",
     blocks: [
-      { type: "callout", tone: "info", text: "Lucky73 is a free educational simulation. All balances are virtual funds with no monetary value. Nothing on this platform involves real money, real wagering, or a real gambling license." },
+      { type: "callout", tone: "info", text: "Lucky73 is a free  simulation. All balances are virtual funds with no monetary value. Nothing on this platform involves real money, real wagering, or a real gambling license." },
       { type: "h", text: "1. What Lucky73 is" },
-      { type: "p", text: "Lucky73 is an educational application built to show how a crash-style prediction game, wallet, and account system could work in an interactive UI. Every account starts with a simulated balance, and every deposit, withdrawal, bet, and payout uses virtual funds. No real currency ever enters or leaves the platform through normal use of the product." },
+      { type: "p", text: "Lucky73 is an  application built to show how a crash-style prediction game, wallet, and account system could work in an interactive UI. Every account starts with a simulated balance, and every deposit, withdrawal, bet, and payout uses virtual funds. No real currency ever enters or leaves the platform through normal use of the product." },
       { type: "h", text: "2. Eligibility and age requirement" },
       { type: "p", text: "You must be at least 18 years old to create an account. The interface simulates gambling-style mechanics (staking credits on a random outcome), and we apply an 18+ age gate as a matter of responsible design even though no real money or prize is at stake. By registering, you confirm you are 18 or older." },
       { type: "h", text: "3. Account registration" },
       { type: "p", text: "You agree to provide accurate information when creating an account and to keep your login credentials confidential. You are responsible for activity that occurs under your account. We may suspend or terminate accounts used for abuse, automated access, or attempts to exploit the platform." },
       { type: "h", text: "4. Virtual funds" },
-      { type: "p", text: "Virtual funds shown in your wallet, in deposit/withdrawal history, and in game results have no cash value, cannot be redeemed for money or goods, and cannot be transferred outside the platform. Any \"deposit\" or \"withdrawal\" flow you complete — including through third-party test/sandbox payment pages — is a simulated transaction for educational purposes only." },
+      { type: "p", text: "Virtual funds shown in your wallet, in deposit/withdrawal history, and in game results have no cash value, cannot be redeemed for money or goods, and cannot be transferred outside the platform. Any \"deposit\" or \"withdrawal\" flow you complete — including through third-party test/sandbox payment pages — is a simulated transaction for  purposes only." },
       { type: "h", text: "5. No real-money gambling" },
       { type: "p", text: "Lucky73 does not offer real-money wagering, is not a licensed gambling operator in Pakistan or any other jurisdiction, and does not intend to become one through this product. If any part of the interface reads like a real payment or a real bet, it is a simulation of that experience, not the transaction itself." },
       { type: "h", text: "6. Fair use" },
       { type: "p", text: "You agree not to attempt to manipulate game outcomes, wallet balances, or transaction records outside the normal use of the interface, and not to use the platform for any unlawful purpose." },
       { type: "h", text: "7. Changes" },
-      { type: "p", text: "Because this is an educational product, features, content, and these terms may change at any time without prior notice." },
+      { type: "p", text: "Because this is an  product, features, content, and these terms may change at any time without prior notice." },
       { type: "h", text: "8. Contact" },
       { type: "p", text: "Questions about these terms can be directed through the Contact/Support page." },
     ],
@@ -34,7 +34,7 @@ export const LEGAL_PAGES = {
     title: "Privacy Policy",
     icon: "shield",
     blocks: [
-      { type: "callout", tone: "info", text: "This is an educational application. Use a name, email, or phone number you're comfortable putting into a preview product — avoid submitting sensitive personal or financial information." },
+      { type: "callout", tone: "info", text: "This is an  application. Use a name, email, or phone number you're comfortable putting into a preview product — avoid submitting sensitive personal or financial information." },
       { type: "h", text: "1. What we collect" },
       { type: "p", text: "To create and operate an account, we store the information you provide at signup (name, phone number and/or email, and a hashed password), plus records the platform generates as you use it: your simulated wallet balance, transaction history (virtual deposits/withdrawals/bets), notifications, and basic activity logs (e.g. login timestamps, IP address at time of request) used for account security and abuse prevention." },
       { type: "h", text: "2. What we don't collect" },
@@ -46,7 +46,7 @@ export const LEGAL_PAGES = {
       { type: "h", text: "5. Cookies and sessions" },
       { type: "p", text: "We use a single essential session cookie to keep you logged in. It is not used for advertising or cross-site tracking. See the Cookie Policy for details." },
       { type: "h", text: "6. Data retention and deletion" },
-      { type: "p", text: "Because this is an educational environment, account and activity data may be periodically reset or deleted without notice. If you'd like your account data removed sooner, contact us through the Contact/Support page." },
+      { type: "p", text: "Because this is an  environment, account and activity data may be periodically reset or deleted without notice. If you'd like your account data removed sooner, contact us through the Contact/Support page." },
       { type: "h", text: "7. Changes" },
       { type: "p", text: "This policy may be updated as the platform evolves. Continued use of the platform after a change means you accept the updated policy." },
     ],
@@ -98,7 +98,7 @@ export const LEGAL_PAGES = {
       { type: "h", text: "1. Simulated deposits" },
       { type: "p", text: "When you submit a deposit request, the amount is added to your virtual wallet balance as a simulated transaction. Where a real payment provider's checkout page is shown (in test/sandbox mode), completing it does not move real funds — it only demonstrates the integration." },
       { type: "h", text: "2. Minimum amount" },
-      { type: "p", text: "A minimum deposit amount applies for educational purposes (shown on the Deposit page) and exists to mirror how a real platform enforces minimums, not because of any real processing cost." },
+      { type: "p", text: "A minimum deposit amount applies for  purposes (shown on the Deposit page) and exists to mirror how a real platform enforces minimums, not because of any real processing cost." },
       { type: "h", text: "3. Approval and status" },
       { type: "p", text: "Deposit requests move through Pending, Approved/Completed, or Failed/Cancelled states, matching how a real platform would track a transaction, and are recorded in your Transaction History regardless of outcome." },
       { type: "h", text: "4. No real payment credentials" },
@@ -153,11 +153,11 @@ export const LEGAL_PAGES = {
     title: "Contact / Support",
     icon: "shield",
     blocks: [
-      { type: "callout", tone: "info", text: "This is an educational product without a live support team. The channels below describe how support is represented in the interface." },
+      { type: "callout", tone: "info", text: "This is an  product without a live support team. The channels below describe how support is represented in the interface." },
       { type: "h", text: "1. In-app support" },
       { type: "p", text: "The \"Customer Service\" entry on the Sign Up screen and similar entries elsewhere in the app are placeholders that demonstrate where a real live-chat or ticketing integration would go." },
       { type: "h", text: "2. Reporting an issue" },
-      { type: "p", text: "If you notice a bug — an incorrect balance, a broken flow, or unexpected behavior — the most useful thing you can do in an educational product like this is note what you did right before it happened and report it to whoever is maintaining this project." },
+      { type: "p", text: "If you notice a bug — an incorrect balance, a broken flow, or unexpected behavior — the most useful thing you can do in an  product like this is note what you did right before it happened and report it to whoever is maintaining this project." },
       { type: "h", text: "3. Legal / policy questions" },
       { type: "p", text: "Questions about the Terms, Privacy Policy, or any other policy page can be directed the same way, through project maintainers rather than a live support desk." },
     ],

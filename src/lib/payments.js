@@ -5,6 +5,7 @@ import User from "./models/User";
 import { adjustBalance } from "./wallet";
 import { logActivity } from "./activity";
 import { notifyUser } from "./notifications";
+import { computeTrustScore } from "./trustScore";
 
 export const PRESET_DEPOSIT_AMOUNTS = [5, 10, 20, 50, 100];
 export const MIN_DEPOSIT_AMOUNT = 1;
@@ -98,6 +99,14 @@ export async function creditVerifiedPayment(paymentId, { captureId, rawCaptureRe
       demo: true,
     },
   });
+
+  // A confirmed payment makes the automatic score 40% (and keeps it there
+  // for later deposits). Explicit admin scores remain protected by
+  // trustScoreManual.
+  await User.updateOne(
+    { _id: claimed.userId, $or: [{ trustScoreManual: false }, { trustScoreManual: { $exists: false } }] },
+    { $set: { trustScore: computeTrustScore(creditAmount) } }
+  );
 
   await logActivity({
     user: claimed.userId,

@@ -1237,6 +1237,19 @@ a{text-decoration:none;color:inherit}
 
 .kk-account-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
 
+/* Standalone health panel, following the account screen's dark card treatment.
+   The value remains tied to the live trust score from /api/auth/me. */
+.kk-account-health{margin:16px 16px 0;padding:20px;border-radius:20px;color:#fff;background:linear-gradient(135deg,#17102f 0%,#0d0920 100%);box-shadow:0 14px 30px rgba(18,14,40,.28);overflow:hidden;position:relative}
+.kk-account-health:after{content:"";position:absolute;right:-58px;top:-70px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(84,82,203,.23),transparent 67%);pointer-events:none}
+.kk-account-health-head{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.kk-account-health-title{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:800}
+.kk-account-health-icon{width:26px;height:26px;display:grid;place-items:center;color:#fff}
+.kk-account-health-icon svg{width:22px;height:22px}
+.kk-account-health-head b{font-size:28px;line-height:1;color:#37d7ac;font-weight:900;letter-spacing:-1px}
+.kk-account-health-track{position:relative;z-index:1;height:12px;margin-top:20px;border-radius:999px;background:rgba(255,255,255,.13);overflow:hidden}
+.kk-account-health-fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,#31cbae 0%,#4b9cff 52%,#8f57ed 100%);box-shadow:0 0 16px rgba(72,141,255,.6);transition:width .25s ease}
+.kk-account-health p{position:relative;z-index:1;margin:16px 0 0;color:#d2cfdd;font-size:13px;line-height:1.45;font-weight:600}
+
 .kk-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 16px 0}
 .kk-info-card{background:var(--surface);border-radius:14px;box-shadow:var(--kk-shadow);padding:12px;display:flex;gap:8px;align-items:flex-start;cursor:pointer;border:1px solid var(--border);text-align:left}
 .kk-info-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:#fff;flex-shrink:0}

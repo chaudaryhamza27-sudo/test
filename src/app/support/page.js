@@ -92,10 +92,10 @@ export default function SupportPage() {
           </section>
         )}
 
-        <footer className="kk-footer">
+        {/* <footer className="kk-footer">
           Lucky73 is an educational simulation using virtual funds only — WhatsApp support is provided for platform
           purposes and no real transactions are handled over chat.
-        </footer>
+        </footer> */}
       </main>
 
       <BottomNav />
