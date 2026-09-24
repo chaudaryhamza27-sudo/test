@@ -12,7 +12,7 @@ import {
   IconHeadset,
   IconX,
 } from "../icons";
-import CashmaalAddFunds from "../components/CashmaalAddFunds";
+import KaropayAddFunds from "../components/KaropayAddFunds";
 import BottomNav from "../components/BottomNav";
 import HistoryList from "../components/HistoryList";
 import styles from "./deposit.module.css";
@@ -30,7 +30,7 @@ const PAYMENT_METHODS = [
 
 export default function DepositPage() {
   const router = useRouter();
-  const [tab, setTab] = useState("cashmaal");
+  const [tab, setTab] = useState("karopay");
   const [balance, setBalance] = useState(0);
   const [amount, setAmount] = useState(null);
   const [customMode, setCustomMode] = useState(false);
@@ -55,10 +55,10 @@ export default function DepositPage() {
   }, [redirectAt, router]);
 
   useEffect(() => {
-    // CashMaal redirects back here with ?cashmaal=success|cancelled — that
-    // popup is owned by <CashmaalAddFunds>, which only mounts on the CashMaal
-    // tab, so jump there first or the redirect silently does nothing.
-    if (new URLSearchParams(window.location.search).has("cashmaal")) setTab("cashmaal");
+    // Karopay redirects back here with ?karopay=return — that popup is owned
+    // by <KaropayAddFunds>, which only mounts on the Karopay tab, so jump
+    // there first or the redirect silently does nothing.
+    if (new URLSearchParams(window.location.search).has("karopay")) setTab("karopay");
   }, []);
 
   useEffect(() => {
@@ -87,20 +87,20 @@ export default function DepositPage() {
   };
 
   const isMethodEnabled = (key) => methods?.find((m) => m.key === key)?.enabled;
-  const cashmaalEnabled = isMethodEnabled("cashmaal");
+  const karopayEnabled = isMethodEnabled("karopay");
   // Manual Deposit isn't a single toggle in admin — it's "on" whenever at
   // least one of its underlying methods (JazzCash/Easypaisa) is advertised,
-  // same rule the CashMaal tab already follows off its own single toggle.
+  // same rule the Karopay tab already follows off its own single toggle.
   const manualEnabled = methods === null || PAYMENT_METHODS.some((m) => isMethodEnabled(m.key));
 
   // Keep the active tab pointed at a method the admin actually has enabled —
   // jump to whichever one is still available the moment the other drops out.
   useEffect(() => {
     if (methods === null) return;
-    if (!manualEnabled && cashmaalEnabled && tab === "manual") setTab("cashmaal");
-    if (!cashmaalEnabled && manualEnabled && tab === "cashmaal") setTab("manual");
+    if (!manualEnabled && karopayEnabled && tab === "manual") setTab("karopay");
+    if (!karopayEnabled && manualEnabled && tab === "karopay") setTab("manual");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [methods, manualEnabled, cashmaalEnabled]);
+  }, [methods, manualEnabled, karopayEnabled]);
 
   const handleSubmit = async () => {
     if (!amount || amount < MIN_DEPOSIT) {
@@ -169,17 +169,17 @@ export default function DepositPage() {
           <div className="kk-wallet-balance-label">Available to use</div>
         </section>
 
-        {(manualEnabled || cashmaalEnabled) && (
+        {(manualEnabled || karopayEnabled) && (
           <div className="deposit-tabs">
-            {cashmaalEnabled && (
+            {karopayEnabled && (
               <button
-                className={`deposit-tab ${tab === "cashmaal" ? "active" : ""}`}
-                onClick={() => setTab("cashmaal")}
+                className={`deposit-tab ${tab === "karopay" ? "active" : ""}`}
+                onClick={() => setTab("karopay")}
               >
                 <span className="deposit-tab-icon purple">🚀</span>
                 <span>
-                  <b>Add Funds (CashMaal)</b>
-                  <span>Instant deposit via CashMaal</span>
+                  <b>Add Funds (Karopay)</b>
+                  <span>Instant deposit via Karopay</span>
                 </span>
               </button>
             )}
@@ -201,7 +201,7 @@ export default function DepositPage() {
           </div>
         )}
 
-        {methods !== null && !manualEnabled && !cashmaalEnabled ? (
+        {methods !== null && !manualEnabled && !karopayEnabled ? (
           <section className="deposit-step-card" style={{ textAlign: "center",margin:"10px" }}>
             <h2 style={{ marginBottom: 8 }}>No Payment Methods Available</h2>
             <p style={{ fontSize: 12.5, color: "var(--kk-muted)" }}>
@@ -349,18 +349,12 @@ export default function DepositPage() {
           <div className="deposit-grid-2col">
             <div className="deposit-main-col">
               <section className="deposit-step-card" style={{ textAlign: "center" }}>
-                <h2 style={{ marginBottom: 8 }}>Instant Deposit via CashMaal</h2>
-                {cashmaalEnabled ? (
-                  <>
-                    {/* <p style={{ fontSize: 12.5, color: "var(--kk-muted)", marginBottom: 18 }}>
-                      Add virtual funds through CashMaal&apos;s sandbox checkout — running in test mode, fully
-                      simulated, with no real money involved.
-                    </p> */}
-                    <CashmaalAddFunds theme="light" triggerClassName="deposit-submit-btn" triggerLabel="🚀 Add Funds Instantly via CashMaal" onBalanceChange={setBalance} />
-                  </>
+                <h2 style={{ marginBottom: 8 }}>Instant Deposit via Karopay</h2>
+                {karopayEnabled ? (
+                  <KaropayAddFunds theme="light" triggerClassName="deposit-submit-btn" triggerLabel="🚀 Add Funds Instantly via Karopay" onBalanceChange={setBalance} />
                 ) : (
                   <p style={{ fontSize: 12.5, color: "var(--kk-muted)" }}>
-                    CashMaal deposits are currently unavailable. Please use Deposit Funds instead.
+                    Karopay deposits are currently unavailable. Please use Deposit Funds instead.
                   </p>
                 )}
               </section>

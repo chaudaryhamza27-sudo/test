@@ -96,7 +96,7 @@ export default function WalletPage() {
           <Link href="/deposit" className="wallet-quickpay-btn" style={{ textDecoration: "none" }}>
             <span className="wallet-quickpay-icon" style={{ background: "linear-gradient(160deg,#7c5cff,#4a2fd6)" }}>+</span>
             <span className="wallet-quickpay-text">
-              <b>Add Funds (CashMaal)</b>
+              <b>Add Funds (Karopay)</b>
               <span>Add money to your wallet</span>
             </span>
           </Link>

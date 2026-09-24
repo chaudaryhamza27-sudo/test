@@ -27,6 +27,15 @@ export default async function dbConnect() {
     cached.promise = mongoose.connect(MONGODB_URI, { maxPoolSize: 50, minPoolSize: 5 }).then((m) => m);
   }
 
-  cached.conn = await cached.promise;
+  try {
+    cached.conn = await cached.promise;
+  } catch (err) {
+    // A rejected promise would otherwise stay cached forever — every future
+    // call would just re-await this same failure instead of retrying, so a
+    // transient hiccup (e.g. the replica set mid-election right as this
+    // process started) would become a permanent outage until restart.
+    cached.promise = null;
+    throw err;
+  }
   return cached.conn;
 }

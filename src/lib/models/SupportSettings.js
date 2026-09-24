@@ -21,7 +21,7 @@ const SupportSettingsSchema = new mongoose.Schema(
       default: [
         { key: "easypaisa", label: "EasyPaisa", enabled: false },
         { key: "jazzcash", label: "JazzCash", enabled: false },
-        { key: "cashmaal", label: "CashMaal", enabled: false },
+        { key: "karopay", label: "Karopay", enabled: false },
       ],
     },
     // Independent from `methods` (deposits) — a method can be advertised for

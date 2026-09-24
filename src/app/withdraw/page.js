@@ -98,7 +98,7 @@ export default function WithdrawPage() {
   };
 
   const isMethodEnabled = (key) => methods?.find((m) => m.key === key)?.enabled;
-  // One flat list, one flow — no more "Manual" vs "CashMaal" tabs. CashMaal is
+  // One flat list, one flow — no more "Manual" vs "Karopay" tabs. Karopay is
   // just another card in the same Payment Method grid now, same as the
   // reference design: a single "Select Payment Method" step, not two
   // differently-shaped pages behind a tab switch.

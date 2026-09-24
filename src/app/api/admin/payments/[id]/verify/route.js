@@ -2,7 +2,7 @@ import dbConnect from "../../../../../../lib/mongodb";
 import Payment from "../../../../../../lib/models/Payment";
 import { requireAdmin } from "../../../../../../lib/auth";
 import { getOrder, PayPalError } from "../../../../../../lib/paypal";
-import { verifyTransaction, CashmaalError } from "../../../../../../lib/cashmaal";
+import { queryOrder, KaropayError } from "../../../../../../lib/karopay";
 import { creditVerifiedPayment } from "../../../../../../lib/payments";
 import { logActivity } from "../../../../../../lib/activity";
 
@@ -22,8 +22,8 @@ export async function POST(request, ctx) {
   const payment = await Payment.findById(id);
   if (!payment) return Response.json({ error: "Payment not found." }, { status: 404 });
 
-  if (payment.provider === "cashmaal") {
-    return verifyCashmaalPayment(admin, payment);
+  if (payment.provider === "karopay") {
+    return verifyKaropayPayment(admin, payment);
   }
 
   let order;
@@ -79,31 +79,21 @@ export async function POST(request, ctx) {
   return Response.json({ payment, reconciled: false });
 }
 
-// CashMaal's IPN is the primary confirmation path, but their verify_v2 API
-// lets an admin re-fetch a transaction by CM_TID. We only ever learn a CM_TID
-// from an IPN delivery (successful or otherwise), so until one has arrived
-// there's nothing here to re-fetch — the payment can only complete via IPN.
-async function verifyCashmaalPayment(admin, payment) {
-  if (!payment.providerCaptureId) {
-    return Response.json(
-      {
-        error:
-          "CashMaal hasn't reported a transaction ID for this order yet — nothing to re-verify. This payment will only move forward once CashMaal's IPN webhook arrives.",
-      },
-      { status: 501 }
-    );
-  }
-
+// Karopay's notify webhook is the primary confirmation path, but their order
+// inquiry API lets an admin re-fetch an order's current status directly by
+// our merchantOrderId at any time (unlike the previous gateway, which could
+// only be re-checked once an IPN had reported a transaction id).
+async function verifyKaropayPayment(admin, payment) {
   let result;
   try {
-    result = await verifyTransaction(payment.providerCaptureId);
+    result = await queryOrder(payment.providerOrderId);
   } catch (err) {
-    if (err instanceof CashmaalError) {
-      console.error("[admin/payments/verify] verifyTransaction failed", err.detail);
+    if (err instanceof KaropayError) {
+      console.error("[admin/payments/verify] queryOrder failed", err.detail);
     } else {
       console.error("[admin/payments/verify] Unexpected error", err);
     }
-    return Response.json({ error: "Could not reach CashMaal to re-verify this payment." }, { status: 502 });
+    return Response.json({ error: "Could not reach Karopay to re-verify this payment." }, { status: 502 });
   }
 
   await logActivity({
@@ -111,13 +101,13 @@ async function verifyCashmaalPayment(admin, payment) {
     actorRole: "admin",
     action: "payment_reverified",
     targetUser: payment.userId,
-    message: `Re-verified CashMaal transaction ${payment.providerCaptureId} against CashMaal (reported status: ${result.status}).`,
-    meta: { paymentId: payment._id, cashmaalStatus: result.status },
+    message: `Re-verified Karopay order ${payment.providerOrderId} against Karopay (reported status: ${result.status}).`,
+    meta: { paymentId: payment._id, karopayStatus: result.status },
   });
 
-  // status: 1 (Successful) | 2 (Pending) | 3 (Rejected) | 0 (Cancelled)
-  if (String(result.status) === "1") {
-    const reportedAmountCents = Math.round(Number(result.PKR_amount) * 100);
+  // status: waiting for submit:99, paying:00, success:01, failed:02, wait confirm:06
+  if (String(result.status) === "01") {
+    const reportedAmountCents = Math.round(Number(result.amount));
     const amountMatches = reportedAmountCents === payment.amount && payment.currency === "PKR";
 
     if (!amountMatches) {
@@ -127,12 +117,15 @@ async function verifyCashmaalPayment(admin, payment) {
       return Response.json({ payment, reconciled: false, mismatch: true });
     }
 
-    const credited = await creditVerifiedPayment(payment._id, { captureId: payment.providerCaptureId, rawCaptureResponse: result });
+    const credited = await creditVerifiedPayment(payment._id, {
+      captureId: result.orderId ? String(result.orderId) : payment.providerCaptureId,
+      rawCaptureResponse: result,
+    });
     return Response.json({ payment: credited.payment, reconciled: !credited.alreadyCredited, alreadyCompleted: credited.alreadyCredited });
   }
 
   if (payment.status !== "COMPLETED") {
-    const statusMap = { "3": "FAILED", "2": "PENDING", "0": "CANCELLED" };
+    const statusMap = { "02": "FAILED", "00": "PENDING", "99": "PENDING", "06": "PENDING" };
     const mapped = statusMap[String(result.status)];
     if (mapped) {
       payment.status = mapped;

@@ -12,16 +12,16 @@ export const MIN_DEPOSIT_AMOUNT = 1;
 export const MAX_DEPOSIT_AMOUNT = 500;
 export const MAX_PENDING_ORDERS_PER_MINUTE = 5;
 
-// This merchant's CashMaal account is used in PKR — unlike the PayPal (USD)
-// flow, CashMaal deposits are PKR and 1 PKR == 1 demo credit, matching the
+// This merchant's Karopay account is used in PKR — unlike the PayPal (USD)
+// flow, Karopay deposits are PKR and 1 PKR == 1 demo credit, matching the
 // rest of this app's Rs-denominated wallet.
-export const CASHMAAL_PRESET_DEPOSIT_AMOUNTS = [2000, 5000, 10000, 25000, 50000];
-export const CASHMAAL_MIN_DEPOSIT_AMOUNT = 2000;
-export const CASHMAAL_MAX_DEPOSIT_AMOUNT = 100000;
+export const KAROPAY_PRESET_DEPOSIT_AMOUNTS = [3000, 5000, 10000, 25000, 50000];
+export const KAROPAY_MIN_DEPOSIT_AMOUNT = 3000;
+export const KAROPAY_MAX_DEPOSIT_AMOUNT = 100000;
 
-export function validateCashmaalAmount(amount) {
+export function validateKaropayAmount(amount) {
   if (typeof amount !== "number" || !Number.isFinite(amount)) return null;
-  if (amount < CASHMAAL_MIN_DEPOSIT_AMOUNT || amount > CASHMAAL_MAX_DEPOSIT_AMOUNT) return null;
+  if (amount < KAROPAY_MIN_DEPOSIT_AMOUNT || amount > KAROPAY_MAX_DEPOSIT_AMOUNT) return null;
   const paisa = Math.round(amount * 100);
   if (Math.abs(paisa - amount * 100) > 1e-6) return null; // more than 2 decimal places
   return paisa;
@@ -32,7 +32,7 @@ export function validateCashmaalAmount(amount) {
 // creditVerifiedPayment() itself needs no other changes.
 const PROVIDER_LABELS = {
   paypal: "PayPal Sandbox",
-  cashmaal: "CashMaal (Test Mode)",
+  karopay: "Karopay",
 };
 
 // Validates a dollar amount from the client and returns it as integer cents,
@@ -78,7 +78,7 @@ export async function creditVerifiedPayment(paymentId, { captureId, rawCaptureRe
   }
 
   // Integer minor units -> whole demo-credit units. 1 USD == 1 credit for PayPal,
-  // 1 PKR == 1 credit for CashMaal — both providers store amount as minor-unit cents.
+  // 1 PKR == 1 credit for Karopay — both providers store amount as minor-unit cents.
   const creditAmount = claimed.amount / 100;
   const providerLabel = PROVIDER_LABELS[claimed.provider] || claimed.provider;
 

@@ -1,0 +1,49 @@
+
+> gaming-ui-demo@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://172.18.0.1:3000
+- Environments: .env.local
+✓ Ready in 1680ms
+
+○ Compiling /deposit ...
+ GET /deposit 200 in 7.1s (next.js: 6.7s, application-code: 431ms)
+ GET /admin 200 in 4.9s (next.js: 3.6s, application-code: 1287ms)
+ GET /deposit 200 in 4.9s (next.js: 4.3s, application-code: 616ms)
+ GET /api/support-settings 200 in 3.1s (next.js: 2.5s, application-code: 648ms)
+ GET /api/admin/ensure-seed 200 in 3.2s (next.js: 2.6s, application-code: 511ms)
+ GET /api/admin/withdrawals 200 in 3.2s (next.js: 2.8s, application-code: 395ms)
+ GET /api/admin/users 200 in 3.2s (next.js: 2.9s, application-code: 316ms)
+ GET /api/admin/deposits 200 in 3.2s (next.js: 3.0s, application-code: 243ms)
+ GET /api/support-settings 200 in 133ms (next.js: 70ms, application-code: 63ms)
+ GET /api/wallet 200 in 797ms (next.js: 749ms, application-code: 48ms)
+ GET /api/transactions?type=deposit&page=1 200 in 962ms (next.js: 694ms, application-code: 268ms)
+ GET /api/support-settings 200 in 50ms (next.js: 24ms, application-code: 26ms)
+ GET /api/admin/overview 200 in 659ms (next.js: 570ms, application-code: 90ms)
+ GET /api/transactions?type=deposit&page=1 200 in 65ms (next.js: 14ms, application-code: 51ms)
+ GET /api/transactions?type=deposit&page=1 200 in 48ms (next.js: 11ms, application-code: 37ms)
+ GET /api/transactions?type=deposit&page=1 200 in 120ms (next.js: 29ms, application-code: 91ms)
+ GET /api/transactions?type=deposit&page=1 200 in 51ms (next.js: 12ms, application-code: 39ms)
+ GET /api/transactions?type=deposit&page=1 200 in 81ms (next.js: 13ms, application-code: 68ms)
+[karopay] Non-JSON response from collection request 403 Access denied, your ip is: 149.40.213.251
+[karopay/create-order] Karopay order creation failed Access denied, your ip is: 149.40.213.251
+ POST /api/karopay/create-order 502 in 1301ms (next.js: 577ms, application-code: 723ms)
+ GET /api/transactions?type=deposit&page=1 200 in 65ms (next.js: 15ms, application-code: 50ms)
+ GET /api/transactions?type=deposit&page=1 200 in 71ms (next.js: 17ms, application-code: 55ms)
+ GET /api/transactions?type=deposit&page=1 200 in 42ms (next.js: 10ms, application-code: 32ms)
+ GET /api/transactions?type=deposit&page=1 200 in 58ms (next.js: 11ms, application-code: 48ms)
+ GET /api/transactions?type=deposit&page=1 200 in 37ms (next.js: 8ms, application-code: 30ms)
+ GET /api/transactions?type=deposit&page=1 200 in 39ms (next.js: 9ms, application-code: 31ms)
+ GET /api/transactions?type=deposit&page=1 200 in 40ms (next.js: 10ms, application-code: 29ms)
+ GET /api/transactions?type=deposit&page=1 200 in 40ms (next.js: 8ms, application-code: 31ms)
+ GET /api/transactions?type=deposit&page=1 200 in 48ms (next.js: 12ms, application-code: 37ms)
+ GET /api/transactions?type=deposit&page=1 200 in 41ms (next.js: 10ms, application-code: 31ms)
+ GET /api/transactions?type=deposit&page=1 200 in 51ms (next.js: 10ms, application-code: 41ms)
+ GET /api/transactions?type=deposit&page=1 200 in 86ms (next.js: 21ms, application-code: 65ms)
+ GET /api/transactions?type=deposit&page=1 200 in 48ms (next.js: 9ms, application-code: 39ms)
+ GET /api/transactions?type=deposit&page=1 200 in 34ms (next.js: 9ms, application-code: 25ms)
+ GET /api/transactions?type=deposit&page=1 200 in 51ms (next.js: 9ms, application-code: 41ms)
+ GET /api/transactions?type=deposit&page=1 200 in 45ms (next.js: 9ms, application-code: 37ms)
+ GET /api/transactions?type=deposit&page=1 200 in 70ms (next.js: 16ms, application-code: 55ms)

@@ -1588,7 +1588,7 @@ export default function AdminDashboard() {
 
       {tab === "payments" && (
         <div>
-          <PageHead title="Payments" sub="PayPal Sandbox / CashMaal gateway records." />
+          <PageHead title="Payments" sub="PayPal Sandbox / Karopay gateway records." />
           <div className="admin-filter-bar">
             <select
               value={paymentFilters.status}
@@ -1612,7 +1612,7 @@ export default function AdminDashboard() {
             >
               <option value="all">All providers</option>
               <option value="paypal">PayPal</option>
-              <option value="cashmaal">CashMaal</option>
+              <option value="karopay">Karopay</option>
             </select>
             <input
               placeholder="Provider order ID"
@@ -1722,11 +1722,10 @@ export default function AdminDashboard() {
                   <dd>{selectedPayment.creditedAt ? new Date(selectedPayment.creditedAt).toLocaleString() : "—"}</dd>
                 </dl>
                 <p className="admin-modal-note">
-                  {selectedPayment.provider === "cashmaal" ? (
+                  {selectedPayment.provider === "karopay" ? (
                     <>
-                      Re-verify calls CashMaal&apos;s verify_v2 API against the transaction ID reported by their IPN and reconciles our record against it.
-                      Until CashMaal&apos;s IPN reports a transaction ID, there is nothing to re-verify — this payment can only move to COMPLETED via a
-                      verified IPN or a successful re-verify. An admin can never mark it COMPLETED by hand.
+                      Re-verify calls Karopay&apos;s order inquiry API directly for this order and reconciles our record against it. This payment can
+                      only move to COMPLETED via a verified notify webhook or a successful re-verify. An admin can never mark it COMPLETED by hand.
                     </>
                   ) : (
                     <>
@@ -1737,7 +1736,7 @@ export default function AdminDashboard() {
                 </p>
                 <div style={{ display: "flex", gap: 10 }}>
                   <button className="admin-small-btn approve" disabled={verifying} onClick={() => reverifyPayment(selectedPayment._id)}>
-                    {verifying ? "Verifying…" : selectedPayment.provider === "cashmaal" ? "Re-verify with CashMaal" : "Re-verify with PayPal"}
+                    {verifying ? "Verifying…" : selectedPayment.provider === "karopay" ? "Re-verify with Karopay" : "Re-verify with PayPal"}
                   </button>
                   <button className="admin-small-btn" onClick={() => setSelectedPayment(null)}>
                     Close

@@ -8,13 +8,13 @@ import SupportSettings from "./models/SupportSettings";
 const REQUIRED_METHODS = [
   { key: "easypaisa", label: "EasyPaisa" },
   { key: "jazzcash", label: "JazzCash" },
-  { key: "cashmaal", label: "CashMaal" },
+  { key: "karopay", label: "Karopay" },
 ];
-// Withdraw dropped CashMaal (its automated-checkout flow is deposit-only —
+// Withdraw dropped Karopay (its automated-checkout flow is deposit-only —
 // there's no equivalent instant payout API wired up here, so it never made
 // sense as a withdraw method) without dropping it from deposits. Self-healing
 // the two lists off one shared REQUIRED_METHODS would keep re-adding it here.
-const REQUIRED_WITHDRAW_METHODS = REQUIRED_METHODS.filter((m) => m.key !== "cashmaal");
+const REQUIRED_WITHDRAW_METHODS = REQUIRED_METHODS.filter((m) => m.key !== "karopay");
 
 export async function getOrCreateSupportSettings() {
   await dbConnect();
@@ -43,7 +43,7 @@ export async function getOrCreateSupportSettings() {
   return settings;
 }
 
-// Whether an admin-gated deposit method (e.g. "cashmaal") is currently switched on.
+// Whether an admin-gated deposit method (e.g. "karopay") is currently switched on.
 // Defaults to false for unknown keys — off unless explicitly enabled.
 export async function isMethodEnabled(key) {
   const settings = await getOrCreateSupportSettings();
