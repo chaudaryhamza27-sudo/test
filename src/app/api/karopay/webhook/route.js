@@ -50,6 +50,10 @@ export async function POST(request) {
   }
 
   // status: waiting for submit:99, paying:00, success:01, failed:02, wait confirm:06
+  if (String(status) === "02") {
+    await Payment.updateOne({ _id: payment._id, status: "PENDING" }, { $set: { status: "FAILED", rawCaptureResponse: payload } });
+    return new Response("success", { status: 200, headers: { "Content-Type": "text/plain" } });
+  }
   if (String(status) !== "01") {
     return Response.json({ ok: true, handled: true });
   }

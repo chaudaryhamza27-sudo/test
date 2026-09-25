@@ -5,6 +5,7 @@ const REQUEST_TIMEOUT_MS = 10000;
 const API_BASE = (process.env.KAROPAY_API_BASE || "https://api-pk.karo-pay.com").replace(/\/$/, "");
 const COLLECTION_PATH = "/open-api/pay/payment";
 const QUERY_PATH = "/open-api/pay/query";
+const SUBMIT_PATH = "/open-api/pay/payment/submit";
 
 export class KaropayError extends Error {
   constructor(message, { status, detail } = {}) {
@@ -80,10 +81,25 @@ async function parseJsonResponse(res, label) {
   try {
     data = JSON.parse(text);
   } catch {
-    console.error(`[karopay] Non-JSON response from ${label}`, res.status, text.slice(0, 500));
-    throw new KaropayError("Karopay returned an unexpected response.", { status: 502, detail: text });
+    console.error(`[karopay] Non-JSON response from ${label}`, { url: res.url, status: res.status, body: text.slice(0, 500) });
+    // Karopay's gateway answers a non-whitelisted server IP with a plain-text
+    // 403 "Access denied, your ip is: x.x.x.x" before auth is even checked —
+    // that's a merchant-panel IP whitelist issue, not a request-format bug.
+    const ipBlocked = res.status === 403 && /access denied/i.test(text);
+    throw new KaropayError(
+      ipBlocked
+        ? "Karopay rejected this server's IP — add it to the merchant IP whitelist."
+        : "Karopay returned an unexpected response.",
+      { status: 502, detail: { httpStatus: res.status, body: text.slice(0, 500) } }
+    );
   }
   return data;
+}
+
+// Karopay wraps some responses as { code, msg, data: {...} } — read the
+// checkout fields from either level so a valid payUrl is never missed.
+function pickField(data, key) {
+  return data?.[key] ?? data?.data?.[key];
 }
 
 // "Collection Request" — unlike the previous gateway (a browser-submitted
@@ -102,9 +118,18 @@ export async function createCollectionOrder({
   customerEmail,
   customerPhone,
   defaultChannelName = "easypaisa",
+  // "url" (default) gets back a payUrl to redirect the browser to — fully
+  // documented and what we use today. "json" gets back a checkoutContent
+  // object instead, meant to be paired with submitCustomCheckout() below for
+  // an in-app checkout with no redirect — Karopay's docs don't spell out
+  // checkoutContent's exact shape, so callers using "json" need to inspect a
+  // real response before relying on its fields.
+  checkoutType = "url",
 }) {
   const headers = buildAuthHeaders();
-  const res = await fetchWithTimeout(`${API_BASE}${COLLECTION_PATH}`, {
+  const url = `${API_BASE}${COLLECTION_PATH}`;
+  console.info("[karopay] collection request", { url, merchantOrderId, amount, defaultChannelName });
+  const res = await fetchWithTimeout(url, {
     method: "POST",
     headers,
     body: JSON.stringify({
@@ -121,13 +146,71 @@ export async function createCollectionOrder({
       defaultChannelName,
       showCustomerInfoFlag: true,
       automaticSubmission: false,
-      checkoutType: "url",
+      checkoutType,
+      isQrCodeVersion: false,
     }),
   });
   const data = await parseJsonResponse(res, "collection request");
+  console.info("[karopay] collection response", {
+    merchantOrderId,
+    httpStatus: res.status,
+    code: data?.code,
+    msg: data?.msg,
+    body: data,
+  });
   if (!res.ok || (data?.code && Number(data.code) !== 200)) {
-    console.error("[karopay] collection request failed", res.status, data);
     throw new KaropayError(data?.msg || "Karopay could not start this checkout.", {
+      status: res.status >= 400 && res.status < 600 ? res.status : 502,
+      detail: { httpStatus: res.status, code: data?.code, msg: data?.msg, body: data },
+    });
+  }
+  // Order status (e.g. NOT_STARTED) is irrelevant here — a created order with
+  // a payUrl is a success; the notify webhook reports the final outcome.
+  return {
+    payUrl: pickField(data, "payUrl"),
+    orderId: pickField(data, "orderId"),
+    raw: data,
+  };
+}
+
+// "Custom Checkout Submit Request" — submits payment details directly for an
+// order created with checkoutType:"json" (createCollectionOrder above),
+// letting the payment complete in-app with no redirect to Karopay's hosted
+// page. Not wired into the deposit flow yet: Karopay's docs don't document
+// checkoutContent's exact shape, so the caller (once we can inspect a real
+// "json" response) is responsible for reading the right providerName /
+// submitFieldType off it rather than assuming these defaults blindly.
+// Submission is processed async — Karopay's own docs say to poll order
+// status every ~5s afterwards rather than wait on this call's result.
+export async function submitCustomCheckout({
+  orderId,
+  providerName, // "Easypaisa" | "Jazzcash" | "BankCard" | "SadapayCard" | "OpayCard"
+  customerAccount,
+  submitFieldType = "ONLY_ACCOUNT", // "ONLY_ACCOUNT" | "ACCOUNT_AND_ID_CARD"
+  customerIdCard,
+  customerName,
+  reserved1,
+  reserved2,
+}) {
+  const headers = buildAuthHeaders();
+  const res = await fetchWithTimeout(`${API_BASE}${SUBMIT_PATH}/${encodeURIComponent(orderId)}`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      providerType: "WALLET",
+      providerName,
+      customerAccount,
+      submitFieldType,
+      customerIdCard,
+      customerName,
+      reserved1,
+      reserved2,
+    }),
+  });
+  const data = await parseJsonResponse(res, "custom checkout submit");
+  if (!res.ok || (data?.code && Number(data.code) !== 200)) {
+    console.error("[karopay] custom checkout submit failed", res.status, data);
+    throw new KaropayError(data?.msg || "Karopay could not submit this payment.", {
       status: res.status >= 400 && res.status < 600 ? res.status : 502,
       detail: data,
     });

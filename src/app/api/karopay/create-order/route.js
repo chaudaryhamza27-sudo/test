@@ -12,6 +12,16 @@ import {
 } from "../../../../lib/payments";
 
 const PHONE_RE = /^3\d{9}$/;
+const IS_DEV = process.env.NODE_ENV !== "production";
+
+function isLocalUrl(url) {
+  try {
+    const { hostname } = new URL(url);
+    return ["localhost", "127.0.0.1", "0.0.0.0", "::1", "[::1]"].includes(hostname);
+  } catch {
+    return true;
+  }
+}
 
 export async function POST(request) {
   const user = await getCurrentUser();
@@ -43,6 +53,22 @@ export async function POST(request) {
   }
 
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
+  // Karopay posts the notify callback server-to-server, so it must be a public
+  // URL. KAROPAY_NOTIFY_BASE_URL lets local dev point it at a tunnel while the
+  // browser-facing returnUrl stays on NEXT_PUBLIC_APP_URL.
+  const notifyBase = (process.env.KAROPAY_NOTIFY_BASE_URL || appUrl).replace(/\/$/, "");
+  if (isLocalUrl(notifyBase)) {
+    console.error(
+      `[karopay/create-order] notify URL base "${notifyBase}" is not publicly reachable — set KAROPAY_NOTIFY_BASE_URL (or NEXT_PUBLIC_APP_URL) to a public https URL.`
+    );
+    return Response.json(
+      {
+        error: "Karopay deposits are not configured on this server.",
+        ...(IS_DEV && { debug: { reason: "notifyUrl points at localhost", notifyBase } }),
+      },
+      { status: 503 }
+    );
+  }
   const orderId = makeOrderId();
 
   const payment = await Payment.create({
@@ -64,7 +90,7 @@ export async function POST(request) {
       merchantUserIp,
       amount: String(amountPaisa),
       returnUrl: `${appUrl}/deposit?karopay=return&identifier=${orderId}`,
-      notifyUrl: `${appUrl}/api/karopay/webhook`,
+      notifyUrl: `${notifyBase}/api/karopay/webhook`,
       // Karopay's client-facing email is just a receipt address, not used for
       // account matching, so send a short synthetic address tied to the
       // user's uid rather than their real email.
@@ -89,9 +115,18 @@ export async function POST(request) {
     payment.status = "FAILED";
     await payment.save();
     if (err instanceof KaropayError) {
-      console.error("[karopay/create-order] Karopay order creation failed", err.detail);
+      console.error("[karopay/create-order] Karopay order creation failed", {
+        merchantOrderId: orderId,
+        message: err.message,
+        status: err.status,
+        detail: err.detail,
+        cause: err.detail instanceof Error ? err.detail.cause : undefined,
+      });
       return Response.json(
-        { error: "Could not start the Karopay checkout. Please try again." },
+        {
+          error: "Could not start the Karopay checkout. Please try again.",
+          ...(IS_DEV && { debug: { message: err.message, status: err.status, detail: err.detail } }),
+        },
         { status: err.status && err.status >= 400 && err.status < 600 ? err.status : 502 }
       );
     }
