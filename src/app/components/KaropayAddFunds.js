@@ -168,7 +168,7 @@ export default function KaropayAddFunds({ theme = "dark", triggerClassName, trig
     setAmount(v === "" ? null : Number(v) || 0);
   };
 
-  const canSubmit = amount && amount >= MIN_AMOUNT && amount <= MAX_AMOUNT && /^3\d{9}$/.test(customerPhone);
+  const canSubmit = amount && amount >= MIN_AMOUNT && amount <= MAX_AMOUNT && /^03\d{9}$/.test(customerPhone);
 
   const handlePay = async () => {
     setPhase("redirecting");
@@ -277,8 +277,8 @@ export default function KaropayAddFunds({ theme = "dark", triggerClassName, trig
                 <input
                   type="tel"
                   inputMode="numeric"
-                  placeholder="3XXXXXXXXX"
-                  maxLength={10}
+                  placeholder="03XXXXXXXXX"
+                  maxLength={11}
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, ""))}
                 />

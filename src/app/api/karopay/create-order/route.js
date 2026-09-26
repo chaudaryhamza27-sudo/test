@@ -12,7 +12,8 @@ import {
   KAROPAY_MAX_DEPOSIT_AMOUNT,
 } from "../../../../lib/payments";
 
-const PHONE_RE = /^3\d{9}$/;
+// Users type the local 03XXXXXXXXX form; Karopay wants the 10-digit 3XXXXXXXXX.
+const PHONE_RE = /^0?3\d{9}$/;
 const IS_DEV = process.env.NODE_ENV !== "production";
 
 function isLocalUrl(url) {
@@ -41,11 +42,12 @@ export async function POST(request) {
     );
   }
 
-  const customerPhone = String(body?.customerPhone || "").trim();
+  const typedPhone = String(body?.customerPhone || "").replace(/\D/g, "");
   // Wallet the user picked on the form; anything else falls back to Karopay's default.
   const channel = ["easypaisa", "jazzcash"].includes(body?.channel) ? body.channel : "easypaisa";
-  if (!PHONE_RE.test(customerPhone)) {
-    return Response.json({ error: "Enter a valid 10-digit mobile number starting with 3." }, { status: 400 });
+  const customerPhone = typedPhone.replace(/^0/, "");
+  if (!PHONE_RE.test(typedPhone)) {
+    return Response.json({ error: "Enter a valid mobile number like 03XXXXXXXXX." }, { status: 400 });
   }
 
   await dbConnect();
@@ -116,7 +118,7 @@ export async function POST(request) {
       await payment.save();
     }
 
-    await alertKaropayDeposit("requested", payment, customerPhone);
+    await alertKaropayDeposit("requested", payment, `0${customerPhone}`);
 
     return Response.json({ payUrl: result.payUrl, identifier: orderId });
   } catch (err) {
