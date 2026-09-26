@@ -121,7 +121,7 @@ export default function KaropayAddFunds({ theme = "dark", triggerClassName, trig
         body: JSON.stringify({ amount, customerPhone }),
       });
       const data = await res.json();
-      console.log("Karopay create-order response:",res, data);
+      console.log("Karopay create-order responsvvve:",res, data);
       if (!res.ok || !data.payUrl) {
         setPhase("error");
         setResultMessage(data.error || "Could not start Karopay checkout.");
