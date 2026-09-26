@@ -1296,7 +1296,7 @@ a{text-decoration:none;color:inherit}
 .transaction-history-type.withdraw{background:#ed3838}
 .transaction-history-type.complete{background:var(--success)}
 .transaction-history-status{font-size:20px;font-weight:600;letter-spacing:.5px;color:#e0a10b}
-.transaction-history-status.complete{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 13px;border:1px solid #a9dfba;border-radius:9px;background:#e7f8ed;color:#12813f;box-shadow:0 1px 2px rgba(18,129,63,.08)}
+.transaction-history-status.complete{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 13px;border-radius:9px;color:#12813f;box-shadow:0 1px 2px rgba(18,129,63,.08)}
 .transaction-history-status.rejected{color:#e13f3f}
 .transaction-history-details{margin:20px 8px 0;display:flex;flex-direction:column;gap:20px}
 .transaction-history-details>div{display:grid;grid-template-columns:minmax(145px,1fr) minmax(0,1.6fr);align-items:center;gap:18px}

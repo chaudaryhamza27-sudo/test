@@ -6,7 +6,7 @@ import { IconShield, IconX, IconChevronRight, IconWallet, IconUpload, IconCheck 
 // This merchant's Karopay account is used in PKR — matches this app's
 // existing Rs-denominated wallet, so 1 PKR == 1 demo credit here.
 const PRESET_AMOUNTS = [3000, 5000, 10000, 25000, 35000, 50000];
-const MIN_AMOUNT = 300;
+const MIN_AMOUNT = 3000;
 const MAX_AMOUNT = 50000;
 const POLL_INTERVAL_MS = 2000;
 const HOME_REDIRECT_DELAY_MS = 2500; // show the success message briefly, then go home

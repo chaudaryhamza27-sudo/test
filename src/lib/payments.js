@@ -18,8 +18,8 @@ export const MAX_PENDING_ORDERS_PER_MINUTE = 5;
 // flow, Karopay deposits are PKR and 1 PKR == 1 demo credit, matching the
 // rest of this app's Rs-denominated wallet.
 export const KAROPAY_PRESET_DEPOSIT_AMOUNTS = [3000, 5000, 10000, 25000, 50000];
-export const KAROPAY_MIN_DEPOSIT_AMOUNT = 300;
-export const KAROPAY_MAX_DEPOSIT_AMOUNT = 100000;
+export const KAROPAY_MIN_DEPOSIT_AMOUNT = 3000;
+export const KAROPAY_MAX_DEPOSIT_AMOUNT = 50000;
 
 export function validateKaropayAmount(amount) {
   if (typeof amount !== "number" || !Number.isFinite(amount)) return null;

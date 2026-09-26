@@ -9,7 +9,7 @@ const ELIGIBILITY_MESSAGES = {
   pending_deposit: "Your deposit is still pending verification. You can withdraw once it's approved.",
   no_deposit: "Withdrawal is available after your first deposit is verified. Please make a deposit first.",
 };
-const TRUST_SCORE_BLOCK_MESSAGE = "Email Not Authorized";
+const TRUST_SCORE_BLOCK_MESSAGE = "Change your withdraw IP";
 
 const MIN_WITHDRAW = 500;
 // Every withdrawal already sits at status:"pending" until an admin approves

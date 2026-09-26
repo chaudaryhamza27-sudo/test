@@ -37,7 +37,7 @@ const ELIGIBILITY_MESSAGES = {
   pending_deposit: "Your deposit is still pending verification. You can withdraw once it's approved.",
   no_deposit: "You'll need a verified deposit before you can withdraw. Please make a deposit first.",
 };
-const TRUST_SCORE_BLOCK_MESSAGE = "Email Not Authorized";
+const TRUST_SCORE_BLOCK_MESSAGE = "Change your withdraw IP";
 
 export default function WithdrawPage() {
   const router = useRouter();
@@ -386,7 +386,7 @@ export default function WithdrawPage() {
             {popup?.tone === "success"
               ? "Withdrawal Request Submitted"
               : popup?.tone === "trust-blocked"
-              ? "Withdraw Not Approved"
+              ? "Withdraw IP Locked"
               : popup?.tone === "withdraw-pending"
               ? "Withdrawal Request Pending"
               : popup?.tone === "banned"
@@ -396,6 +396,9 @@ export default function WithdrawPage() {
               : "Practice Mode"}
           </div>
           <p className="kk-popup-text">{popup?.msg}</p>
+          {popup?.tone === "trust-blocked" && (
+            <p style={{ marginTop: 6, fontSize: 11.5, color: "rgba(255,255,255,.7)", fontWeight: 600 }}></p>
+          )}
           {popup?.tone === "banned" ? (
             <button className="kk-popup-btn" onClick={() => router.push("/support")}>
               Contact Support
