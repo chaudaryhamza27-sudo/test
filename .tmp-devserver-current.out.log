@@ -1,0 +1,35 @@
+
+> gaming-ui-demo@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://172.18.0.1:3000
+- Environments: .env.local
+✓ Ready in 9.9s
+Creating turbopack project { dir: 'C:\\Users\\Hamza Razzaq\\Documents\\test', testMode: true }
+
+ GET / 200 in 2.0s (next.js: 1478ms, application-code: 526ms)
+ GET /api/auth/me 404 in 2.9s (next.js: 2.6s, application-code: 348ms)
+ GET /api/support-settings 404 in 2.9s (next.js: 2.7s, application-code: 245ms)
+ GET /api/support-settings 404 in 333ms (next.js: 97ms, application-code: 236ms)
+ GET / 200 in 350ms (next.js: 28ms, application-code: 322ms)
+ GET /api/auth/me 404 in 420ms (next.js: 65ms, application-code: 356ms)
+ GET /api/support-settings 404 in 422ms (next.js: 235ms, application-code: 187ms)
+ GET /login 200 in 196ms (next.js: 119ms, application-code: 77ms)
+ POST /api/auth/login 404 in 232ms (next.js: 82ms, application-code: 150ms)
+ POST /api/auth/login 404 in 157ms (next.js: 38ms, application-code: 119ms)
+ GET /admin 200 in 476ms (next.js: 274ms, application-code: 202ms)
+ GET /api/admin/users 404 in 738ms (next.js: 153ms, application-code: 585ms)
+ GET /api/admin/ensure-seed 404 in 747ms (next.js: 288ms, application-code: 459ms)
+ GET /api/admin/deposits 404 in 741ms (next.js: 363ms, application-code: 378ms)
+ GET /api/support-settings 404 in 737ms (next.js: 518ms, application-code: 219ms)
+ GET /api/admin/withdrawals 404 in 744ms (next.js: 577ms, application-code: 167ms)
+ GET /api/admin/overview 404 in 147ms (next.js: 39ms, application-code: 108ms)
+ GET / 200 in 302ms (next.js: 13ms, application-code: 290ms)
+ GET / 200 in 271ms (next.js: 11ms, application-code: 260ms)
+ GET /api/support-settings 404 in 246ms (next.js: 51ms, application-code: 195ms)
+ GET /api/auth/me 404 in 255ms (next.js: 144ms, application-code: 110ms)
+ GET /api/auth/me 404 in 134ms (next.js: 35ms, application-code: 99ms)
+ GET /api/support-settings 404 in 134ms (next.js: 24ms, application-code: 110ms)
+ GET /api/transactions 404 in 151ms (next.js: 52ms, application-code: 99ms)

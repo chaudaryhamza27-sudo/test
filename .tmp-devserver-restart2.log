@@ -1,0 +1,257 @@
+
+> gaming-ui-demo@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://172.18.0.1:3000
+- Environments: .env.local
+✓ Ready in 11.9s
+
+ GET / 200 in 31.2s (next.js: 1960ms, application-code: 29.2s)
+ GET /api/transactions?type=deposit&page=1 200 in 713ms (next.js: 173ms, application-code: 540ms)
+ GET /api/transactions?type=deposit&page=1 200 in 712ms (next.js: 247ms, application-code: 466ms)
+ GET /api/transactions?type=deposit&page=1 200 in 31.8s (next.js: 28.6s, application-code: 3.2s)
+ GET /deposit 200 in 4.6s (next.js: 1243ms, application-code: 3.4s)
+ GET /login 200 in 4.6s (next.js: 1534ms, application-code: 3.1s)
+ GET /login 200 in 2.4s (next.js: 295ms, application-code: 2.1s)
+[karopay/webhook] Signature verification failed { merchantOrderId: 'TEST-UNSIGNED-0001' }
+ POST /api/karopay/webhook 401 in 1744ms (next.js: 1655ms, application-code: 89ms)
+ GET /api/wallet 200 in 1252ms (next.js: 371ms, application-code: 881ms)
+ GET /api/transactions?type=deposit&page=1 200 in 1267ms (next.js: 19ms, application-code: 1247ms)
+ GET /api/support-settings 200 in 1126ms (next.js: 620ms, application-code: 506ms)
+ GET /api/support-settings 200 in 205ms (next.js: 48ms, application-code: 157ms)
+ GET /api/support-settings 200 in 70ms (next.js: 15ms, application-code: 55ms)
+[karopay/webhook] Signature verification failed { merchantOrderId: 'TEST-UNSIGNED-0002' }
+ POST /api/karopay/webhook 401 in 169ms (next.js: 45ms, application-code: 124ms)
+ GET /api/support-settings 200 in 144ms (next.js: 63ms, application-code: 81ms)
+ GET /api/transactions?type=deposit&page=1 200 in 138ms (next.js: 29ms, application-code: 109ms)
+ GET /api/transactions?type=deposit&page=1 200 in 118ms (next.js: 29ms, application-code: 89ms)
+ GET /api/transactions?type=deposit&page=1 200 in 68ms (next.js: 33ms, application-code: 35ms)
+ GET /api/transactions?type=deposit&page=1 200 in 57ms (next.js: 13ms, application-code: 44ms)
+ GET /api/transactions?type=deposit&page=1 200 in 90ms (next.js: 22ms, application-code: 68ms)
+ GET /api/transactions?type=deposit&page=1 200 in 142ms (next.js: 23ms, application-code: 120ms)
+[karopay] collection request {
+  url: 'https://api-pk.karo-pay.com/open-api/pay/payment',
+  merchantOrderId: '4e8eb6fb22cf47198f6c',
+  amount: '300000',
+  defaultChannelName: 'easypaisa'
+}
+[karopay] Non-JSON response from collection request {
+  url: 'https://api-pk.karo-pay.com/open-api/pay/payment',
+  status: 403,
+  body: 'Access denied, your ip is: 154.198.91.32'
+}
+[karopay/create-order] Karopay order creation failed {
+  merchantOrderId: '4e8eb6fb22cf47198f6c',
+  message: "Karopay rejected this server's IP — add it to the merchant IP whitelist.",
+  status: 502,
+  detail: { httpStatus: 403, body: 'Access denied, your ip is: 154.198.91.32' },
+  cause: undefined
+}
+ POST /api/karopay/create-order 502 in 991ms (next.js: 137ms, application-code: 854ms)
+ GET /api/transactions?type=deposit&page=1 200 in 80ms (next.js: 23ms, application-code: 57ms)
+ GET /api/transactions?type=deposit&page=1 200 in 80ms (next.js: 17ms, application-code: 64ms)
+ GET /api/transactions?type=deposit&page=1 200 in 82ms (next.js: 18ms, application-code: 64ms)
+ GET /api/transactions?type=deposit&page=1 200 in 46ms (next.js: 9ms, application-code: 37ms)
+ GET /api/transactions?type=deposit&page=1 200 in 73ms (next.js: 17ms, application-code: 56ms)
+ GET /api/transactions?type=deposit&page=1 200 in 107ms (next.js: 22ms, application-code: 85ms)
+ GET /api/transactions?type=deposit&page=1 200 in 137ms (next.js: 25ms, application-code: 112ms)
+ GET /api/transactions?type=deposit&page=1 200 in 98ms (next.js: 24ms, application-code: 73ms)
+ GET /api/transactions?type=deposit&page=1 200 in 118ms (next.js: 24ms, application-code: 94ms)
+ GET /api/transactions?type=deposit&page=1 200 in 62ms (next.js: 10ms, application-code: 52ms)
+ GET /api/transactions?type=deposit&page=1 200 in 105ms (next.js: 17ms, application-code: 89ms)
+ GET /api/transactions?type=deposit&page=1 200 in 42ms (next.js: 8ms, application-code: 35ms)
+ GET /api/transactions?type=deposit&page=1 200 in 108ms (next.js: 22ms, application-code: 86ms)
+ GET /api/transactions?type=deposit&page=1 200 in 85ms (next.js: 22ms, application-code: 63ms)
+[karopay] collection request {
+  url: 'https://api-pk.karo-pay.com/open-api/pay/payment',
+  merchantOrderId: '86f851a82fde5763e406',
+  amount: '300000',
+  defaultChannelName: 'easypaisa'
+}
+[karopay] Non-JSON response from collection request {
+  url: 'https://api-pk.karo-pay.com/open-api/pay/payment',
+  status: 403,
+  body: 'Access denied, your ip is: 154.198.91.32'
+}
+[karopay/create-order] Karopay order creation failed {
+  merchantOrderId: '86f851a82fde5763e406',
+  message: "Karopay rejected this server's IP — add it to the merchant IP whitelist.",
+  status: 502,
+  detail: { httpStatus: 403, body: 'Access denied, your ip is: 154.198.91.32' },
+  cause: undefined
+}
+ POST /api/karopay/create-order 502 in 792ms (next.js: 13ms, application-code: 779ms)
+ GET /api/transactions?type=deposit&page=1 200 in 93ms (next.js: 21ms, application-code: 72ms)
+ GET /api/transactions?type=deposit&page=1 200 in 147ms (next.js: 25ms, application-code: 122ms)
+ GET /api/transactions?type=deposit&page=1 200 in 67ms (next.js: 16ms, application-code: 52ms)
+ GET /api/transactions?type=deposit&page=1 200 in 57ms (next.js: 13ms, application-code: 44ms)
+ GET /api/transactions?type=deposit&page=1 200 in 63ms (next.js: 15ms, application-code: 48ms)
+ GET /api/transactions?type=deposit&page=1 200 in 114ms (next.js: 25ms, application-code: 89ms)
+ GET /api/transactions?type=deposit&page=1 200 in 120ms (next.js: 25ms, application-code: 94ms)
+ GET /api/transactions?type=deposit&page=1 200 in 115ms (next.js: 21ms, application-code: 94ms)
+ GET /api/transactions?type=deposit&page=1 200 in 37ms (next.js: 7ms, application-code: 30ms)
+ GET /api/transactions?type=deposit&page=1 200 in 78ms (next.js: 16ms, application-code: 62ms)
+ GET /api/transactions?type=deposit&page=1 200 in 59ms (next.js: 15ms, application-code: 44ms)
+ GET /api/transactions?type=deposit&page=1 200 in 81ms (next.js: 18ms, application-code: 63ms)
+ GET /api/transactions?type=deposit&page=1 200 in 278ms (next.js: 112ms, application-code: 167ms)
+ GET /api/transactions?type=deposit&page=1 200 in 61ms (next.js: 21ms, application-code: 40ms)
+ GET /api/transactions?type=deposit&page=1 200 in 43ms (next.js: 9ms, application-code: 34ms)
+ GET /api/transactions?type=deposit&page=1 200 in 160ms (next.js: 18ms, application-code: 142ms)
+ GET /api/transactions?type=deposit&page=1 200 in 48ms (next.js: 10ms, application-code: 38ms)
+ GET /api/transactions?type=deposit&page=1 200 in 134ms (next.js: 22ms, application-code: 112ms)
+ GET /api/transactions?type=deposit&page=1 200 in 81ms (next.js: 18ms, application-code: 63ms)
+ GET /api/transactions?type=deposit&page=1 200 in 82ms (next.js: 19ms, application-code: 63ms)
+ GET /api/transactions?type=deposit&page=1 200 in 85ms (next.js: 21ms, application-code: 64ms)
+ GET /api/transactions?type=deposit&page=1 200 in 63ms (next.js: 17ms, application-code: 46ms)
+ GET /api/transactions?type=deposit&page=1 200 in 44ms (next.js: 11ms, application-code: 33ms)
+ GET /api/transactions?type=deposit&page=1 200 in 46ms (next.js: 9ms, application-code: 37ms)
+ GET /api/transactions?type=deposit&page=1 200 in 89ms (next.js: 17ms, application-code: 72ms)
+ GET /api/transactions?type=deposit&page=1 200 in 93ms (next.js: 20ms, application-code: 73ms)
+ GET /api/transactions?type=deposit&page=1 200 in 118ms (next.js: 34ms, application-code: 84ms)
+ GET /api/transactions?type=deposit&page=1 200 in 102ms (next.js: 23ms, application-code: 79ms)
+ GET /api/transactions?type=deposit&page=1 200 in 80ms (next.js: 22ms, application-code: 58ms)
+ GET /api/transactions?type=deposit&page=1 200 in 75ms (next.js: 17ms, application-code: 58ms)
+ GET /api/transactions?type=deposit&page=1 200 in 76ms (next.js: 18ms, application-code: 57ms)
+ GET /api/transactions?type=deposit&page=1 200 in 78ms (next.js: 20ms, application-code: 58ms)
+ GET /api/transactions?type=deposit&page=1 200 in 80ms (next.js: 17ms, application-code: 63ms)
+ GET /api/transactions?type=deposit&page=1 200 in 57ms (next.js: 12ms, application-code: 45ms)
+ GET /api/transactions?type=deposit&page=1 200 in 93ms (next.js: 20ms, application-code: 73ms)
+ GET /api/transactions?type=deposit&page=1 200 in 52ms (next.js: 9ms, application-code: 43ms)
+ GET /api/transactions?type=deposit&page=1 200 in 76ms (next.js: 17ms, application-code: 59ms)
+ GET /api/transactions?type=deposit&page=1 200 in 47ms (next.js: 11ms, application-code: 36ms)
+ GET /api/transactions?type=deposit&page=1 200 in 76ms (next.js: 15ms, application-code: 61ms)
+ GET /api/transactions?type=deposit&page=1 200 in 203ms (next.js: 25ms, application-code: 177ms)
+ GET /api/transactions?type=deposit&page=1 200 in 61ms (next.js: 18ms, application-code: 43ms)
+ GET /api/transactions?type=deposit&page=1 200 in 131ms (next.js: 44ms, application-code: 87ms)
+ GET /api/transactions?type=deposit&page=1 200 in 84ms (next.js: 20ms, application-code: 64ms)
+ GET /api/transactions?type=deposit&page=1 200 in 104ms (next.js: 38ms, application-code: 66ms)
+ GET /api/transactions?type=deposit&page=1 200 in 106ms (next.js: 20ms, application-code: 86ms)
+ GET /api/transactions?type=deposit&page=1 200 in 41ms (next.js: 9ms, application-code: 31ms)
+ GET /api/transactions?type=deposit&page=1 200 in 80ms (next.js: 18ms, application-code: 62ms)
+ GET /api/transactions?type=deposit&page=1 200 in 61ms (next.js: 15ms, application-code: 46ms)
+ GET /api/transactions?type=deposit&page=1 200 in 44ms (next.js: 11ms, application-code: 33ms)
+ GET /api/transactions?type=deposit&page=1 200 in 163ms (next.js: 55ms, application-code: 108ms)
+ GET /api/transactions?type=deposit&page=1 200 in 51ms (next.js: 10ms, application-code: 42ms)
+ GET /api/transactions?type=deposit&page=1 200 in 71ms (next.js: 16ms, application-code: 55ms)
+ GET /api/transactions?type=deposit&page=1 200 in 80ms (next.js: 19ms, application-code: 62ms)
+ GET /api/transactions?type=deposit&page=1 200 in 77ms (next.js: 18ms, application-code: 59ms)
+ GET /api/transactions?type=deposit&page=1 200 in 51ms (next.js: 14ms, application-code: 37ms)
+ GET /api/transactions?type=deposit&page=1 200 in 78ms (next.js: 17ms, application-code: 61ms)
+ GET /api/transactions?type=deposit&page=1 200 in 48ms (next.js: 11ms, application-code: 37ms)
+ GET /api/transactions?type=deposit&page=1 200 in 51ms (next.js: 10ms, application-code: 40ms)
+ GET /api/transactions?type=deposit&page=1 200 in 92ms (next.js: 23ms, application-code: 68ms)
+ GET /api/transactions?type=deposit&page=1 200 in 42ms (next.js: 12ms, application-code: 31ms)
+ GET /api/transactions?type=deposit&page=1 200 in 74ms (next.js: 16ms, application-code: 59ms)
+ GET /api/transactions?type=deposit&page=1 200 in 47ms (next.js: 9ms, application-code: 39ms)
+ GET /api/transactions?type=deposit&page=1 200 in 78ms (next.js: 18ms, application-code: 60ms)
+ GET /api/transactions?type=deposit&page=1 200 in 78ms (next.js: 18ms, application-code: 60ms)
+ GET /api/transactions?type=deposit&page=1 200 in 45ms (next.js: 11ms, application-code: 34ms)
+ POST /api/karopay/create-order 401 in 391ms (next.js: 264ms, application-code: 126ms)
+ GET /login 200 in 6.9s (next.js: 6.0s, application-code: 877ms)
+ GET /login 200 in 405ms (next.js: 305ms, application-code: 100ms)
+ GET / 200 in 820ms (next.js: 70ms, application-code: 750ms)
+ GET /api/auth/me 401 in 269ms (next.js: 237ms, application-code: 32ms)
+ GET /api/support-settings 200 in 277ms (next.js: 84ms, application-code: 193ms)
+ GET /login 200 in 77ms (next.js: 19ms, application-code: 57ms)
+ GET /signup 200 in 163ms (next.js: 106ms, application-code: 57ms)
+ POST /api/auth/signup 200 in 426ms (next.js: 140ms, application-code: 287ms)
+ GET / 200 in 173ms (next.js: 27ms, application-code: 146ms)
+ GET /api/auth/me 200 in 43ms (next.js: 9ms, application-code: 34ms)
+ GET /api/auth/me 200 in 40ms (next.js: 13ms, application-code: 26ms)
+ GET /wallet 200 in 179ms (next.js: 113ms, application-code: 67ms)
+ GET /api/wallet 200 in 245ms (next.js: 83ms, application-code: 162ms)
+ GET /api/wallet/stats 200 in 275ms (next.js: 199ms, application-code: 76ms)
+ GET /api/wallet 200 in 63ms (next.js: 19ms, application-code: 45ms)
+ GET /api/wallet/stats 200 in 44ms (next.js: 11ms, application-code: 34ms)
+ GET /deposit 200 in 167ms (next.js: 69ms, application-code: 97ms)
+ GET /api/support-settings 200 in 186ms (next.js: 140ms, application-code: 46ms)
+ GET /api/wallet 200 in 197ms (next.js: 125ms, application-code: 72ms)
+ GET /api/transactions?type=deposit&page=1 200 in 205ms (next.js: 97ms, application-code: 108ms)
+ GET /api/transactions?type=deposit&page=1 200 in 102ms (next.js: 56ms, application-code: 46ms)
+ GET /api/support-settings 200 in 53ms (next.js: 10ms, application-code: 43ms)
+ GET /api/wallet 200 in 57ms (next.js: 30ms, application-code: 27ms)
+ GET /api/transactions?type=deposit&page=1 200 in 57ms (next.js: 11ms, application-code: 46ms)
+[karopay] collection request {
+  url: 'https://api-pk.karo-pay.com/open-api/pay/payment',
+  merchantOrderId: '947ea3b2770e84818b19',
+  amount: '300000',
+  defaultChannelName: 'easypaisa'
+}
+[karopay] collection response {
+  merchantOrderId: '947ea3b2770e84818b19',
+  httpStatus: 200,
+  code: 500,
+  msg: 'Bad Authorization',
+  body: {
+    code: 500,
+    msg: 'Bad Authorization',
+    traceId: 'i400,i400926f841f5d21c68451095fe25234a20e117'
+  }
+}
+[karopay/create-order] Karopay order creation failed {
+  merchantOrderId: '947ea3b2770e84818b19',
+  message: 'Bad Authorization',
+  status: 502,
+  detail: {
+    httpStatus: 200,
+    code: 500,
+    msg: 'Bad Authorization',
+    body: {
+      code: 500,
+      msg: 'Bad Authorization',
+      traceId: 'i400,i400926f841f5d21c68451095fe25234a20e117'
+    }
+  },
+  cause: undefined
+}
+ POST /api/karopay/create-order 502 in 699ms (next.js: 9ms, application-code: 690ms)
+ GET /api/transactions?type=deposit&page=1 200 in 156ms (next.js: 61ms, application-code: 95ms)
+ GET /api/transactions?type=deposit&page=1 200 in 105ms (next.js: 25ms, application-code: 80ms)
+✓ Compiled in 643ms
+ GET /login 200 in 822ms (next.js: 186ms, application-code: 636ms)
+ GET /login 200 in 541ms (next.js: 431ms, application-code: 110ms)
+ GET /deposit 200 in 550ms (next.js: 271ms, application-code: 278ms)
+ GET /api/transactions?type=deposit&page=1 200 in 246ms (next.js: 177ms, application-code: 69ms)
+ GET /api/transactions?type=deposit&page=1 200 in 76ms (next.js: 19ms, application-code: 56ms)
+[karopay] collection request {
+  url: 'https://api-pk.karo-pay.com/open-api/pay/payment',
+  merchantOrderId: '154daf791e55695a6621',
+  amount: '300000',
+  defaultChannelName: 'easypaisa'
+}
+[karopay] collection response {
+  merchantOrderId: '154daf791e55695a6621',
+  httpStatus: 200,
+  code: 500,
+  msg: 'Bad Authorization',
+  body: {
+    code: 500,
+    msg: 'Bad Authorization',
+    traceId: 'i350,i350926306afe2705984b86be95bc5f5bb5ad57'
+  }
+}
+[karopay/create-order] Karopay order creation failed {
+  merchantOrderId: '154daf791e55695a6621',
+  message: 'Bad Authorization',
+  status: 502,
+  detail: {
+    httpStatus: 200,
+    code: 500,
+    msg: 'Bad Authorization',
+    body: {
+      code: 500,
+      msg: 'Bad Authorization',
+      traceId: 'i350,i350926306afe2705984b86be95bc5f5bb5ad57'
+    }
+  },
+  cause: undefined
+}
+ POST /api/karopay/create-order 502 in 841ms (next.js: 108ms, application-code: 733ms)
+ GET /api/transactions?type=deposit&page=1 200 in 47ms (next.js: 13ms, application-code: 34ms)
+ GET /api/transactions?type=deposit&page=1 200 in 75ms (next.js: 22ms, application-code: 53ms)
+ GET /api/transactions?type=deposit&page=1 200 in 43ms (next.js: 9ms, application-code: 34ms)
+ GET /api/transactions?type=deposit&page=1 200 in 46ms (next.js: 11ms, application-code: 36ms)
+ GET /api/transactions?type=deposit&page=1 200 in 65ms (next.js: 24ms, application-code: 41ms)
+ GET /api/transactions?type=deposit&page=1 200 in 75ms (next.js: 12ms, application-code: 63ms)

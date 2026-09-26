@@ -122,9 +122,19 @@ export async function POST(request) {
         detail: err.detail,
         cause: err.detail instanceof Error ? err.detail.cause : undefined,
       });
+      // Karopay's own status/code/msg is safe to surface in every environment
+      // (no credentials in it) — the raw body stays dev-only since the IP-block
+      // response echoes this server's outbound IP.
+      const detail = err.detail && !(err.detail instanceof Error) ? err.detail : {};
       return Response.json(
         {
           error: "Could not start the Karopay checkout. Please try again.",
+          karopay: {
+            message: err.message,
+            httpStatus: detail.httpStatus ?? null,
+            code: detail.code ?? null,
+            msg: detail.msg ?? null,
+          },
           ...(IS_DEV && { debug: { message: err.message, status: err.status, detail: err.detail } }),
         },
         { status: err.status && err.status >= 400 && err.status < 600 ? err.status : 502 }
