@@ -3,6 +3,7 @@ import Payment from "../../../../lib/models/Payment";
 import Transaction from "../../../../lib/models/Transaction";
 import User from "../../../../lib/models/User";
 import { getCurrentUser } from "../../../../lib/auth";
+import { reconcileKaropayPayment } from "../../../../lib/payments";
 
 // Karopay's checkout redirects the browser back to returnUrl as soon as the
 // user finishes on their hosted page — the wallet credit itself only happens
@@ -23,6 +24,17 @@ export async function GET(request) {
   if (!payment) return Response.json({ error: "Payment not found." }, { status: 404 });
   if (String(payment.userId) !== String(user._id)) {
     return Response.json({ error: "Forbidden." }, { status: 403 });
+  }
+
+  // Webhook hasn't landed yet — ask Karopay directly so a successful payment
+  // is credited even when the notify callback is delayed or never arrives.
+  if (payment.status === "PENDING") {
+    try {
+      const reconciled = await reconcileKaropayPayment(payment);
+      if (reconciled !== payment.status) payment.status = reconciled;
+    } catch (err) {
+      console.error("[karopay/status] Order inquiry failed", { identifier, message: err?.message });
+    }
   }
 
   if (payment.status === "COMPLETED") {

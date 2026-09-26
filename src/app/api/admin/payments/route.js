@@ -2,6 +2,7 @@ import dbConnect from "../../../../lib/mongodb";
 import Payment from "../../../../lib/models/Payment";
 import User from "../../../../lib/models/User";
 import { requireAdmin } from "../../../../lib/auth";
+import { reconcilePendingKaropayPayments } from "../../../../lib/payments";
 
 const PAGE_SIZE = 20;
 
@@ -20,9 +21,18 @@ export async function GET(request) {
 
   await dbConnect();
 
+  // Opening the Karo Pay list settles any pending Karopay deposits Karopay
+  // already reports as succeeded/failed, so the table shows the truth.
+  if (provider === "karopay") {
+    await reconcilePendingKaropayPayments({}, { limit: 20 }).catch((err) =>
+      console.error("[admin/payments] Karopay auto-reconcile failed", err?.message)
+    );
+  }
+
   const filter = {};
   if (provider && provider !== "all") filter.provider = provider;
-  if (status && status !== "all") filter.status = status;
+  if (status === "not_failed") filter.status = { $ne: "FAILED" };
+  else if (status && status !== "all") filter.status = status;
   if (orderId) filter.providerOrderId = { $regex: orderId.trim(), $options: "i" };
   if (from || to) {
     filter.createdAt = {};
@@ -42,7 +52,7 @@ export async function GET(request) {
 
   const [items, total] = await Promise.all([
     Payment.find(filter)
-      .populate("userId", "uid email phone")
+      .populate("userId", "uid name email phone balance")
       .sort({ createdAt: -1 })
       .skip((page - 1) * PAGE_SIZE)
       .limit(PAGE_SIZE),

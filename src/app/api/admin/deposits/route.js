@@ -25,6 +25,7 @@ export async function GET() {
     ...d,
     hasProof: Boolean(meta?.proofImage),
     rejectionReason: meta?.rejectionReason || null,
+    provider: meta?.provider || null, // set on gateway (Karopay/PayPal) credits
   }));
   return Response.json({ deposits });
 }

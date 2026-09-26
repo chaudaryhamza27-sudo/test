@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import "./admin.css";
 import AdminLayout from "./AdminLayout";
+import CashOutPanel from "./CashOutPanel";
 import { IconUsers, IconShield, IconWallet, IconLockLine, IconX, IconEye, IconEyeOff, IconCheck, IconTrendingUp, IconRefresh } from "../icons";
 
 function IconSearch(props) {
@@ -139,6 +140,9 @@ export default function AdminDashboard() {
   const [reviewingDeposit, setReviewingDeposit] = useState(null);
   const [reviewingWithdrawal, setReviewingWithdrawal] = useState(null);
   const [withdrawSearch, setWithdrawSearch] = useState("");
+  // Withdrawal picked via a row's "Cash Out" button, handed to the Cash Out tab.
+  const [cashoutWithdrawalId, setCashoutWithdrawalId] = useState("");
+  const clearCashoutPreselect = useCallback(() => setCashoutWithdrawalId(""), []);
   const [selectedWithdrawals, setSelectedWithdrawals] = useState(new Set());
   const [bulkWithdrawAction, setBulkWithdrawAction] = useState(null); // "approve" | "reject" | null
   const [userStatsModal, setUserStatsModal] = useState(null);
@@ -271,6 +275,14 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (checking || tab !== "dashboard") return;
     loadOverview();
+    // Keep the dashboard live while it's open (new deposits, cash outs,
+    // Karopay balance) — refreshes on tab focus and every 20s.
+    const timer = window.setInterval(loadOverview, 20000);
+    window.addEventListener("focus", loadOverview);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", loadOverview);
+    };
   }, [checking, tab, loadOverview]);
 
   useEffect(() => {
@@ -468,6 +480,63 @@ export default function AdminDashboard() {
     if (checking || tab !== "cashouts") return;
     loadCashouts();
   }, [checking, tab, loadCashouts]);
+
+  // Balance Manager → Karopay payments: gateway deposits, with a
+  // "Verify & Credit" action that asks Karopay for the real order status and
+  // credits the wallet (same idempotent path as the webhook).
+  const [karopayPayments, setKaropayPayments] = useState([]);
+  const [karopayPage, setKaropayPage] = useState(1);
+  const [karopayTotalPages, setKaropayTotalPages] = useState(1);
+  const [karopayStatusFilter, setKaropayStatusFilter] = useState("all");
+  const [karopayVerifying, setKaropayVerifying] = useState("");
+  const [karopayMessage, setKaropayMessage] = useState(null); // { tone, text }
+
+  const loadKaropayPayments = useCallback(() => {
+    const params = new URLSearchParams({ provider: "karopay", page: String(karopayPage) });
+    // "ALL" hides failed attempts — they only show under the FAILED filter.
+    params.set("status", karopayStatusFilter === "all" ? "not_failed" : karopayStatusFilter);
+    return fetch(`/api/admin/payments?${params.toString()}`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => {
+        setKaropayPayments(data.items || []);
+        setKaropayTotalPages(data.totalPages || 1);
+      })
+      .catch(() => {});
+  }, [karopayPage, karopayStatusFilter]);
+
+  useEffect(() => {
+    if (checking || tab !== "karopay") return;
+    loadKaropayPayments();
+  }, [checking, tab, loadKaropayPayments]);
+
+  const verifyKaropayPayment = async (p) => {
+    setKaropayVerifying(p._id);
+    setKaropayMessage(null);
+    try {
+      const res = await fetch(`/api/admin/payments/${p._id}/verify`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      const who = p.userId?.uid || "user";
+      const amount = `Rs ${(p.amount / 100).toLocaleString()}`;
+      if (!res.ok) {
+        setKaropayMessage({ tone: "error", text: data.error || "Could not verify this payment with Karopay." });
+      } else if (data.reconciled) {
+        setKaropayMessage({ tone: "success", text: `Karopay confirmed ${amount} — credited to ${who}'s balance.` });
+      } else if (data.alreadyCompleted) {
+        setKaropayMessage({ tone: "success", text: `${amount} for ${who} was already credited.` });
+      } else if (data.mismatch) {
+        setKaropayMessage({ tone: "error", text: `Karopay reported a different amount for this order — not credited.` });
+      } else {
+        const s = data.payment?.status;
+        setKaropayMessage({
+          tone: s === "FAILED" ? "error" : "info",
+          text: s === "FAILED" ? `Karopay reports this payment failed — nothing credited.` : `Karopay still shows this payment in progress (${s}).`,
+        });
+      }
+      await Promise.all([loadKaropayPayments(), loadAll()]);
+    } finally {
+      setKaropayVerifying("");
+    }
+  };
 
   const reverifyPayment = async (id) => {
     setVerifying(true);
@@ -857,7 +926,9 @@ export default function AdminDashboard() {
     users: loadAll,
     deposits: loadAll,
     withdrawals: loadAll,
+    cashout: loadAll,
     balance: loadAll,
+    karopay: () => Promise.all([loadAll(), loadKaropayPayments()]),
     support: loadSupportSettings,
   };
 
@@ -897,6 +968,35 @@ export default function AdminDashboard() {
                 <StatCard label="Pending Deposits" value={overview.pendingDeposits} />
                 <StatCard label="Pending Withdrawals" value={overview.pendingWithdrawals} />
               </div>
+
+              {overview.karopay && (
+                <>
+                  <div className="admin-info-section-label" style={{ marginTop: 22, marginBottom: 10 }}>
+                    Karopay
+                  </div>
+                  <div className="admin-stats-grid">
+                    <StatCard
+                      label="Gateway Balance"
+                      value={overview.karopay.gatewayBalance != null ? `Rs ${overview.karopay.gatewayBalance.toLocaleString()}` : "—"}
+                    />
+                    <StatCard
+                      label="Gateway Frozen"
+                      value={overview.karopay.gatewayFrozen != null ? `Rs ${overview.karopay.gatewayFrozen.toLocaleString()}` : "—"}
+                    />
+                    <StatCard
+                      label="Karopay Deposits"
+                      value={`Rs ${overview.karopay.depositsTotal.toLocaleString()} (${overview.karopay.depositsCount})`}
+                    />
+                    <StatCard label="Pending Karopay Deposits" value={overview.karopay.pendingDeposits} />
+                    <StatCard
+                      label="Cash Out Paid"
+                      value={`Rs ${overview.karopay.cashOutTotal.toLocaleString()} (${overview.karopay.cashOutCount})`}
+                    />
+                    <StatCard label="Pending Cash Outs" value={overview.karopay.pendingCashOuts} />
+                    <StatCard label="Failed Cash Outs" value={overview.karopay.failedCashOuts} />
+                  </div>
+                </>
+              )}
 
               <div className="admin-charts-grid">
                 <div className="admin-chart-card">
@@ -1193,6 +1293,16 @@ export default function AdminDashboard() {
                             <button className="admin-small-btn reject" onClick={() => reviewWithdrawal(w._id, "reject")} disabled={reviewingWithdrawal === w._id}>
                               Reject
                             </button>
+                            <button
+                              className="admin-small-btn"
+                              onClick={() => {
+                                setCashoutWithdrawalId(w._id);
+                                setTab("cashout");
+                              }}
+                              disabled={reviewingWithdrawal === w._id}
+                            >
+                              Cash Out
+                            </button>
                           </>
                         )}
                       </td>
@@ -1211,6 +1321,15 @@ export default function AdminDashboard() {
           </div>
         );
       })()}
+
+      {tab === "cashout" && (
+        <CashOutPanel
+          withdrawals={withdrawals}
+          preselectWithdrawalId={cashoutWithdrawalId}
+          onPreselectConsumed={clearCashoutPreselect}
+          onWithdrawalsChanged={loadAll}
+        />
+      )}
 
       {tab === "balance" && (
         <div>
@@ -1396,6 +1515,104 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {tab === "karopay" && (
+        <div>
+          <PageHead
+            title="Karo Pay"
+            sub="Karopay gateway deposits — verify with Karopay and credit the user's balance."
+            onRefresh={() => refreshTab("karopay", () => Promise.all([loadAll(), loadKaropayPayments()]))}
+            refreshing={refreshingTab === "karopay"}
+          />
+          <div className="admin-page-head" style={{ marginTop: 0, marginBottom: 10 }}>
+            <div className="admin-karopay-filters">
+              {["all", "PENDING", "COMPLETED", "FAILED"].map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className={karopayStatusFilter === s ? "active" : ""}
+                  onClick={() => {
+                    setKaropayPage(1);
+                    setKaropayStatusFilter(s);
+                  }}
+                >
+                  {s === "all" ? "ALL" : s}
+                </button>
+              ))}
+            </div>
+          </div>
+          {karopayMessage && <div className={`admin-quick-message ${karopayMessage.tone === "success" ? "success" : "error"}`}>{karopayMessage.text}</div>}
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>User ID</th>
+                  <th>Name</th>
+                  <th>Number</th>
+                  <th>Method</th>
+                  <th>Amount</th>
+                  <th>Current Balance</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {karopayPayments.map((p) => {
+                  const liveUser = users.find((u) => u.uid && u.uid === p.userId?.uid);
+                  const currentBalance = liveUser?.balance ?? p.userId?.balance;
+                  return (
+                    <tr key={p._id}>
+                      <td>{new Date(p.createdAt).toLocaleString()}</td>
+                      <td>{p.userId?.uid || "—"}</td>
+                      <td>{p.userId?.name || p.userId?.email || "—"}</td>
+                      <td>{p.userId?.phone || "—"}</td>
+                      <td>Karo Pay</td>
+                      <td>Rs {(p.amount / 100).toLocaleString()}</td>
+                      <td style={{ fontWeight: 800 }}>{currentBalance != null ? `Rs ${Number(currentBalance).toLocaleString()}` : "—"}</td>
+                      <td>
+                        <StatusPill status={p.status} />
+                      </td>
+                      <td>
+                        {["PENDING", "APPROVED"].includes(p.status) && (
+                          <button
+                            className="admin-small-btn approve"
+                            onClick={() => verifyKaropayPayment(p)}
+                            disabled={karopayVerifying === p._id}
+                          >
+                            {karopayVerifying === p._id ? "Checking…" : "Verify & Credit"}
+                          </button>
+                        )}
+                        {p.status === "COMPLETED" && <span style={{ fontSize: 11, color: "var(--a-success)", fontWeight: 800 }}>Credited</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+                {karopayPayments.length === 0 && (
+                  <tr>
+                    <td colSpan={9} className="empty">
+                      No Karo Pay payments yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          {karopayTotalPages > 1 && (
+            <div className="admin-pagination">
+              <button disabled={karopayPage <= 1} onClick={() => setKaropayPage((p) => Math.max(1, p - 1))}>
+                Prev
+              </button>
+              <span>
+                Page {karopayPage} of {karopayTotalPages}
+              </span>
+              <button disabled={karopayPage >= karopayTotalPages} onClick={() => setKaropayPage((p) => Math.min(karopayTotalPages, p + 1))}>
+                Next
+              </button>
+            </div>
+          )}
         </div>
       )}
 

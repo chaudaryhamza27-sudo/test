@@ -9,7 +9,8 @@
     "start": "next start",
     "create-admin": "node scripts/create-admin.js",
     "dev:socket": "tsx watch realtime-server/server.js",
-    "start:socket": "node realtime-server/server.js"
+    "start:socket": "node realtime-server/server.js",
+    "test:payout": "node --import tsx --conditions=react-server --experimental-test-module-mocks --no-warnings --test tests/karopay-payout.test.mjs tests/karopay-deposit-reconcile.test.mjs"
   },
   "dependencies": {
     "@paypal/react-paypal-js": "^10.3.0",

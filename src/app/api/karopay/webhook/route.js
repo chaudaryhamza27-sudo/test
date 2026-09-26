@@ -1,7 +1,7 @@
 import dbConnect from "../../../../lib/mongodb";
 import Payment from "../../../../lib/models/Payment";
 import { verifyCallbackSign } from "../../../../lib/karopay";
-import { creditVerifiedPayment } from "../../../../lib/payments";
+import { creditVerifiedPayment, alertKaropayDeposit } from "../../../../lib/payments";
 import { logActivity } from "../../../../lib/activity";
 
 // Karopay's notify docs don't pin down the exact content-type, so accept
@@ -51,7 +51,8 @@ export async function POST(request) {
 
   // status: waiting for submit:99, paying:00, success:01, failed:02, wait confirm:06
   if (String(status) === "02") {
-    await Payment.updateOne({ _id: payment._id, status: "PENDING" }, { $set: { status: "FAILED", rawCaptureResponse: payload } });
+    const failed = await Payment.updateOne({ _id: payment._id, status: "PENDING" }, { $set: { status: "FAILED", rawCaptureResponse: payload } });
+    if (failed.modifiedCount) await alertKaropayDeposit("failed", payment);
     return new Response("success", { status: 200, headers: { "Content-Type": "text/plain" } });
   }
   if (String(status) !== "01") {

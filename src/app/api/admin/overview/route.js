@@ -2,6 +2,9 @@ import dbConnect from "../../../../lib/mongodb";
 import User from "../../../../lib/models/User";
 import Transaction from "../../../../lib/models/Transaction";
 import GameRound from "../../../../lib/models/GameRound";
+import Payment from "../../../../lib/models/Payment";
+import Payout from "../../../../lib/models/Payout";
+import { queryMerchantBalance } from "../../../../lib/karopay";
 import { requireAdmin } from "../../../../lib/auth";
 
 const DAYS = 14;
@@ -44,6 +47,10 @@ export async function GET() {
     approvedWithdrawAgg,
     usersSince,
     depositsSince,
+    karopayDepositAgg,
+    karopayPendingDeposits,
+    payoutAgg,
+    gatewayBalance,
   ] = await Promise.all([
     User.countDocuments({}),
     User.countDocuments({ isBanned: false }),
@@ -65,7 +72,18 @@ export async function GET() {
       { type: "deposit", status: { $in: SETTLED_TRANSACTION_STATUSES }, createdAt: { $gte: since } },
       "createdAt amount"
     ),
+    // Karopay deposits (Payment.amount is in paisa).
+    Payment.aggregate([
+      { $match: { provider: "karopay", status: "COMPLETED" } },
+      { $group: { _id: null, total: { $sum: "$amount" }, count: { $sum: 1 } } },
+    ]),
+    Payment.countDocuments({ provider: "karopay", status: "PENDING" }),
+    // Karopay Cash Out payouts, grouped by status (Payout.amount is in paisa).
+    Payout.aggregate([{ $group: { _id: "$status", total: { $sum: "$amount" }, count: { $sum: 1 } } }]),
+    queryMerchantBalance().catch(() => null),
   ]);
+
+  const payoutsBy = Object.fromEntries(payoutAgg.map((p) => [p._id, p]));
 
   const days = lastNDays(DAYS);
   const registrationsByDay = Object.fromEntries(days.map((d) => [d, 0]));
@@ -90,6 +108,17 @@ export async function GET() {
     pendingWithdrawals,
     totalDeposits: approvedDepositAgg[0]?.total || 0,
     totalWithdrawals: approvedWithdrawAgg[0]?.total || 0,
+    karopay: {
+      depositsTotal: (karopayDepositAgg[0]?.total || 0) / 100,
+      depositsCount: karopayDepositAgg[0]?.count || 0,
+      pendingDeposits: karopayPendingDeposits,
+      cashOutTotal: (payoutsBy.COMPLETED?.total || 0) / 100,
+      cashOutCount: payoutsBy.COMPLETED?.count || 0,
+      pendingCashOuts: payoutsBy.PENDING?.count || 0,
+      failedCashOuts: payoutsBy.FAILED?.count || 0,
+      gatewayBalance: gatewayBalance ? gatewayBalance.balanceCents / 100 : null,
+      gatewayFrozen: gatewayBalance ? gatewayBalance.freezeBalanceCents / 100 : null,
+    },
     registrationsByDay: days.map((d) => ({ date: d, count: registrationsByDay[d] })),
     depositsByDay: days.map((d) => ({ date: d, amount: depositsByDay[d] })),
   });

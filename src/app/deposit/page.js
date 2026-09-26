@@ -97,6 +97,11 @@ export default function DepositPage() {
   // jump to whichever one is still available the moment the other drops out.
   useEffect(() => {
     if (methods === null) return;
+    // Admin has switched every deposit method off — nothing to show here.
+    if (!manualEnabled && !karopayEnabled) {
+      router.replace("/");
+      return;
+    }
     if (!manualEnabled && karopayEnabled && tab === "manual") setTab("karopay");
     if (!karopayEnabled && manualEnabled && tab === "karopay") setTab("manual");
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -348,10 +353,9 @@ export default function DepositPage() {
         ) : (
           <div className="deposit-grid-2col">
             <div className="deposit-main-col">
-              <section className="deposit-step-card" style={{ textAlign: "center" }}>
-                <h2 style={{ marginBottom: 8 }}>Instant Deposit via Karopay</h2>
+              <section className="deposit-step-card">
                 {karopayEnabled ? (
-                  <KaropayAddFunds theme="light" triggerClassName="deposit-submit-btn" triggerLabel="🚀 Add Funds Instantly via Karopay" onBalanceChange={setBalance} />
+                  <KaropayAddFunds inline theme="light" onBalanceChange={setBalance} />
                 ) : (
                   <p style={{ fontSize: 12.5, color: "var(--kk-muted)" }}>
                     Karopay deposits are currently unavailable. Please use Deposit Funds instead.

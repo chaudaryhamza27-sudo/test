@@ -11,9 +11,9 @@ export default function Deposit() {
   const formRef = useRef(null);
 
   const setAmountValue = (value, updateManual = true) => {
-    let parsedValue = parseInt(value || 2000, 10);
-    if (isNaN(parsedValue) || parsedValue < 2000) {
-      parsedValue = 2000;
+    let parsedValue = parseInt(value || 100, 10);
+    if (isNaN(parsedValue) || parsedValue < 100) {
+      parsedValue = 100;
     }
     setAmount(parsedValue);
     if (updateManual) {
@@ -76,10 +76,10 @@ export default function Deposit() {
     e.preventDefault();
     let value = parseInt(manualValue || amount || 0, 10);
 
-    if (isNaN(value) || value < 2000) {
-      alert('Minimum deposit Rs 2,000 hai.');
-      setAmountValue(2000, true);
-      syncCheckedAmount(2000);
+    if (isNaN(value) || value < 100) {
+      alert('Minimum deposit Rs 100 hai.');
+      setAmountValue(100, true);
+      syncCheckedAmount(100);
       const manualInput = document.getElementById('manualAmount');
       if (manualInput) manualInput.focus();
       return false;
@@ -131,7 +131,7 @@ export default function Deposit() {
             </h1>
 
             <p className="deposit-sub">
-              Select coin package or enter manual amount. Minimum deposit is Rs 2,000.
+              Select coin package or enter manual amount. Minimum deposit is Rs 100.
             </p>
 
             <div className="secure-strip">
@@ -156,7 +156,7 @@ export default function Deposit() {
           <section className="deposit-card">
             <div className="card-title">
               <h2>Select Amount</h2>
-              <span>Minimum Rs 2,000</span>
+              <span>Minimum Rs 100</span>
             </div>
 
             <form ref={formRef} method="POST" id="depositForm" onSubmit={handleSubmit}>
@@ -189,11 +189,11 @@ export default function Deposit() {
               <div className="manual-box">
                 <div className="manual-label">
                   Manual Amount
-                  <span>Minimum Deposit Rs 2,000</span>
+                  <span>Minimum Deposit Rs 100</span>
                 </div>
                 <input
                   type="number"
-                  min="2000"
+                  min="100"
                   step="1"
                   id="manualAmount"
                   className="manual-input"
@@ -262,7 +262,7 @@ export default function Deposit() {
 
               <div className="min-note">
                 <i className="fa-solid fa-circle-check"></i>
-                Minimum deposit 2000 hai. Manual amount 2000 se kam enter karne par form submit nahi hoga.
+                Minimum deposit 100 hai. Manual amount 100 se kam enter karne par form submit nahi hoga.
               </div>
             </form>
           </section>

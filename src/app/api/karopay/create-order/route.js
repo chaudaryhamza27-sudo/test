@@ -6,6 +6,7 @@ import { isMethodEnabled } from "../../../../lib/supportSettings";
 import {
   validateKaropayAmount,
   countRecentPendingOrders,
+  alertKaropayDeposit,
   MAX_PENDING_ORDERS_PER_MINUTE,
   KAROPAY_MIN_DEPOSIT_AMOUNT,
   KAROPAY_MAX_DEPOSIT_AMOUNT,
@@ -41,6 +42,8 @@ export async function POST(request) {
   }
 
   const customerPhone = String(body?.customerPhone || "").trim();
+  // Wallet the user picked on the form; anything else falls back to Karopay's default.
+  const channel = ["easypaisa", "jazzcash"].includes(body?.channel) ? body.channel : "easypaisa";
   if (!PHONE_RE.test(customerPhone)) {
     return Response.json({ error: "Enter a valid 10-digit mobile number starting with 3." }, { status: 400 });
   }
@@ -52,7 +55,10 @@ export async function POST(request) {
     return Response.json({ error: "Too many payment attempts — please wait a moment and try again." }, { status: 429 });
   }
 
-  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
+  // Return the browser to the host the user actually started from (the
+  // fetch's Origin header), so a phone on the live site isn't sent back to
+  // NEXT_PUBLIC_APP_URL's localhost after paying.
+  const appUrl = (request.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
   // Karopay posts the notify callback server-to-server, so it must be a public
   // URL. KAROPAY_NOTIFY_BASE_URL lets local dev point it at a tunnel while the
   // browser-facing returnUrl stays on NEXT_PUBLIC_APP_URL.
@@ -98,7 +104,7 @@ export async function POST(request) {
       customerName: user.name || user.uid || "Customer",
       customerCert: makeSyntheticCert(user._id),
       customerPhone,
-      defaultChannelName: "easypaisa",
+      defaultChannelName: channel,
     });
 
     if (!result.payUrl) {
@@ -109,6 +115,8 @@ export async function POST(request) {
       payment.providerCaptureId = String(result.orderId);
       await payment.save();
     }
+
+    await alertKaropayDeposit("requested", payment, customerPhone);
 
     return Response.json({ payUrl: result.payUrl, identifier: orderId });
   } catch (err) {

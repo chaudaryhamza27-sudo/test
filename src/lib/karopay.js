@@ -6,6 +6,8 @@ const API_BASE = (process.env.KAROPAY_API_BASE || "https://api-pk.karo-pay.com")
 const COLLECTION_PATH = "/open-api/pay/payment";
 const QUERY_PATH = "/open-api/pay/query";
 const SUBMIT_PATH = "/open-api/pay/payment/submit";
+const PAYOUT_PATH = "/open-api/pay/transfer";
+const BALANCE_PATH = "/open-api/pay/queryBalance";
 
 export class KaropayError extends Error {
   constructor(message, { status, detail } = {}) {
@@ -231,6 +233,101 @@ export async function queryOrder(merchantOrderId) {
     throw new KaropayError(data?.msg || "Karopay could not look up this order.", { status: res.status, detail: data });
   }
   return data;
+}
+
+// Karopay's platform `orderId` is an int64 (e.g. 1549087817064251392) — past
+// Number.MAX_SAFE_INTEGER, so a plain JSON.parse silently rounds it. Quote any
+// 16+ digit integer value before parsing so it survives as an exact string.
+// Used by the payout paths (and the payout webhook, where the rounded value
+// would also break the callback sign check).
+export function parseKaropayJson(text) {
+  return JSON.parse(text.replace(/("[A-Za-z0-9_]+"\s*:\s*)(-?\d{16,})(?=\s*[,}])/g, '$1"$2"'));
+}
+
+async function parseJsonResponsePreservingIds(res, label) {
+  const text = await res.text();
+  try {
+    return parseKaropayJson(text);
+  } catch {
+    console.error(`[karopay] Non-JSON response from ${label}`, { status: res.status, body: text.slice(0, 500) });
+    const ipBlocked = res.status === 403 && /access denied/i.test(text);
+    throw new KaropayError(
+      ipBlocked
+        ? "Karopay rejected this server's IP — add it to the merchant IP whitelist."
+        : "Karopay returned an unexpected response.",
+      { status: 502, detail: { httpStatus: res.status, body: text.slice(0, 500), ipBlocked } }
+    );
+  }
+}
+
+// "Payout Request" — POST /open-api/pay/transfer. A code-200 reply only means
+// Karopay accepted the order; its `status` (99/00/06 = in progress, 01 =
+// success, 02 = failed) is final only once the notify callback / an order
+// inquiry reports 01 or 02.
+export async function createPayoutOrder(body) {
+  const headers = buildAuthHeaders();
+  const url = `${API_BASE}${PAYOUT_PATH}`;
+  console.info("[karopay] payout request", {
+    merchantOrderId: body.merchantOrderId,
+    amount: body.amount,
+    accountType: body.accountType,
+    accountProvider: body.accountProvider,
+  });
+  const res = await fetchWithTimeout(url, { method: "POST", headers, body: JSON.stringify(body) });
+  const data = await parseJsonResponsePreservingIds(res, "payout request");
+  console.info("[karopay] payout response", {
+    merchantOrderId: body.merchantOrderId,
+    httpStatus: res.status,
+    code: data?.code,
+    msg: data?.msg,
+    status: data?.status,
+    traceId: data?.traceId,
+  });
+  if (!res.ok || Number(data?.code) !== 200) {
+    throw new KaropayError(data?.msg || "Karopay rejected this payout.", {
+      status: res.status >= 400 && res.status < 600 ? res.status : 502,
+      detail: { httpStatus: res.status, code: data?.code, msg: data?.msg, traceId: data?.traceId, body: data },
+    });
+  }
+  return data;
+}
+
+// "Order Inquiry Request" for a payout — same endpoint as queryOrder() above,
+// but int64-safe and throws on a non-200 `code` so a lookup failure is never
+// mistaken for an order status.
+export async function queryPayoutOrder(merchantOrderId) {
+  const headers = buildAuthHeaders();
+  const url = `${API_BASE}${QUERY_PATH}?merchantOrderId=${encodeURIComponent(merchantOrderId)}`;
+  const res = await fetchWithTimeout(url, { method: "GET", headers });
+  const data = await parseJsonResponsePreservingIds(res, "payout inquiry");
+  if (!res.ok || Number(data?.code) !== 200) {
+    console.error("[karopay] payout inquiry failed", { merchantOrderId, httpStatus: res.status, code: data?.code, msg: data?.msg, traceId: data?.traceId });
+    throw new KaropayError(data?.msg || "Karopay could not look up this payout.", {
+      status: res.status >= 400 && res.status < 600 ? res.status : 502,
+      detail: { httpStatus: res.status, code: data?.code, msg: data?.msg, traceId: data?.traceId },
+    });
+  }
+  return data;
+}
+
+// "Merchant Balance Inquiry Request" — GET /open-api/pay/queryBalance.
+// `balance` and `freezeBalance` come back as strings in cents.
+export async function queryMerchantBalance() {
+  const headers = buildAuthHeaders();
+  const res = await fetchWithTimeout(`${API_BASE}${BALANCE_PATH}`, { method: "GET", headers });
+  const data = await parseJsonResponsePreservingIds(res, "balance inquiry");
+  if (!res.ok || Number(data?.code) !== 200) {
+    console.error("[karopay] balance inquiry failed", { httpStatus: res.status, code: data?.code, msg: data?.msg });
+    throw new KaropayError(data?.msg || "Karopay could not return the merchant balance.", {
+      status: res.status >= 400 && res.status < 600 ? res.status : 502,
+      detail: { httpStatus: res.status, code: data?.code, msg: data?.msg },
+    });
+  }
+  return {
+    balanceCents: Number(data.balance),
+    freezeBalanceCents: Number(data.freezeBalance),
+    queryTime: data.queryTime ?? null,
+  };
 }
 
 // Generates our own merchant order id (Karopay echoes it back unchanged in

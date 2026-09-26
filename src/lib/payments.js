@@ -6,6 +6,8 @@ import { adjustBalance } from "./wallet";
 import { logActivity } from "./activity";
 import { notifyUser } from "./notifications";
 import { computeTrustScore } from "./trustScore";
+import { queryOrder } from "./karopay";
+import { escapeTelegramHtml, sendTelegramMessage } from "./telegram";
 
 export const PRESET_DEPOSIT_AMOUNTS = [5, 10, 20, 50, 100];
 export const MIN_DEPOSIT_AMOUNT = 1;
@@ -16,7 +18,7 @@ export const MAX_PENDING_ORDERS_PER_MINUTE = 5;
 // flow, Karopay deposits are PKR and 1 PKR == 1 demo credit, matching the
 // rest of this app's Rs-denominated wallet.
 export const KAROPAY_PRESET_DEPOSIT_AMOUNTS = [3000, 5000, 10000, 25000, 50000];
-export const KAROPAY_MIN_DEPOSIT_AMOUNT = 3000;
+export const KAROPAY_MIN_DEPOSIT_AMOUNT = 300;
 export const KAROPAY_MAX_DEPOSIT_AMOUNT = 100000;
 
 export function validateKaropayAmount(amount) {
@@ -44,6 +46,98 @@ export function validateDepositAmount(amount) {
   const cents = Math.round(amount * 100);
   if (Math.abs(cents - amount * 100) > 1e-6) return null; // more than 2 decimal places
   return cents;
+}
+
+// Telegram admin alert for a Karopay deposit, in the same format as the
+// manual deposit alerts. kind: "requested" | "completed" | "failed".
+// Never throws — sendTelegramMessage() already swallows its own errors.
+export async function alertKaropayDeposit(kind, payment, phone) {
+  try {
+    const user = await User.findById(payment.userId, "uid name").lean();
+    const who = `${escapeTelegramHtml(user?.name || user?.uid || payment.userId)} (${escapeTelegramHtml(user?.uid || "-")})`;
+    const amount = `Rs${(payment.amount / 100).toLocaleString()}`;
+    const order = escapeTelegramHtml(payment.providerOrderId);
+    const text = {
+      requested: `🚀 <b>New Karopay Deposit Request</b>\nUser: ${who}\nAmount: ${amount}\nMethod: Karopay${phone ? `\nAccount: ${escapeTelegramHtml(phone)}` : ""}\nOrder: ${order}\nStatus: Pending payment`,
+      completed: `✅ <b>Karopay Deposit Completed</b>\nUser: ${who}\nAmount: ${amount}\nOrder: ${order}\nStatus: Auto-approved, balance credited`,
+      failed: `❌ <b>Karopay Deposit Failed</b>\nUser: ${who}\nAmount: ${amount}\nOrder: ${order}\nStatus: Failed at Karopay, nothing credited`,
+    }[kind];
+    if (text) await sendTelegramMessage(text);
+  } catch (err) {
+    console.error("[payments] Karopay Telegram alert failed", err?.message);
+  }
+}
+
+// Fallback for when Karopay's notify webhook never reaches us (e.g. the notify
+// URL is down): ask Karopay's Order Inquiry endpoint directly and apply the
+// same rules as the webhook — status 01 + matching amount credits through
+// creditVerifiedPayment() (idempotent), 02 marks FAILED, anything else stays.
+export async function reconcileKaropayPayment(payment) {
+  const data = await queryOrder(payment.providerOrderId);
+  if (Number(data?.code) !== 200) return payment.status;
+
+  const status = String(data.status);
+  if (status === "01") {
+    const reportedAmountCents = Math.round(Number(data.amount));
+    if (reportedAmountCents !== payment.amount) {
+      console.error("[payments] Karopay inquiry amount mismatch", {
+        paymentId: String(payment._id),
+        expectedAmountCents: payment.amount,
+        reportedAmountCents,
+      });
+      return payment.status;
+    }
+    const result = await creditVerifiedPayment(payment._id, {
+      captureId: data.orderId != null ? String(data.orderId) : payment.providerCaptureId,
+      rawCaptureResponse: data,
+    });
+    return result.payment?.status ?? "COMPLETED";
+  }
+  if (status === "02") {
+    const res = await Payment.updateOne({ _id: payment._id, status: "PENDING" }, { $set: { status: "FAILED", rawCaptureResponse: data } });
+    if (res?.modifiedCount) await alertKaropayDeposit("failed", payment);
+    return "FAILED";
+  }
+  return payment.status;
+}
+
+// Automatic safety net for the notify webhook: re-checks recent PENDING
+// Karopay deposits with Karopay's Order Inquiry and credits any that
+// succeeded. Called from routes the app already polls (the user's
+// /api/auth/me every ~10s, the admin Karo Pay list), so a successful payment
+// lands in the wallet on its own even if the webhook never arrives. Each
+// payment is asked about at most once per RECONCILE_INTERVAL_MS per process.
+const RECONCILE_WINDOW_MS = 24 * 60 * 60_000; // stop chasing abandoned orders after a day
+const RECONCILE_MIN_AGE_MS = 10_000; // give the webhook a head start
+const RECONCILE_INTERVAL_MS = 20_000;
+const lastReconcileAt = new Map();
+
+export async function reconcilePendingKaropayPayments(extraFilter = {}, { limit = 5 } = {}) {
+  const now = Date.now();
+  if (lastReconcileAt.size > 2000) {
+    for (const [k, t] of lastReconcileAt) if (now - t > RECONCILE_WINDOW_MS) lastReconcileAt.delete(k);
+  }
+  const pending = await Payment.find({
+    provider: "karopay",
+    status: "PENDING",
+    createdAt: { $gte: new Date(now - RECONCILE_WINDOW_MS), $lte: new Date(now - RECONCILE_MIN_AGE_MS) },
+    ...extraFilter,
+  })
+    .sort({ createdAt: -1 })
+    .limit(limit);
+
+  const due = pending.filter((p) => now - (lastReconcileAt.get(String(p._id)) || 0) >= RECONCILE_INTERVAL_MS);
+  due.forEach((p) => lastReconcileAt.set(String(p._id), now));
+
+  const results = await Promise.all(
+    due.map((p) =>
+      reconcileKaropayPayment(p).catch((err) => {
+        console.error("[payments] auto-reconcile failed", { paymentId: String(p._id), message: err?.message });
+        return "PENDING";
+      })
+    )
+  );
+  return results.filter((s) => s !== "PENDING").length;
 }
 
 export async function countRecentPendingOrders(userId) {
@@ -115,6 +209,9 @@ export async function creditVerifiedPayment(paymentId, { captureId, rawCaptureRe
     message: `${providerLabel} deposit of ${claimed.currency} ${(claimed.amount / 100).toFixed(2)} completed (+${creditAmount} virtual funds).`,
     meta: { paymentId: claimed._id, providerOrderId: claimed.providerOrderId },
   });
+  // Only the caller that won the claim gets here, so this fires once per payment.
+  if (claimed.provider === "karopay") await alertKaropayDeposit("completed", claimed);
+
   await notifyUser(claimed.userId, {
     type: `${claimed.provider}_deposit_completed`,
     title: `${providerLabel} deposit completed`,

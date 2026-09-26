@@ -14,13 +14,16 @@ import {
   IconLogout,
   IconHeadset,
   IconRefresh,
+  IconCoinWallet,
 } from "../icons";
 
 const NAV_ITEMS = [
   { key: "dashboard", label: "Dashboard", icon: IconHome },
   { key: "users", label: "User Control", icon: IconUsers },
   { key: "withdrawals", label: "Withdraws", icon: IconWithdraw },
+  { key: "cashout", label: "Cash Out", icon: IconCoinWallet },
   { key: "balance", label: "Balance Manager", icon: IconWallet },
+  { key: "karopay", label: "Karo Pay", icon: IconDeposit },
   // { key: "cashouts", label: "CashOut", icon: IconTrophy },
   // { key: "deposits", label: "Deposits", icon: IconDeposit },
   // { key: "rounds", label: "Game Rounds", icon: IconHistory },
