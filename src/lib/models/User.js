@@ -16,6 +16,10 @@ const UserSchema = new mongoose.Schema(
     trustScore: { type: Number, default: 15, min: 0, max: 100 },
     trustScoreManual: { type: Boolean, default: false },
     lastLoginAt: { type: Date, default: null },
+    // Admin accounts allow one signed-in device at a time: each admin login
+    // stores a fresh id here and in the session token, so any older token no
+    // longer matches and that device is logged out (see lib/auth.js).
+    adminSessionId: { type: String, default: null },
   },
   { timestamps: true }
 );

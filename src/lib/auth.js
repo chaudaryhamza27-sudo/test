@@ -7,12 +7,13 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const COOKIE_NAME = "session_token";
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
-export function signToken(userId) {
-  return jwt.sign({ sub: userId }, JWT_SECRET, { expiresIn: MAX_AGE });
+export function signToken(userId, sessionId) {
+  const payload = sessionId ? { sub: userId, sid: sessionId } : { sub: userId };
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: MAX_AGE });
 }
 
-export async function setSessionCookie(userId) {
-  const token = signToken(userId);
+export async function setSessionCookie(userId, sessionId) {
+  const token = signToken(userId, sessionId);
   const store = await cookies();
   store.set(COOKIE_NAME, token, {
     httpOnly: true,
@@ -43,6 +44,9 @@ export async function getCurrentUser() {
   await dbConnect();
   const user = await User.findById(payload.sub);
   if (!user) return null;
+  // Admins are limited to their latest login: a token from any earlier login
+  // (or one issued before this check existed) is rejected.
+  if (user.role === "admin" && (!payload.sid || payload.sid !== user.adminSessionId)) return null;
   // Banned users stay authenticated and can use the rest of the app — the
   // ban only gates withdrawals (see POST /api/withdraw), enforced there.
   return user;

@@ -5,6 +5,43 @@ import { useRouter } from "next/navigation";
 import { IconEye, IconEyeOff } from "../../icons";
 import "../admin.css";
 
+function getLocation() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject({ code: "unsupported" });
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy }),
+      reject,
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  });
+}
+
+// City name for the login record ("Lahore, Punjab, Pakistan"). BigDataCloud's
+// free client-side endpoint needs no key; a failed lookup just leaves the
+// place empty and never blocks the login.
+async function lookupPlace({ lat, lng }) {
+  try {
+    const res = await fetch(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`,
+      { signal: AbortSignal.timeout(5000) }
+    );
+    if (!res.ok) return null;
+    const d = await res.json();
+    return [d.city || d.locality, d.principalSubdivision, d.countryName].filter(Boolean).join(", ") || null;
+  } catch {
+    return null;
+  }
+}
+
+function locationErrorMessage(err) {
+  if (err?.code === 1) return "Location permission was denied. Allow location access for this site to sign in as admin.";
+  if (err?.code === "unsupported" || !window.isSecureContext) return "This browser can't share location here. Use a modern browser over HTTPS to sign in as admin.";
+  return "Couldn't get your location. Turn on location services and try again.";
+}
+
 export default function AdminLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -15,6 +52,9 @@ export default function AdminLoginPage() {
 
   useEffect(() => {
     fetch("/api/admin/ensure-seed").catch(() => {});
+    if (new URLSearchParams(window.location.search).get("reason") === "other-device") {
+      setError("You were logged out because this admin account signed in on another device.");
+    }
   }, []);
 
   const handleSubmit = async (e) => {
@@ -22,10 +62,19 @@ export default function AdminLoginPage() {
     setError("");
     setLoading(true);
     try {
+      // Admin login requires the device's location; the server refuses it otherwise.
+      let location;
+      try {
+        location = await getLocation();
+      } catch (err) {
+        setError(locationErrorMessage(err));
+        return;
+      }
+      location.place = await lookupPlace(location);
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, location }),
       });
       const data = await res.json();
       if (!res.ok) {

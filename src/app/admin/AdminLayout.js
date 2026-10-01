@@ -29,6 +29,7 @@ const NAV_ITEMS = [
   // { key: "rounds", label: "Game Rounds", icon: IconHistory },
   // { key: "payments", label: "Payments", icon: IconTransaction },
   { key: "support", label: "Deposit Funds", icon: IconHeadset },
+  { key: "logins", label: "Login Information", icon: IconShield },
   // { key: "audit", label: "Audit Log", icon: IconShield },
 ];
 

@@ -265,6 +265,31 @@ export default function AdminDashboard() {
     })();
   }, [loadAll]);
 
+  // Only one device can be signed in as admin. When this admin account logs
+  // in somewhere else, this session stops being valid — notice it quickly
+  // and send this device back to the login page.
+  useEffect(() => {
+    let stopped = false;
+    const checkSession = async () => {
+      try {
+        const res = await fetch("/api/admin/session", { cache: "no-store" });
+        if (!stopped && res.status === 401) {
+          stopped = true;
+          router.replace("/admin/login?reason=other-device");
+        }
+      } catch {
+        // Network blip — try again on the next tick.
+      }
+    };
+    const timer = window.setInterval(checkSession, 5000);
+    window.addEventListener("focus", checkSession);
+    return () => {
+      stopped = true;
+      window.clearInterval(timer);
+      window.removeEventListener("focus", checkSession);
+    };
+  }, [router]);
+
   const loadOverview = useCallback(() => {
     return fetch("/api/admin/overview")
       .then((res) => (res.ok ? res.json() : Promise.reject()))
@@ -344,6 +369,19 @@ export default function AdminDashboard() {
     if (checking || tab !== "support") return;
     loadSupportSettings();
   }, [checking, tab, loadSupportSettings]);
+
+  const [loginSessions, setLoginSessions] = useState(null);
+  const loadLoginSessions = useCallback(() => {
+    return fetch("/api/admin/login-sessions", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => setLoginSessions(data.sessions || []))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (checking || tab !== "logins") return;
+    loadLoginSessions();
+  }, [checking, tab, loadLoginSessions]);
 
   const saveSupportOnline = async () => {
     setSupportSavingOnline(true);
@@ -930,6 +968,7 @@ export default function AdminDashboard() {
     balance: loadAll,
     karopay: () => Promise.all([loadAll(), loadKaropayPayments()]),
     support: loadSupportSettings,
+    logins: loadLoginSessions,
   };
 
   return (
@@ -2121,6 +2160,108 @@ export default function AdminDashboard() {
           )}
         </div>
       )}
+
+      {tab === "logins" && (() => {
+        const current = loginSessions?.find((s) => s.isCurrent);
+        const describe = (s) => `${s.device} · ${s.browser} on ${s.os}`;
+        const mapUrl = (loc) => `https://www.google.com/maps?q=${loc.lat},${loc.lng}`;
+        const LocationLink = ({ loc }) =>
+          loc ? (
+            <span>
+              {loc.place && <b style={{ display: "block" }}>{loc.place}</b>}
+              <a href={mapUrl(loc)} target="_blank" rel="noopener noreferrer" style={{ color: "var(--a-info)", fontSize: loc.place ? 12 : undefined }}>
+                {loc.lat.toFixed(5)}, {loc.lng.toFixed(5)}
+                {loc.accuracy != null && <span style={{ color: "var(--a-muted)" }}> (±{loc.accuracy}m)</span>}
+              </a>
+            </span>
+          ) : (
+            "—"
+          );
+        const STATUS = {
+          active: { tone: "success", label: "Active" },
+          replaced: { tone: "danger", label: "Logged out (new login)" },
+          logout: { tone: "neutral", label: "Logged out" },
+          expired: { tone: "warning", label: "Expired" },
+        };
+        return (
+          <div>
+            <PageHead
+              title="Login Information"
+              sub="Every admin sign-in and the device it came from. Only one device can be logged in at a time — a new login logs out all the others."
+              onRefresh={() => refreshTab("logins", loadLoginSessions)}
+              refreshing={refreshingTab === "logins"}
+            />
+
+            {!loginSessions ? (
+              <div className="admin-table-wrap" style={{ padding: 40, textAlign: "center", color: "var(--a-muted)" }}>
+                Loading…
+              </div>
+            ) : (
+              <>
+                {current && (
+                  <div className="admin-settings-card">
+                    <div className="admin-settings-card-info">
+                      <h3>Currently Active Device</h3>
+                      <p>
+                        {describe(current)} · IP {current.ip} · signed in {new Date(current.loginAt).toLocaleString()}
+                      </p>
+                      <p>
+                        Location: <LocationLink loc={current.location} />
+                      </p>
+                    </div>
+                    <span className="admin-status-pill tone-success">This device</span>
+                  </div>
+                )}
+
+                <div className="admin-table-wrap">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Admin</th>
+                        <th>Device</th>
+                        <th>IP</th>
+                        <th>Location</th>
+                        <th>Logged in</th>
+                        <th>Logged out</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {loginSessions.map((s) => (
+                        <tr key={s._id}>
+                          <td>{s.admin}</td>
+                          <td>{describe(s)}</td>
+                          <td>{s.ip}</td>
+                          <td>
+                            <LocationLink loc={s.location} />
+                          </td>
+                          <td>{new Date(s.loginAt).toLocaleString()}</td>
+                          <td>{s.endedAt ? new Date(s.endedAt).toLocaleString() : "—"}</td>
+                          <td>
+                            <span className={`admin-status-pill tone-${STATUS[s.status].tone}`}>{STATUS[s.status].label}</span>
+                            {s.isCurrent && (
+                              <span className="admin-status-pill tone-info" style={{ marginLeft: 6 }}>
+                                This device
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                      {loginSessions.length === 0 && (
+                        <tr>
+                          <td colSpan={7} className="empty">
+                            No admin logins recorded yet.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </div>
+        );
+      })()}
 
       {tab === "audit" && (
         <div>
