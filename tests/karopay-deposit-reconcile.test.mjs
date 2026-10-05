@@ -82,6 +82,13 @@ before(async () => {
   payments_ = await import("../src/lib/payments.js");
 });
 
+test("Karopay amount floor supports EasyPaisa QR without changing the default", () => {
+  assert.equal(payments_.validateKaropayAmount(100, 100), 10000);
+  assert.equal(payments_.validateKaropayAmount(99.99, 100), null);
+  assert.equal(payments_.validateKaropayAmount(2999.99), null);
+  assert.equal(payments_.validateKaropayAmount(3000), 300000);
+});
+
 test("auto-reconcile credits succeeded deposits exactly once", async () => {
   const settled = await payments_.reconcilePendingKaropayPayments({ userId: "u1" });
   assert.equal(settled, 2); // ok → COMPLETED, bad → FAILED

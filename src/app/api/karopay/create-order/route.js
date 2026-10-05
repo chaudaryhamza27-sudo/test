@@ -34,17 +34,15 @@ export async function POST(request) {
   }
 
   const body = await request.json().catch(() => ({}));
-  const amountPaisa = validateKaropayAmount(Number(body?.amount));
+  // Wallet the user picked on the form; anything else falls back to Karopay's default.
+  const channel = ["easypaisa", "jazzcash"].includes(body?.channel) ? body.channel : "easypaisa";
+  const minimumAmount = channel === "easypaisa" ? 100 : KAROPAY_MIN_DEPOSIT_AMOUNT;
+  const amountPaisa = validateKaropayAmount(Number(body?.amount), minimumAmount);
   if (amountPaisa === null) {
-    return Response.json(
-      { error: `Enter a valid amount between Rs${KAROPAY_MIN_DEPOSIT_AMOUNT} and Rs${KAROPAY_MAX_DEPOSIT_AMOUNT} (max two decimal places).` },
-      { status: 400 }
-    );
+    return Response.json({ error: `Enter a valid amount between Rs${minimumAmount} and Rs${KAROPAY_MAX_DEPOSIT_AMOUNT} (max two decimal places).` }, { status: 400 });
   }
 
   const typedPhone = String(body?.customerPhone || "").replace(/\D/g, "");
-  // Wallet the user picked on the form; anything else falls back to Karopay's default.
-  const channel = ["easypaisa", "jazzcash"].includes(body?.channel) ? body.channel : "easypaisa";
   const customerPhone = typedPhone.replace(/^0/, "");
   if (!PHONE_RE.test(typedPhone)) {
     return Response.json({ error: "Enter a valid mobile number like 03XXXXXXXXX." }, { status: 400 });
@@ -107,6 +105,7 @@ export async function POST(request) {
       customerCert: makeSyntheticCert(user._id),
       customerPhone,
       defaultChannelName: channel,
+      isQrCodeVersion: channel === "easypaisa",
     });
 
     if (!result.payUrl) {

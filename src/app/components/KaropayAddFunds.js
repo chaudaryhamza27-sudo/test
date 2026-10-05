@@ -7,6 +7,7 @@ import { IconShield, IconX, IconChevronRight, IconWallet, IconUpload, IconCheck 
 // existing Rs-denominated wallet, so 1 PKR == 1 demo credit here.
 const PRESET_AMOUNTS = [3000, 5000, 10000, 25000, 35000, 50000];
 const MIN_AMOUNT = 3000;
+const QR_MIN_AMOUNT = 100;
 const MAX_AMOUNT = 50000;
 const POLL_INTERVAL_MS = 2000;
 const HOME_REDIRECT_DELAY_MS = 2500; // show the success message briefly, then go home
@@ -168,7 +169,8 @@ export default function KaropayAddFunds({ theme = "dark", triggerClassName, trig
     setAmount(v === "" ? null : Number(v) || 0);
   };
 
-  const canSubmit = amount && amount >= MIN_AMOUNT && amount <= MAX_AMOUNT && /^03\d{9}$/.test(customerPhone);
+  const minimumAmount = channel === "easypaisa" ? QR_MIN_AMOUNT : MIN_AMOUNT;
+  const canSubmit = amount && amount >= minimumAmount && amount <= MAX_AMOUNT && /^03\d{9}$/.test(customerPhone);
 
   const handlePay = async () => {
     setPhase("redirecting");
@@ -233,10 +235,10 @@ export default function KaropayAddFunds({ theme = "dark", triggerClassName, trig
                   id="karopay-custom-input"
                   type="number"
                   inputMode="decimal"
-                  min={MIN_AMOUNT}
+                  min={minimumAmount}
                   max={MAX_AMOUNT}
                   step="0.01"
-                  placeholder={`Rs${MIN_AMOUNT.toLocaleString()}.00 - Rs${MAX_AMOUNT.toLocaleString()}.00`}
+                  placeholder={`Rs${minimumAmount.toLocaleString()}.00 - Rs${MAX_AMOUNT.toLocaleString()}.00`}
                   style={{ fontWeight: 500 }}
                   value={amount ?? ""}
                   onChange={handleManualChange}
@@ -249,7 +251,7 @@ export default function KaropayAddFunds({ theme = "dark", triggerClassName, trig
               </div>
 
               <div className="paybost-min-max">
-                Minimum Rs{MIN_AMOUNT.toLocaleString()} &nbsp;|&nbsp; Maximum Rs{MAX_AMOUNT.toLocaleString()}
+                Minimum Rs{minimumAmount.toLocaleString()} &nbsp;|&nbsp; Maximum Rs{MAX_AMOUNT.toLocaleString()}
               </div>
 
               <div className="deposit-step-head" style={{ marginTop: 16 }}>

@@ -91,6 +91,46 @@ test("auth header matches the documented test vector", async () => {
   assert.equal(h.Authorization, md5(`44123456789:${md5("03412138d41f")}:${h.UtcTime}`));
 });
 
+test("collection request uses QR checkout only for EasyPaisa", async () => {
+  const requests = [];
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (_url, opts) => {
+    requests.push(JSON.parse(opts.body));
+    return new Response(JSON.stringify({ code: 200, payUrl: "https://karopay.test/checkout" }), { status: 200 });
+  };
+
+  const collection = {
+    merchantOrderId: "order-1",
+    merchantUserId: "user-1",
+    amount: "10000",
+    returnUrl: "https://example.test/return",
+    notifyUrl: "https://example.test/notify",
+    customerName: "Ali Khan",
+    customerCert: "3520112345671",
+    customerEmail: "ali@example.com",
+    customerPhone: "3001234567",
+  };
+  try {
+    const result = await karopay.createCollectionOrder({
+      ...collection,
+      defaultChannelName: "easypaisa",
+      isQrCodeVersion: true,
+    });
+    assert.equal(result.payUrl, "https://karopay.test/checkout");
+    await karopay.createCollectionOrder({ ...collection, defaultChannelName: "jazzcash" });
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+
+  assert.equal(requests[0].checkoutType, "url");
+  assert.equal(requests[0].isQrCodeVersion, true);
+  assert.equal(requests[0].fixedChannelName, "qrcode:easypaisa");
+  assert.equal(requests[0].defaultChannelName, "easypaisa");
+  assert.equal(requests[1].isQrCodeVersion, false);
+  assert.equal("fixedChannelName" in requests[1], false);
+  assert.equal(requests[1].defaultChannelName, "jazzcash");
+});
+
 // ---- validation ----
 const base = {
   merchantUserId: "u1",

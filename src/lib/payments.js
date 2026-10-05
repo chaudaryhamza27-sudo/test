@@ -21,9 +21,9 @@ export const KAROPAY_PRESET_DEPOSIT_AMOUNTS = [3000, 5000, 10000, 25000, 50000];
 export const KAROPAY_MIN_DEPOSIT_AMOUNT = 3000;
 export const KAROPAY_MAX_DEPOSIT_AMOUNT = 50000;
 
-export function validateKaropayAmount(amount) {
+export function validateKaropayAmount(amount, minAmount = KAROPAY_MIN_DEPOSIT_AMOUNT) {
   if (typeof amount !== "number" || !Number.isFinite(amount)) return null;
-  if (amount < KAROPAY_MIN_DEPOSIT_AMOUNT || amount > KAROPAY_MAX_DEPOSIT_AMOUNT) return null;
+  if (amount < minAmount || amount > KAROPAY_MAX_DEPOSIT_AMOUNT) return null;
   const paisa = Math.round(amount * 100);
   if (Math.abs(paisa - amount * 100) > 1e-6) return null; // more than 2 decimal places
   return paisa;

@@ -120,6 +120,7 @@ export async function createCollectionOrder({
   customerEmail,
   customerPhone,
   defaultChannelName = "easypaisa",
+  isQrCodeVersion = false,
   // "url" (default) gets back a payUrl to redirect the browser to — fully
   // documented and what we use today. "json" gets back a checkoutContent
   // object instead, meant to be paired with submitCustomCheckout() below for
@@ -149,7 +150,9 @@ export async function createCollectionOrder({
       showCustomerInfoFlag: true,
       automaticSubmission: false,
       checkoutType,
-      isQrCodeVersion: false,
+      ...(isQrCodeVersion && defaultChannelName === "easypaisa"
+        ? { isQrCodeVersion: true, fixedChannelName: "qrcode:easypaisa" }
+        : { isQrCodeVersion: false }),
     }),
   });
   const data = await parseJsonResponse(res, "collection request");
