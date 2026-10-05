@@ -59,11 +59,11 @@ export async function POST(request) {
   // fetch's Origin header), so a phone on the live site isn't sent back to
   // NEXT_PUBLIC_APP_URL's localhost after paying.
   const appUrl = (request.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
-  // Karopay posts the notify callback server-to-server, so it must be a public
-  // URL. KAROPAY_NOTIFY_BASE_URL lets local dev point it at a tunnel while the
-  // browser-facing returnUrl stays on NEXT_PUBLIC_APP_URL.
+  // Karopay posts the notify callback server-to-server, so production needs a
+  // public URL. Local development can use Order Inquiry on return if the
+  // callback cannot reach localhost.
   const notifyBase = (process.env.KAROPAY_NOTIFY_BASE_URL || appUrl).replace(/\/$/, "");
-  if (isLocalUrl(notifyBase)) {
+  if (isLocalUrl(notifyBase) && process.env.NODE_ENV === "production") {
     console.error(
       `[karopay/create-order] notify URL base "${notifyBase}" is not publicly reachable — set KAROPAY_NOTIFY_BASE_URL (or NEXT_PUBLIC_APP_URL) to a public https URL.`
     );

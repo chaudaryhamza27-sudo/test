@@ -1624,7 +1624,7 @@ export default function AdminDashboard() {
                             {karopayVerifying === p._id ? "Checking…" : "Verify & Credit"}
                           </button>
                         )}
-                        {p.status === "COMPLETED" && <span style={{ fontSize: 11, color: "var(--a-success)", fontWeight: 800 }}>Credited</span>}
+                        {p.status === "COMPLETED" && <span style={{ fontSize: 11, color: "var(--a-success)", fontWeight: 800 }}>Auto-approved · Credited</span>}
                       </td>
                     </tr>
                   );
