@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -37,6 +37,9 @@ export default function DepositPage() {
   const [methods, setMethods] = useState(null); // [{ key, label, enabled }] from admin settings
   const [selectedMethod, setSelectedMethod] = useState(null);
   const [senderNumber, setSenderNumber] = useState("");
+  const [proofImage, setProofImage] = useState("");
+  const [proofFileName, setProofFileName] = useState("");
+  const proofInputRef = useRef(null);
   const [submitting, setSubmitting] = useState(false);
   const [popup, setPopup] = useState(null);
   const [redirectAt, setRedirectAt] = useState(null);
@@ -86,6 +89,39 @@ export default function DepositPage() {
     setCustomMode(false);
   };
 
+  const clearProof = () => {
+    setProofImage("");
+    setProofFileName("");
+    if (proofInputRef.current) proofInputRef.current.value = "";
+  };
+
+  const handleProofChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!new Set(["image/jpeg", "image/png", "application/pdf"]).has(file.type) || file.size > 5 * 1024 * 1024) {
+      clearProof();
+      openNotice("Payment proof must be a JPG, PNG or PDF under 5MB.", "error");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setProofImage(reader.result);
+        setProofFileName(file.name);
+      }
+    };
+    reader.onerror = () => {
+      clearProof();
+      openNotice("Could not read the payment proof. Please try another file.", "error");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const selectMethod = (key) => {
+    setSelectedMethod(key);
+    if (key !== "easypaisa") clearProof();
+  };
+
   const isMethodEnabled = (key) => methods?.find((m) => m.key === key)?.enabled;
   const karopayEnabled = isMethodEnabled("karopay");
   // Manual Deposit isn't a single toggle in admin — it's "on" whenever at
@@ -120,14 +156,20 @@ export default function DepositPage() {
       openNotice("Please enter the number you sent the payment from.", "error");
       return;
     }
+    if (selectedMethod === "easypaisa" && !proofImage) {
+      openNotice("Upload your EasyPaisa QR payment receipt before submitting.", "error");
+      return;
+    }
     if (submitting || redirectAt) return;
     setSubmitting(true);
     try {
-      const methodLabel = PAYMENT_METHODS.find((m) => m.key === selectedMethod)?.label || selectedMethod;
+      const methodLabel = selectedMethod === "easypaisa"
+        ? "EasyPaisa (QRCode)"
+        : PAYMENT_METHODS.find((m) => m.key === selectedMethod)?.label || selectedMethod;
       const res = await fetch("/api/deposit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount, method: methodLabel, accountNumber: senderNumber.trim() }),
+        body: JSON.stringify({ amount, method: methodLabel, accountNumber: senderNumber.trim(), proofImage }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -135,6 +177,7 @@ export default function DepositPage() {
         return;
       }
       setSenderNumber("");
+      clearProof();
       setSecondsLeft(120);
       setRedirectAt(Date.now() + 120000);
       openNotice(
@@ -284,13 +327,20 @@ export default function DepositPage() {
                       key={m.key}
                       type="button"
                       className={`deposit-method-card ${selectedMethod === m.key ? "selected" : ""}`}
-                      onClick={() => setSelectedMethod(m.key)}
+                      onClick={() => selectMethod(m.key)}
                     >
                       <img src={m.logo} alt={m.label} />
                       <span>{m.label}</span>
                     </button>
                   ))}
                 </div>
+                {selectedMethod === "easypaisa" && (
+                  <div className="deposit-qr-instructions">
+                    <h3>Scan to pay with EasyPaisa</h3>
+                    <p>Pay the exact amount above using this QR code, then upload your payment receipt.</p>
+                    <img src="/qrcode.jpeg" alt="EasyPaisa QR payment code" width="360" height="433" />
+                  </div>
+                )}
                 {selectedMethod && (
                   <div className="deposit-number-input-box">
                     <span>Your {PAYMENT_METHODS.find((m) => m.key === selectedMethod)?.label} Number</span>
@@ -302,6 +352,19 @@ export default function DepositPage() {
                       value={senderNumber}
                       onChange={(e) => setSenderNumber(e.target.value)}
                     />
+                  </div>
+                )}
+                {selectedMethod === "easypaisa" && (
+                  <div className="deposit-proof-upload">
+                    <label htmlFor="manual-deposit-proof">Payment receipt</label>
+                    <input
+                      ref={proofInputRef}
+                      id="manual-deposit-proof"
+                      type="file"
+                      accept="image/jpeg,image/png,application/pdf"
+                      onChange={handleProofChange}
+                    />
+                    <span>{proofFileName || "Required · JPG, PNG or PDF · max 5MB"}</span>
                   </div>
                 )}
               </section>

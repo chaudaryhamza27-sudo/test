@@ -2,7 +2,7 @@ import dbConnect from "../../../lib/mongodb";
 import Transaction from "../../../lib/models/Transaction";
 import { getCurrentUser } from "../../../lib/auth";
 import { logActivity } from "../../../lib/activity";
-import { escapeTelegramHtml, sendTelegramMessage } from "../../../lib/telegram";
+import { escapeTelegramHtml, sendTelegramMessage, sendTelegramProof } from "../../../lib/telegram";
 
 const MIN_DEPOSIT = 100;
 const MAX_PROOF_BYTES = 5 * 1024 * 1024; // 5MB
@@ -46,8 +46,13 @@ export async function POST(request) {
   if (!Number.isFinite(parsedAmount) || parsedAmount < MIN_DEPOSIT) {
     return Response.json({ error: `Minimum deposit is Rs${MIN_DEPOSIT}.` }, { status: 400 });
   }
-  if (!method) {
+  const methodLabel = typeof method === "string" ? method.trim() : "";
+  if (!methodLabel) {
     return Response.json({ error: "Payment method is required." }, { status: 400 });
+  }
+  const isEasyPaisaQr = methodLabel.toLowerCase() === "easypaisa (qrcode)";
+  if (isEasyPaisaQr && !proofImage) {
+    return Response.json({ error: "Upload your EasyPaisa QR payment receipt." }, { status: 400 });
   }
 
   let validatedProof = null;
@@ -63,7 +68,7 @@ export async function POST(request) {
     user: user._id,
     type: "deposit",
     amount: parsedAmount,
-    method,
+    method: methodLabel,
     accountNumber: accountNumber || "",
     status: "pending",
     meta: validatedProof ? { proofImage: validatedProof } : null,
@@ -77,9 +82,14 @@ export async function POST(request) {
     meta: { transactionId: deposit._id, amount: parsedAmount },
   });
 
-  await sendTelegramMessage(
-    `💰 <b>New Deposit Request</b>\nUser: ${escapeTelegramHtml(user.name || user.uid)} (${escapeTelegramHtml(user.uid)})\nAmount: Rs${parsedAmount.toLocaleString()}\nMethod: ${escapeTelegramHtml(method)}\nAccount: ${escapeTelegramHtml(accountNumber || "-")}\nStatus: Pending`
-  );
+  const telegramCaption =
+    `💰 <b>New Deposit Request</b>\nUser: ${escapeTelegramHtml(user.name || user.uid)} (${escapeTelegramHtml(user.uid)})\nAmount: Rs${parsedAmount.toLocaleString()}\nMethod: ${escapeTelegramHtml(methodLabel)}\nAccount: ${escapeTelegramHtml(accountNumber || "-")}\nStatus: Pending`;
+  if (validatedProof) {
+    const proofSent = await sendTelegramProof(validatedProof, telegramCaption);
+    if (!proofSent) await sendTelegramMessage(telegramCaption);
+  } else {
+    await sendTelegramMessage(telegramCaption);
+  }
 
   // Don't echo the (potentially large) proof image back in the response —
   // the client already has it locally.

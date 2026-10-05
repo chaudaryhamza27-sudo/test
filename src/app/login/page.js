@@ -204,7 +204,7 @@ export default function LoginPage() {
       <div className={`popup ${popup ? "active" : ""}`} onClick={closeNotice}>
         <div className="kk-popup-box" onClick={(e) => e.stopPropagation()}>
           <div className="kk-popup-icon">🔐</div>
-          <div className="kk-popup-title">Practice Mode</div>
+          <div className="kk-popup-title"> </div>
           <p className="kk-popup-text">{popup}</p>
           <button className="kk-popup-btn" onClick={closeNotice}>
             Got it

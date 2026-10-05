@@ -44,6 +44,41 @@ export async function sendTelegramMessage(text, { withdraw = false } = {}) {
   }
 }
 
+export async function sendTelegramProof(dataUri, caption) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  const match = typeof dataUri === "string"
+    ? dataUri.match(/^data:(image\/(?:jpeg|png)|application\/pdf);base64,([a-zA-Z0-9+/=]+)$/)
+    : null;
+  if (!token || !chatId || !match) {
+    console.error("Telegram proof notification skipped: missing configuration or invalid proof file.");
+    return false;
+  }
+
+  const [, mime, base64] = match;
+  const isImage = mime.startsWith("image/");
+  const extension = mime === "image/jpeg" ? "jpg" : mime === "image/png" ? "png" : "pdf";
+  const form = new FormData();
+  form.append("chat_id", chatId);
+  form.append("caption", caption);
+  form.append("parse_mode", "HTML");
+  form.append(isImage ? "photo" : "document", new Blob([Buffer.from(base64, "base64")], { type: mime }), `payment-proof.${extension}`);
+
+  try {
+    const method = isImage ? "sendPhoto" : "sendDocument";
+    const response = await fetch(`https://api.telegram.org/bot${token}/${method}`, { method: "POST", body: form });
+    const result = await response.json().catch(() => null);
+    if (!response.ok || !result?.ok) {
+      console.error(`Telegram proof notification failed: ${result?.description || `HTTP ${response.status}`}`);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error(`Telegram proof notification failed: ${error instanceof Error ? error.message : "Unknown request error"}`);
+    return false;
+  }
+}
+
 // All message templates use Telegram HTML. Escape dynamic values so a user
 // name, payment method, or rejection reason cannot break the whole message.
 export function escapeTelegramHtml(value) {
