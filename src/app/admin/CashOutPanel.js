@@ -408,7 +408,7 @@ export default function CashOutPanel({ withdrawals, preselectWithdrawalId, onPre
                     {p.status === "FAILED" && p.providerMsg && <div className="co-substatus danger">{p.providerMsg}</div>}
                   </td>
                   <td>
-                    {p.status === "PENDING" && (
+                    {p.status === "PENDING" && p.canCheckStatus && (
                       <button type="button" className="admin-small-btn" onClick={() => syncPayout(p.id)} disabled={syncingId === p.id}>
                         {syncingId === p.id ? "Checking…" : "Check status"}
                       </button>

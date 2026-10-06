@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import dbConnect from "../../../../lib/mongodb";
 import Transaction from "../../../../lib/models/Transaction";
 import User from "../../../../lib/models/User";
-import { requireSuperAdmin } from "../../../../lib/auth";
+import { requireAdminAccess, requireSuperAdmin } from "../../../../lib/auth";
 import { adjustBalance } from "../../../../lib/wallet";
 import { logActivity } from "../../../../lib/activity";
 import { notifyUser } from "../../../../lib/notifications";
@@ -11,9 +11,10 @@ import { escapeTelegramHtml, sendTelegramMessage } from "../../../../lib/telegra
 
 const DEPOSIT_STATUSES = ["approved", "completed"];
 
-export async function GET() {
-  const admin = await requireSuperAdmin();
-  if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
+export async function GET(request) {
+  const isSuperAdmin = new URL(request.url).searchParams.get("scope") === "superadmin";
+  const access = await requireAdminAccess(isSuperAdmin ? "superadmin" : "admin");
+  if (!access) return Response.json({ error: "Forbidden." }, { status: 403 });
 
   await dbConnect();
   const raw = await Transaction.find({ type: "deposit" })
@@ -32,8 +33,10 @@ export async function GET() {
 }
 
 export async function PATCH(request) {
-  const admin = await requireSuperAdmin();
-  if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
+  const isSuperAdmin = new URL(request.url).searchParams.get("scope") === "superadmin";
+  const access = await requireAdminAccess(isSuperAdmin ? "superadmin" : "admin");
+  if (!access) return Response.json({ error: "Forbidden." }, { status: 403 });
+  const { admin } = access;
 
   const body = await request.json();
   const { transactionId, action, rejectionReason } = body || {};
@@ -90,7 +93,12 @@ export async function PATCH(request) {
     action: action === "approve" ? "deposit_approved" : "deposit_rejected",
     targetUser: tx.user,
     message: `${action === "approve" ? "Approved" : "Rejected"} a virtual deposit of Rs${Number(tx.amount).toLocaleString()}.`,
-    meta: { transactionId: tx._id, amount: tx.amount, rejectionReason: tx.meta?.rejectionReason || null },
+    meta: {
+      transactionId: tx._id,
+      amount: tx.amount,
+      rejectionReason: tx.meta?.rejectionReason || null,
+      actorScope: isSuperAdmin ? "superadmin" : "admin",
+    },
   });
 
   const targetUser = await User.findById(tx.user).select("uid name").lean();

@@ -59,14 +59,20 @@ export async function GET(request) {
 
   const status = searchParams.get("status");
   const filter = {
-    ...(!isSuperAdmin ? { createdByScope: "admin", createdBy: admin._id } : {}),
     ...(["PENDING", "COMPLETED", "FAILED"].includes(status) ? { status } : {}),
   };
 
   await dbConnect();
   void User; // registers the User schema with mongoose before populate()
   const payouts = await Payout.find(filter).populate("user", "uid name email").sort({ createdAt: -1 }).limit(PAGE_SIZE);
-  return Response.json({ payouts: payouts.map(serializePayout) });
+  return Response.json({
+    payouts: payouts.map((payout) => ({
+      ...serializePayout(payout),
+      canCheckStatus:
+        isSuperAdmin ||
+        (payout.createdByScope === "admin" && String(payout.createdBy) === String(admin._id)),
+    })),
+  });
 }
 
 export async function POST(request) {

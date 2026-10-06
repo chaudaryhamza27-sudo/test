@@ -237,25 +237,21 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
   const loadAll = useCallback(async () => {
     const [usersRes, depositsRes, withdrawalsRes] = await Promise.all([
       fetch("/api/admin/users", { cache: "no-store" }),
-      superadminMode ? fetch("/api/admin/deposits", { cache: "no-store" }) : null,
+      fetch(`/api/admin/deposits${superadminMode ? "?scope=superadmin" : ""}`, { cache: "no-store" }),
       fetch(`/api/admin/withdrawals${superadminMode ? "?scope=superadmin" : ""}`, { cache: "no-store" }),
     ]);
 
-    if (usersRes.status === 403 || withdrawalsRes.status === 403 || (superadminMode && depositsRes.status === 403)) {
+    if (usersRes.status === 403 || depositsRes.status === 403 || withdrawalsRes.status === 403) {
       router.replace(superadminMode ? `${SUPERADMIN_ROUTE_PATH}/login` : "/admin/login");
       return;
     }
 
     const usersData = await usersRes.json();
     setUsers(usersData.users || []);
+    const depositsData = await depositsRes.json();
+    setDeposits(depositsData.deposits || []);
     const withdrawalsData = await withdrawalsRes.json();
     setWithdrawals(withdrawalsData.withdrawals || []);
-    if (superadminMode) {
-      const depositsData = await depositsRes.json();
-      setDeposits(depositsData.deposits || []);
-    } else {
-      setDeposits([]);
-    }
   }, [router, superadminMode]);
 
   useEffect(() => {
@@ -545,6 +541,7 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
   const loadCashouts = useCallback(() => {
     setCashoutsLoading(true);
     const params = new URLSearchParams({ page: String(cashoutsPage) });
+    if (superadminMode) params.set("scope", "superadmin");
     if (cashoutSearch.trim()) params.set("user", cashoutSearch.trim());
     fetch(`/api/admin/cashouts?${params.toString()}`)
       .then((res) => (res.ok ? res.json() : Promise.reject()))
@@ -554,7 +551,7 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
       })
       .catch(() => {})
       .finally(() => setCashoutsLoading(false));
-  }, [cashoutsPage, cashoutSearch]);
+  }, [cashoutsPage, cashoutSearch, superadminMode]);
 
   const loadBalanceHistory = useCallback((userId = "") => {
     setBalanceHistoryLoading(true);
@@ -570,9 +567,9 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
   }, [superadminMode]);
 
   useEffect(() => {
-    if (checking || tab !== "balance") return;
+    if (checking || tab !== "balance" || !superadminMode) return;
     loadBalanceHistory();
-  }, [checking, tab, loadBalanceHistory]);
+  }, [checking, tab, loadBalanceHistory, superadminMode]);
 
   useEffect(() => {
     if (checking || tab !== "cashouts") return;
@@ -687,7 +684,8 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
     setReviewingDeposit(transactionId);
     setError("");
     try {
-      const res = await fetch("/api/admin/deposits", {
+      const scopeQuery = superadminMode ? "?scope=superadmin" : "";
+      const res = await fetch(`/api/admin/deposits${scopeQuery}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ transactionId, action, rejectionReason }),
@@ -1007,7 +1005,7 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
       setBalanceDeltaInput("");
       setBalanceSuccess(`Balance updated to Rs${Number(data.user.balance).toLocaleString()}.`);
       setBalanceHistoryUser(target);
-      await Promise.all([loadAll(), loadBalanceHistory(target._id)]);
+      await Promise.all([loadAll(), superadminMode ? loadBalanceHistory(target._id) : Promise.resolve()]);
     } catch {
       setBalanceError("Something went wrong. Please try again.");
     } finally {
@@ -1136,7 +1134,8 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
     deposits: loadAll,
     withdrawals: loadAll,
     cashout: loadAll,
-    balance: () => Promise.all([loadAll(), loadBalanceHistory()]),
+    cashouts: loadCashouts,
+    balance: () => Promise.all([loadAll(), superadminMode ? loadBalanceHistory() : Promise.resolve()]),
     karopay: () => Promise.all([loadAll(), loadKaropayPayments()]),
     support: loadSupportSettings,
     logins: loadLoginSessions,
@@ -1611,7 +1610,7 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
                     }
                     setBalanceError("");
                     setBalanceHistoryUser(target);
-                    loadBalanceHistory(target._id);
+                    if (superadminMode) loadBalanceHistory(target._id);
                   }}
                   disabled={balanceSubmitting}
                 />
@@ -1714,110 +1713,114 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
             </div>
           </div>
 
-          <section className="admin-quick-card" style={{ marginTop: 18 }}>
-            <div className="admin-quick-card-head">
-              <h3>Balance Adjustment History{balanceHistoryUser ? ` — ${balanceHistoryUser.uid}` : ""}</h3>
-              <p>{balanceHistoryUser ? "All adjustments for this account." : "Recent manual credits and deductions."}</p>
-            </div>
-            <div className="admin-quick-divider" />
-            <div className="admin-table-wrap">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>User</th>
-                    <th>Changed By</th>
-                    <th>Change</th>
-                    <th>Previous</th>
-                    <th>New Balance</th>
-                    <th>Reason</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {balanceHistory.map((entry) => (
-                    <tr key={entry._id}>
-                      <td>{new Date(entry.createdAt).toLocaleString()}</td>
-                      <td>{entry.targetUser?.uid || entry.targetUser?.name || "Deleted user"}</td>
-                      <td>{entry.meta?.actorScope === "superadmin" ? "Super-admin" : entry.user?.name || entry.user?.uid || "Admin"}</td>
-                      <td>
-                        <span className={`admin-status-pill tone-${Number(entry.meta?.delta) > 0 ? "success" : "danger"}`}>
-                          {Number(entry.meta?.delta) > 0 ? "+" : "-"}Rs{Math.abs(Number(entry.meta?.delta || 0)).toLocaleString()}
-                        </span>
-                      </td>
-                      <td>Rs {Number(entry.meta?.previousBalance || 0).toLocaleString()}</td>
-                      <td>Rs {Number(entry.meta?.newBalance || 0).toLocaleString()}</td>
-                      <td>{entry.meta?.reason || "—"}</td>
-                    </tr>
-                  ))}
-                  {balanceHistory.length === 0 && (
+          {superadminMode && (
+            <section className="admin-quick-card" style={{ marginTop: 18 }}>
+              <div className="admin-quick-card-head">
+                <h3>Balance Adjustment History{balanceHistoryUser ? ` — ${balanceHistoryUser.uid}` : ""}</h3>
+                <p>{balanceHistoryUser ? "All adjustments for this account." : "Recent manual credits and deductions."}</p>
+              </div>
+              <div className="admin-quick-divider" />
+              <div className="admin-table-wrap">
+                <table className="admin-table">
+                  <thead>
                     <tr>
-                      <td colSpan={7} className="empty">
-                        {balanceHistoryLoading
-                          ? "Loading…"
-                          : balanceEmail.trim() && !balanceHistoryUser
-                            ? "Press Enter to view this user's history."
-                            : "No balance adjustments yet."}
-                      </td>
+                      <th>Date</th>
+                      <th>User</th>
+                      <th>Changed By</th>
+                      <th>Change</th>
+                      <th>Previous</th>
+                      <th>New Balance</th>
+                      <th>Reason</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </section>
+                  </thead>
+                  <tbody>
+                    {balanceHistory.map((entry) => (
+                      <tr key={entry._id}>
+                        <td>{new Date(entry.createdAt).toLocaleString()}</td>
+                        <td>{entry.targetUser?.uid || entry.targetUser?.name || "Deleted user"}</td>
+                        <td>{entry.meta?.actorScope === "superadmin" ? "Super-admin" : entry.user?.name || entry.user?.uid || "Admin"}</td>
+                        <td>
+                          <span className={`admin-status-pill tone-${Number(entry.meta?.delta) > 0 ? "success" : "danger"}`}>
+                            {Number(entry.meta?.delta) > 0 ? "+" : "-"}Rs{Math.abs(Number(entry.meta?.delta || 0)).toLocaleString()}
+                          </span>
+                        </td>
+                        <td>Rs {Number(entry.meta?.previousBalance || 0).toLocaleString()}</td>
+                        <td>Rs {Number(entry.meta?.newBalance || 0).toLocaleString()}</td>
+                        <td>{entry.meta?.reason || "—"}</td>
+                      </tr>
+                    ))}
+                    {balanceHistory.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="empty">
+                          {balanceHistoryLoading
+                            ? "Loading…"
+                            : balanceEmail.trim() && !balanceHistoryUser
+                              ? "Press Enter to view this user's history."
+                              : "No balance adjustments yet."}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
 
-          <section className="admin-quick-card" style={{ marginTop: 18 }}>
-            <div className="admin-quick-card-head">
-              <h3>User Balances</h3>
-              <p>{balanceManagerUsers.length} of {users.length} accounts</p>
-            </div>
-            <div className="admin-quick-divider" />
-            <div className="admin-table-wrap">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>UID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Balance</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {balanceManagerUsers.map((user) => (
-                    <tr key={user._id}>
-                      <td>{user.uid || "—"}</td>
-                      <td>{user.name || "—"}</td>
-                      <td>{user.email || "—"}</td>
-                      <td>{user.role || "user"}</td>
-                      <td>Rs {Number(user.balance || 0).toLocaleString()}</td>
-                      <td>
-                        <button
-                          type="button"
-                          className="admin-small-btn"
-                          onClick={() => {
-                            setBalanceEmail(user.email || user.uid || "");
-                            setBalanceDeltaInput("");
-                            setBalanceError("");
-                            setBalanceSuccess("");
-                            setBalanceHistoryUser(user);
-                            loadBalanceHistory(user._id);
-                          }}
-                        >
-                          Manage
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {balanceManagerUsers.length === 0 && (
+          {superadminMode && (
+            <section className="admin-quick-card" style={{ marginTop: 18 }}>
+              <div className="admin-quick-card-head">
+                <h3>User Balances</h3>
+                <p>{balanceManagerUsers.length} of {users.length} accounts</p>
+              </div>
+              <div className="admin-quick-divider" />
+              <div className="admin-table-wrap">
+                <table className="admin-table">
+                  <thead>
                     <tr>
-                      <td colSpan={6} className="empty">No matching accounts.</td>
+                      <th>UID</th>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Balance</th>
+                      <th>Action</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </section>
+                  </thead>
+                  <tbody>
+                    {balanceManagerUsers.map((user) => (
+                      <tr key={user._id}>
+                        <td>{user.uid || "—"}</td>
+                        <td>{user.name || "—"}</td>
+                        <td>{user.email || "—"}</td>
+                        <td>{user.role || "user"}</td>
+                        <td>Rs {Number(user.balance || 0).toLocaleString()}</td>
+                        <td>
+                          <button
+                            type="button"
+                            className="admin-small-btn"
+                            onClick={() => {
+                              setBalanceEmail(user.email || user.uid || "");
+                              setBalanceDeltaInput("");
+                              setBalanceError("");
+                              setBalanceSuccess("");
+                              setBalanceHistoryUser(user);
+                              loadBalanceHistory(user._id);
+                            }}
+                          >
+                            Manage
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {balanceManagerUsers.length === 0 && (
+                      <tr>
+                        <td colSpan={6} className="empty">No matching accounts.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
 
           <div className="admin-info-section-label" style={{ marginTop: 24, marginBottom: 10 }}>
             Deposit Requests
@@ -2010,19 +2013,19 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
                   <th>Round Crash</th>
                   <th>Payout (Rs)</th>
                   <th>Cashed Out</th>
-                  <th>Action</th>
+                  {superadminMode && <th>Action</th>}
                 </tr>
               </thead>
               <tbody>
                 {cashoutsLoading ? (
                   <tr>
-                    <td colSpan={7} className="empty">
+                    <td colSpan={superadminMode ? 7 : 6} className="empty">
                       Loading…
                     </td>
                   </tr>
                 ) : cashouts.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="empty">
+                    <td colSpan={superadminMode ? 7 : 6} className="empty">
                       No cashouts yet.
                     </td>
                   </tr>
@@ -2035,15 +2038,17 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
                       <td>{c.roundCrashPoint ? `${(c.roundCrashPoint / 100).toFixed(2)}x` : "—"}</td>
                       <td>Rs {Number(c.payout).toLocaleString()}</td>
                       <td>{new Date(c.cashedOutAt).toLocaleString()}</td>
-                      <td>
-                        <button
-                          className="admin-small-btn reject"
-                          onClick={() => deleteHistoryRecord("cashout", c)}
-                          disabled={deletingHistoryItem === `cashout:${c.id}`}
-                        >
-                          {deletingHistoryItem === `cashout:${c.id}` ? "Deleting…" : "Delete"}
-                        </button>
-                      </td>
+                      {superadminMode && (
+                        <td>
+                          <button
+                            className="admin-small-btn reject"
+                            onClick={() => deleteHistoryRecord("cashout", c)}
+                            disabled={deletingHistoryItem === `cashout:${c.id}`}
+                          >
+                            {deletingHistoryItem === `cashout:${c.id}` ? "Deleting…" : "Delete"}
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))
                 )}

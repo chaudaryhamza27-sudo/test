@@ -14,8 +14,7 @@ const HISTORY_LIMIT = 50;
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
-  const isSuperAdmin = searchParams.get("scope") === "superadmin";
-  const access = await requireAdminAccess(isSuperAdmin ? "superadmin" : "admin");
+  const access = await requireAdminAccess("superadmin");
   if (!access) return Response.json({ error: "Forbidden." }, { status: 403 });
 
   await dbConnect();
