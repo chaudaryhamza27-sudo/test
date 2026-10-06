@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import dbConnect from "../../../../lib/mongodb";
 import User from "../../../../lib/models/User";
 import Activity from "../../../../lib/models/Activity";
@@ -12,7 +13,8 @@ const DEPOSIT_STATUSES = ["approved", "completed"];
 const HISTORY_LIMIT = 50;
 
 export async function GET(request) {
-  const isSuperAdmin = new URL(request.url).searchParams.get("scope") === "superadmin";
+  const { searchParams } = new URL(request.url);
+  const isSuperAdmin = searchParams.get("scope") === "superadmin";
   const access = await requireAdminAccess(isSuperAdmin ? "superadmin" : "admin");
   if (!access) return Response.json({ error: "Forbidden." }, { status: 403 });
 
@@ -21,11 +23,17 @@ export async function GET(request) {
     action: "balance_adjusted",
     "meta.delta": { $exists: true },
   };
-  const items = await Activity.find(filter)
+  const targetUserId = searchParams.get("userId");
+  if (targetUserId) {
+    if (!mongoose.isValidObjectId(targetUserId)) return Response.json({ error: "Invalid user id." }, { status: 400 });
+    filter.targetUser = targetUserId;
+  }
+  const itemsQuery = Activity.find(filter)
     .populate("user", "uid name email")
     .populate("targetUser", "uid name email")
-    .sort({ createdAt: -1 })
-    .limit(HISTORY_LIMIT);
+    .sort({ createdAt: -1 });
+  if (!targetUserId) itemsQuery.limit(HISTORY_LIMIT);
+  const items = await itemsQuery;
 
   return Response.json({ items });
 }

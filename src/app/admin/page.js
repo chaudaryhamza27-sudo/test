@@ -199,6 +199,7 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
   const [balanceSuccess, setBalanceSuccess] = useState("");
   const [balanceHistory, setBalanceHistory] = useState([]);
   const [balanceHistoryLoading, setBalanceHistoryLoading] = useState(false);
+  const [balanceHistoryUser, setBalanceHistoryUser] = useState(null);
 
   // User Control quick panels — Block / Trust Score, all by email lookup
   const [blockEmail, setBlockEmail] = useState("");
@@ -555,10 +556,13 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
       .finally(() => setCashoutsLoading(false));
   }, [cashoutsPage, cashoutSearch]);
 
-  const loadBalanceHistory = useCallback(() => {
+  const loadBalanceHistory = useCallback((userId = "") => {
     setBalanceHistoryLoading(true);
-    const scopeQuery = superadminMode ? "?scope=superadmin" : "";
-    return fetch(`/api/admin/balance-adjust${scopeQuery}`, { cache: "no-store" })
+    const params = new URLSearchParams();
+    if (superadminMode) params.set("scope", "superadmin");
+    if (userId) params.set("userId", userId);
+    const query = params.size ? `?${params.toString()}` : "";
+    return fetch(`/api/admin/balance-adjust${query}`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => setBalanceHistory(data.items || []))
       .catch(() => setBalanceHistory([]))
@@ -1002,7 +1006,8 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
       }
       setBalanceDeltaInput("");
       setBalanceSuccess(`Balance updated to Rs${Number(data.user.balance).toLocaleString()}.`);
-      await Promise.all([loadAll(), loadBalanceHistory()]);
+      setBalanceHistoryUser(target);
+      await Promise.all([loadAll(), loadBalanceHistory(target._id)]);
     } catch {
       setBalanceError("Something went wrong. Please try again.");
     } finally {
@@ -1592,6 +1597,21 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
                     setBalanceEmail(e.target.value);
                     setBalanceError("");
                     setBalanceSuccess("");
+                    setBalanceHistoryUser(null);
+                    setBalanceHistory([]);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter") return;
+                    e.preventDefault();
+                    const target = findUserByEmail(balanceEmail);
+                    if (!target) {
+                      setBalanceError("No user found with that email, UID, or phone.");
+                      setBalanceHistory([]);
+                      return;
+                    }
+                    setBalanceError("");
+                    setBalanceHistoryUser(target);
+                    loadBalanceHistory(target._id);
                   }}
                   disabled={balanceSubmitting}
                 />
@@ -1632,53 +1652,6 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
                 ) : (
                   "Enter a user's email, UID, or phone to check their current balance."
                 )}
-              </div>
-
-              <div className="admin-quick-card">
-                <div className="admin-quick-card-head">
-                  <h3>Balance Adjustment History</h3>
-                  <p>Recent manual credits and deductions.</p>
-                </div>
-                <div className="admin-quick-divider" />
-                <div className="admin-table-wrap">
-                  <table className="admin-table">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>User</th>
-                        <th>Changed By</th>
-                        <th>Change</th>
-                        <th>Previous</th>
-                        <th>New Balance</th>
-                        <th>Reason</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {balanceHistory.map((entry) => (
-                        <tr key={entry._id}>
-                          <td>{new Date(entry.createdAt).toLocaleString()}</td>
-                          <td>{entry.targetUser?.uid || entry.targetUser?.name || "Deleted user"}</td>
-                          <td>{entry.meta?.actorScope === "superadmin" ? "Super-admin" : entry.user?.name || entry.user?.uid || "Admin"}</td>
-                          <td>
-                            <span className={`admin-status-pill tone-${Number(entry.meta?.delta) > 0 ? "success" : "danger"}`}>
-                              {Number(entry.meta?.delta) > 0 ? "+" : "-"}Rs{Math.abs(Number(entry.meta?.delta || 0)).toLocaleString()}
-                            </span>
-                          </td>
-                          <td>Rs {Number(entry.meta?.previousBalance || 0).toLocaleString()}</td>
-                          <td>Rs {Number(entry.meta?.newBalance || 0).toLocaleString()}</td>
-                          <td>{entry.meta?.reason || "—"}</td>
-                        </tr>
-                      ))}
-                      {balanceHistory.length === 0 && (
-                        <tr>
-                          <td colSpan={7} className="empty">
-                            {balanceHistoryLoading ? "Loading…" : "No balance adjustments yet."}
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
               </div>
 
               {balanceLookupUser && (
@@ -1743,6 +1716,57 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
 
           <section className="admin-quick-card" style={{ marginTop: 18 }}>
             <div className="admin-quick-card-head">
+              <h3>Balance Adjustment History{balanceHistoryUser ? ` — ${balanceHistoryUser.uid}` : ""}</h3>
+              <p>{balanceHistoryUser ? "All adjustments for this account." : "Recent manual credits and deductions."}</p>
+            </div>
+            <div className="admin-quick-divider" />
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>User</th>
+                    <th>Changed By</th>
+                    <th>Change</th>
+                    <th>Previous</th>
+                    <th>New Balance</th>
+                    <th>Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {balanceHistory.map((entry) => (
+                    <tr key={entry._id}>
+                      <td>{new Date(entry.createdAt).toLocaleString()}</td>
+                      <td>{entry.targetUser?.uid || entry.targetUser?.name || "Deleted user"}</td>
+                      <td>{entry.meta?.actorScope === "superadmin" ? "Super-admin" : entry.user?.name || entry.user?.uid || "Admin"}</td>
+                      <td>
+                        <span className={`admin-status-pill tone-${Number(entry.meta?.delta) > 0 ? "success" : "danger"}`}>
+                          {Number(entry.meta?.delta) > 0 ? "+" : "-"}Rs{Math.abs(Number(entry.meta?.delta || 0)).toLocaleString()}
+                        </span>
+                      </td>
+                      <td>Rs {Number(entry.meta?.previousBalance || 0).toLocaleString()}</td>
+                      <td>Rs {Number(entry.meta?.newBalance || 0).toLocaleString()}</td>
+                      <td>{entry.meta?.reason || "—"}</td>
+                    </tr>
+                  ))}
+                  {balanceHistory.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="empty">
+                        {balanceHistoryLoading
+                          ? "Loading…"
+                          : balanceEmail.trim() && !balanceHistoryUser
+                            ? "Press Enter to view this user's history."
+                            : "No balance adjustments yet."}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className="admin-quick-card" style={{ marginTop: 18 }}>
+            <div className="admin-quick-card-head">
               <h3>User Balances</h3>
               <p>{balanceManagerUsers.length} of {users.length} accounts</p>
             </div>
@@ -1776,6 +1800,8 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
                             setBalanceDeltaInput("");
                             setBalanceError("");
                             setBalanceSuccess("");
+                            setBalanceHistoryUser(user);
+                            loadBalanceHistory(user._id);
                           }}
                         >
                           Manage
