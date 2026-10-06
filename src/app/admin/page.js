@@ -1534,6 +1534,7 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
       {tab === "cashout" && (
         <CashOutPanel
           withdrawals={withdrawals}
+          superadminMode={superadminMode}
           preselectWithdrawalId={cashoutWithdrawalId}
           onPreselectConsumed={clearCashoutPreselect}
           onWithdrawalsChanged={loadAll}

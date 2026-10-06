@@ -51,14 +51,15 @@ function withoutSign(data) {
 }
 
 export async function GET(request) {
-  const access = await requireAdminAccess();
-  if (!access) return Response.json({ error: "Forbidden." }, { status: 403 });
-  const { admin, isSuperAdmin } = access;
-
   const { searchParams } = new URL(request.url);
+  const isSuperAdmin = searchParams.get("scope") === "superadmin";
+  const access = await requireAdminAccess(isSuperAdmin ? "superadmin" : "admin");
+  if (!access) return Response.json({ error: "Forbidden." }, { status: 403 });
+  const { admin } = access;
+
   const status = searchParams.get("status");
   const filter = {
-    ...(!isSuperAdmin ? { createdBy: admin._id } : {}),
+    ...(!isSuperAdmin ? { createdByScope: "admin", createdBy: admin._id } : {}),
     ...(["PENDING", "COMPLETED", "FAILED"].includes(status) ? { status } : {}),
   };
 
@@ -69,9 +70,10 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const access = await requireAdminAccess();
+  const isSuperAdmin = new URL(request.url).searchParams.get("scope") === "superadmin";
+  const access = await requireAdminAccess(isSuperAdmin ? "superadmin" : "admin");
   if (!access) return Response.json({ error: "Forbidden." }, { status: 403 });
-  const { admin, isSuperAdmin } = access;
+  const { admin } = access;
 
   const limit = checkRateLimit(`admin-payout:${admin._id}`, { max: 6, windowMs: 60_000 });
   if (!limit.allowed) {
@@ -172,6 +174,7 @@ export async function POST(request) {
     notifyUrl,
     status: "PENDING",
     createdBy: admin._id,
+    createdByScope: isSuperAdmin ? "superadmin" : "admin",
   });
 
   try {

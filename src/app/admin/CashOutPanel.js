@@ -57,7 +57,7 @@ function HiddenValue({ value }) {
   );
 }
 
-export default function CashOutPanel({ withdrawals, preselectWithdrawalId, onPreselectConsumed, onWithdrawalsChanged }) {
+export default function CashOutPanel({ withdrawals, preselectWithdrawalId, onPreselectConsumed, onWithdrawalsChanged, superadminMode = false }) {
   const [overview, setOverview] = useState(null);
   const [overviewLoading, setOverviewLoading] = useState(false);
   const [payouts, setPayouts] = useState([]);
@@ -86,13 +86,16 @@ export default function CashOutPanel({ withdrawals, preselectWithdrawalId, onPre
 
   const loadPayouts = useCallback(() => {
     setPayoutsLoading(true);
-    const qs = statusFilter === "ALL" ? "" : `?status=${statusFilter}`;
+    const params = new URLSearchParams();
+    if (statusFilter !== "ALL") params.set("status", statusFilter);
+    if (superadminMode) params.set("scope", "superadmin");
+    const qs = params.size ? `?${params.toString()}` : "";
     return fetch(`/api/admin/karopay/payout${qs}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => setPayouts(data.payouts || []))
       .catch(() => {})
       .finally(() => setPayoutsLoading(false));
-  }, [statusFilter]);
+  }, [statusFilter, superadminMode]);
 
   useEffect(() => {
     loadOverview();
@@ -160,7 +163,8 @@ export default function CashOutPanel({ withdrawals, preselectWithdrawalId, onPre
     submitLock.current = true;
     setSubmitting(true);
     try {
-      const res = await fetch("/api/admin/karopay/payout", {
+      const payoutUrl = `/api/admin/karopay/payout${superadminMode ? "?scope=superadmin" : ""}`;
+      const res = await fetch(payoutUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, merchantOrderId: confirm.orderId }),
@@ -195,7 +199,8 @@ export default function CashOutPanel({ withdrawals, preselectWithdrawalId, onPre
   const syncPayout = async (id) => {
     setSyncingId(id);
     try {
-      const res = await fetch(`/api/admin/karopay/payout/${id}/sync`, { method: "POST" });
+      const scopeQuery = superadminMode ? "?scope=superadmin" : "";
+      const res = await fetch(`/api/admin/karopay/payout/${id}/sync${scopeQuery}`, { method: "POST" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) setNotice({ tone: "error", text: data.error || "Status check failed." });
       await loadPayouts();
@@ -205,19 +210,20 @@ export default function CashOutPanel({ withdrawals, preselectWithdrawalId, onPre
     }
   };
 
-  const deleteFailedPayout = async (payout) => {
-    if (payout.status !== "FAILED") return;
-    if (!window.confirm(`Permanently delete failed payout ${payout.merchantOrderId}? Pending and completed payouts cannot be deleted.`)) return;
+  const deletePayoutHistory = async (payout) => {
+    if (payout.status !== "FAILED" && !(superadminMode && payout.status === "COMPLETED")) return;
+    if (!window.confirm(`Permanently delete ${payout.status.toLowerCase()} payout ${payout.merchantOrderId}? This removes history only and does not change balances.`)) return;
 
     setDeletingId(payout.id);
     try {
-      const response = await fetch(`/api/admin/karopay/payout/${payout.id}`, { method: "DELETE" });
+      const scopeQuery = superadminMode ? "?scope=superadmin" : "";
+      const response = await fetch(`/api/admin/karopay/payout/${payout.id}${scopeQuery}`, { method: "DELETE" });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         setNotice({ tone: "error", text: data.error || "Failed to delete payout history." });
         return;
       }
-      setNotice({ tone: "success", text: "Failed payout record deleted. No additional balance change was made." });
+      setNotice({ tone: "success", text: "Payout history deleted. No additional balance change was made." });
       await loadPayouts();
     } catch {
       setNotice({ tone: "error", text: "Could not delete the failed payout record." });
@@ -407,11 +413,11 @@ export default function CashOutPanel({ withdrawals, preselectWithdrawalId, onPre
                         {syncingId === p.id ? "Checking…" : "Check status"}
                       </button>
                     )}
-                    {p.status === "FAILED" && (
+                    {(p.status === "FAILED" || (superadminMode && p.status === "COMPLETED")) && (
                       <button
                         type="button"
                         className="admin-small-btn reject"
-                        onClick={() => deleteFailedPayout(p)}
+                        onClick={() => deletePayoutHistory(p)}
                         disabled={deletingId === p.id}
                       >
                         {deletingId === p.id ? "Deleting…" : "Delete"}

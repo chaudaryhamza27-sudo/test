@@ -9,15 +9,19 @@ import { applyPayoutResult, serializePayout } from "../../../../../../../lib/pay
 // and applies it through the same idempotent path as the notify callback.
 // Never re-sends a payout.
 export async function POST(request, ctx) {
-  const access = await requireAdminAccess();
+  const isSuperAdmin = new URL(request.url).searchParams.get("scope") === "superadmin";
+  const access = await requireAdminAccess(isSuperAdmin ? "superadmin" : "admin");
   if (!access) return Response.json({ error: "Forbidden." }, { status: 403 });
-  const { admin, isSuperAdmin } = access;
+  const { admin } = access;
 
   const { id } = await ctx.params;
   if (!mongoose.isValidObjectId(id)) return Response.json({ error: "Invalid payout id." }, { status: 400 });
 
   await dbConnect();
-  const payout = await Payout.findOne({ _id: id, ...(!isSuperAdmin ? { createdBy: admin._id } : {}) });
+  const payout = await Payout.findOne({
+    _id: id,
+    ...(!isSuperAdmin ? { createdByScope: "admin", createdBy: admin._id } : {}),
+  });
   if (!payout) return Response.json({ error: "Payout not found." }, { status: 404 });
 
   try {

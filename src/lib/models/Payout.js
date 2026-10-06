@@ -36,6 +36,7 @@ const PayoutSchema = new mongoose.Schema(
     rawCallback: { type: mongoose.Schema.Types.Mixed, default: null },
     callbackCount: { type: Number, default: 0 },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    createdByScope: { type: String, enum: ["admin", "superadmin"], default: "superadmin", index: true },
     completedAt: { type: Date, default: null },
     failedAt: { type: Date, default: null },
   },
