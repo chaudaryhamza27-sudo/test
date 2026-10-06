@@ -20,7 +20,6 @@ export async function GET(request) {
   const filter = {
     action: "balance_adjusted",
     "meta.delta": { $exists: true },
-    ...(!isSuperAdmin ? { user: access.admin._id, "meta.actorScope": "admin" } : {}),
   };
   const items = await Activity.find(filter)
     .populate("user", "uid name email")

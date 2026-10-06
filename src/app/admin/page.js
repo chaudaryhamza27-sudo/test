@@ -1117,6 +1117,10 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
   const balanceLookupDeposits = balanceLookupUser
     ? deposits.filter((d) => d.user?.uid === balanceLookupUser.uid)
     : [];
+  const balanceSearch = balanceEmail.trim().toLowerCase();
+  const balanceManagerUsers = balanceSearch
+    ? users.filter((user) => [user.uid, user.name, user.email, user.phone].some((value) => String(value || "").toLowerCase().includes(balanceSearch)))
+    : users;
   const trustLookupUser = trustEmail.trim() ? findUserByEmail(trustEmail) : null;
 
   // Lets the sidebar refresh a tab's data directly, without switching to it
@@ -1736,6 +1740,58 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
               </div>
             </div>
           </div>
+
+          <section className="admin-quick-card" style={{ marginTop: 18 }}>
+            <div className="admin-quick-card-head">
+              <h3>User Balances</h3>
+              <p>{balanceManagerUsers.length} of {users.length} accounts</p>
+            </div>
+            <div className="admin-quick-divider" />
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>UID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Balance</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {balanceManagerUsers.map((user) => (
+                    <tr key={user._id}>
+                      <td>{user.uid || "—"}</td>
+                      <td>{user.name || "—"}</td>
+                      <td>{user.email || "—"}</td>
+                      <td>{user.role || "user"}</td>
+                      <td>Rs {Number(user.balance || 0).toLocaleString()}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="admin-small-btn"
+                          onClick={() => {
+                            setBalanceEmail(user.email || user.uid || "");
+                            setBalanceDeltaInput("");
+                            setBalanceError("");
+                            setBalanceSuccess("");
+                          }}
+                        >
+                          Manage
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {balanceManagerUsers.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="empty">No matching accounts.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
 
           <div className="admin-info-section-label" style={{ marginTop: 24, marginBottom: 10 }}>
             Deposit Requests
