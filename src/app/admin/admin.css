@@ -496,6 +496,7 @@
 
 .admin-table-wrap {
   overflow-x: auto;
+  min-width: 0;
   border: 1px solid var(--a-border);
   border-radius: 16px;
 }
@@ -1253,9 +1254,12 @@
 /* ---- Balance Manager: form card + info column, same layout family ---- */
 .admin-balance-grid {
   display: grid;
-  grid-template-columns: 1.1fr 1fr;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   gap: 16px;
   align-items: start;
+}
+.admin-balance-grid > * {
+  min-width: 0;
 }
 @media (max-width: 720px) {
   .admin-balance-grid {
@@ -1266,6 +1270,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
 }
 .admin-quick-hint-box {
   border: 1px dashed var(--a-border);
