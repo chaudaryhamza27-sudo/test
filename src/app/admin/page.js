@@ -1571,7 +1571,7 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
           <PageHead
             title="Balance Manager"
             sub="Fetch balance and add/deduct amount"
-            onRefresh={() => refreshTab("balance", loadAll)}
+            onRefresh={() => refreshTab("balance", TAB_REFRESHERS.balance)}
             refreshing={refreshingTab === "balance"}
           />
 
