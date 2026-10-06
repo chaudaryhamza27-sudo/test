@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import dbConnect from "../../../../../../../lib/mongodb";
 import Payout from "../../../../../../../lib/models/Payout";
-import { requireSuperAdmin } from "../../../../../../../lib/auth";
+import { requireAdminAccess } from "../../../../../../../lib/auth";
 import { queryPayoutOrder, KaropayError } from "../../../../../../../lib/karopay";
 import { applyPayoutResult, serializePayout } from "../../../../../../../lib/payouts";
 
@@ -9,14 +9,15 @@ import { applyPayoutResult, serializePayout } from "../../../../../../../lib/pay
 // and applies it through the same idempotent path as the notify callback.
 // Never re-sends a payout.
 export async function POST(request, ctx) {
-  const admin = await requireSuperAdmin();
-  if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
+  const access = await requireAdminAccess();
+  if (!access) return Response.json({ error: "Forbidden." }, { status: 403 });
+  const { admin, isSuperAdmin } = access;
 
   const { id } = await ctx.params;
   if (!mongoose.isValidObjectId(id)) return Response.json({ error: "Invalid payout id." }, { status: 400 });
 
   await dbConnect();
-  const payout = await Payout.findById(id);
+  const payout = await Payout.findOne({ _id: id, ...(!isSuperAdmin ? { createdBy: admin._id } : {}) });
   if (!payout) return Response.json({ error: "Payout not found." }, { status: 404 });
 
   try {

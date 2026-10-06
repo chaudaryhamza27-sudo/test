@@ -100,3 +100,12 @@ async function getSuperAdminUser() {
 export async function requireSuperAdmin() {
   return getSuperAdminUser();
 }
+
+export async function requireAdminAccess() {
+  const superAdmin = await getSuperAdminUser();
+  if (superAdmin) return { admin: superAdmin, isSuperAdmin: true };
+
+  const admin = await getCurrentUser();
+  if (admin?.role === "admin") return { admin, isSuperAdmin: false };
+  return null;
+}

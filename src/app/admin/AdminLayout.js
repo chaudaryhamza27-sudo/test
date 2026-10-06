@@ -22,6 +22,7 @@ const ADMIN_NAV_ITEMS = [
   { key: "users", label: "User Control", icon: IconUsers },
   { key: "balance", label: "Balance Manager", icon: IconWallet },
   { key: "karopay", label: "Karo Pay", icon: IconDeposit },
+  { key: "cashout", label: "Cash Out", icon: IconCoinWallet },
   { key: "support", label: "Deposit Funds", icon: IconHeadset },
   { key: "logins", label: "Login Information", icon: IconShield },
 ];
@@ -29,7 +30,6 @@ const ADMIN_NAV_ITEMS = [
 const SUPERADMIN_NAV_ITEMS = [
   ...ADMIN_NAV_ITEMS,
   { key: "withdrawals", label: "Withdraws", icon: IconWithdraw },
-  { key: "cashout", label: "Cash Out", icon: IconCoinWallet },
   { key: "cashouts", label: "Cash Out History", icon: IconTrophy },
   { key: "deposits", label: "Deposits", icon: IconDeposit },
   { key: "rounds", label: "Game Rounds", icon: IconHistory },
