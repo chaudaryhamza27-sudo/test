@@ -211,7 +211,7 @@ export default function CashOutPanel({ withdrawals, preselectWithdrawalId, onPre
   };
 
   const deletePayoutHistory = async (payout) => {
-    if (payout.status !== "FAILED" && !(superadminMode && payout.status === "COMPLETED")) return;
+    if (!superadminMode || (payout.status !== "FAILED" && payout.status !== "COMPLETED")) return;
     if (!window.confirm(`Permanently delete ${payout.status.toLowerCase()} payout ${payout.merchantOrderId}? This removes history only and does not change balances.`)) return;
 
     setDeletingId(payout.id);
@@ -413,7 +413,7 @@ export default function CashOutPanel({ withdrawals, preselectWithdrawalId, onPre
                         {syncingId === p.id ? "Checking…" : "Check status"}
                       </button>
                     )}
-                    {(p.status === "FAILED" || (superadminMode && p.status === "COMPLETED")) && (
+                    {superadminMode && (p.status === "FAILED" || p.status === "COMPLETED") && (
                       <button
                         type="button"
                         className="admin-small-btn reject"

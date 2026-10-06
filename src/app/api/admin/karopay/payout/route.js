@@ -82,10 +82,6 @@ export async function POST(request) {
 
   const body = await request.json().catch(() => ({}));
 
-  if (body.withdrawalId && !isSuperAdmin) {
-    return Response.json({ error: "Only the super-admin can cash out a withdrawal request." }, { status: 403 });
-  }
-
   await dbConnect();
 
   // The Cash Out form only asks for the account + amount; the customer fields

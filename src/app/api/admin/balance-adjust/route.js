@@ -1,21 +1,45 @@
 import dbConnect from "../../../../lib/mongodb";
 import User from "../../../../lib/models/User";
+import Activity from "../../../../lib/models/Activity";
 import Transaction from "../../../../lib/models/Transaction";
-import { requireAdmin } from "../../../../lib/auth";
+import { requireAdminAccess } from "../../../../lib/auth";
 import { adjustBalance } from "../../../../lib/wallet";
 import { logActivity } from "../../../../lib/activity";
 import { notifyUser } from "../../../../lib/notifications";
 import { computeTrustScore } from "../../../../lib/trustScore";
 
 const DEPOSIT_STATUSES = ["approved", "completed"];
+const HISTORY_LIMIT = 50;
+
+export async function GET(request) {
+  const isSuperAdmin = new URL(request.url).searchParams.get("scope") === "superadmin";
+  const access = await requireAdminAccess(isSuperAdmin ? "superadmin" : "admin");
+  if (!access) return Response.json({ error: "Forbidden." }, { status: 403 });
+
+  await dbConnect();
+  const filter = {
+    action: "balance_adjusted",
+    "meta.delta": { $exists: true },
+    ...(!isSuperAdmin ? { user: access.admin._id, "meta.actorScope": "admin" } : {}),
+  };
+  const items = await Activity.find(filter)
+    .populate("user", "uid name email")
+    .populate("targetUser", "uid name email")
+    .sort({ createdAt: -1 })
+    .limit(HISTORY_LIMIT);
+
+  return Response.json({ items });
+}
 
 // Balance Manager — add/deduct a delta (as opposed to POST /api/admin/users,
 // which force-sets an absolute balance). Reuses the same atomic
 // adjustBalance() the deposit/withdraw approval flows use, so a deduction
 // can never take a user negative, and every change is reason-logged.
 export async function POST(request) {
-  const admin = await requireAdmin();
-  if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
+  const isSuperAdmin = new URL(request.url).searchParams.get("scope") === "superadmin";
+  const access = await requireAdminAccess(isSuperAdmin ? "superadmin" : "admin");
+  if (!access) return Response.json({ error: "Forbidden." }, { status: 403 });
+  const { admin } = access;
 
   const body = await request.json();
   const { userId, delta } = body || {};
@@ -70,7 +94,13 @@ export async function POST(request) {
     action: "balance_adjusted",
     targetUser: target._id,
     message: `${verb === "credited" ? "Credited" : "Debited"} Rs${Math.abs(amount).toLocaleString()} ${verb === "credited" ? "to" : "from"} ${target.uid}'s balance. Reason: ${reason}`,
-    meta: { delta: amount, reason, previousBalance: target.balance, newBalance: updated.balance },
+    meta: {
+      delta: amount,
+      reason,
+      previousBalance: target.balance,
+      newBalance: updated.balance,
+      actorScope: isSuperAdmin ? "superadmin" : "admin",
+    },
   });
   await notifyUser(target._id, {
     type: "balance_adjusted",

@@ -1,14 +1,15 @@
 import mongoose from "mongoose";
 import dbConnect from "../../../../lib/mongodb";
 import Transaction from "../../../../lib/models/Transaction";
-import { requireSuperAdmin } from "../../../../lib/auth";
+import { requireAdminAccess, requireSuperAdmin } from "../../../../lib/auth";
 import { adjustBalance } from "../../../../lib/wallet";
 import { logActivity } from "../../../../lib/activity";
 import { notifyUser } from "../../../../lib/notifications";
 
-export async function GET() {
-  const admin = await requireSuperAdmin();
-  if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
+export async function GET(request) {
+  const isSuperAdmin = new URL(request.url).searchParams.get("scope") === "superadmin";
+  const access = await requireAdminAccess(isSuperAdmin ? "superadmin" : "admin");
+  if (!access) return Response.json({ error: "Forbidden." }, { status: 403 });
 
   await dbConnect();
   const withdrawals = await Transaction.find({ type: "withdraw" })
@@ -18,8 +19,10 @@ export async function GET() {
 }
 
 export async function PATCH(request) {
-  const admin = await requireSuperAdmin();
-  if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
+  const isSuperAdmin = new URL(request.url).searchParams.get("scope") === "superadmin";
+  const access = await requireAdminAccess(isSuperAdmin ? "superadmin" : "admin");
+  if (!access) return Response.json({ error: "Forbidden." }, { status: 403 });
+  const { admin } = access;
 
   const body = await request.json();
   const { transactionId, action } = body || {};
@@ -54,7 +57,7 @@ export async function PATCH(request) {
     action: action === "approve" ? "withdraw_approved" : "withdraw_rejected",
     targetUser: tx.user,
     message: `${action === "approve" ? "Approved" : "Rejected"} a virtual withdrawal of Rs${Number(tx.amount).toLocaleString()}.`,
-    meta: { transactionId: tx._id, amount: tx.amount },
+    meta: { transactionId: tx._id, amount: tx.amount, actorScope: isSuperAdmin ? "superadmin" : "admin" },
   });
 
   await notifyUser(tx.user, {

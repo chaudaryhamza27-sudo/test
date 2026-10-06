@@ -197,6 +197,8 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
   const [balanceSubmitting, setBalanceSubmitting] = useState(false);
   const [balanceError, setBalanceError] = useState("");
   const [balanceSuccess, setBalanceSuccess] = useState("");
+  const [balanceHistory, setBalanceHistory] = useState([]);
+  const [balanceHistoryLoading, setBalanceHistoryLoading] = useState(false);
 
   // User Control quick panels — Block / Trust Score, all by email lookup
   const [blockEmail, setBlockEmail] = useState("");
@@ -235,24 +237,23 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
     const [usersRes, depositsRes, withdrawalsRes] = await Promise.all([
       fetch("/api/admin/users", { cache: "no-store" }),
       superadminMode ? fetch("/api/admin/deposits", { cache: "no-store" }) : null,
-      superadminMode ? fetch("/api/admin/withdrawals", { cache: "no-store" }) : null,
+      fetch(`/api/admin/withdrawals${superadminMode ? "?scope=superadmin" : ""}`, { cache: "no-store" }),
     ]);
 
-    if (usersRes.status === 403 || (superadminMode && (depositsRes.status === 403 || withdrawalsRes.status === 403))) {
+    if (usersRes.status === 403 || withdrawalsRes.status === 403 || (superadminMode && depositsRes.status === 403)) {
       router.replace(superadminMode ? `${SUPERADMIN_ROUTE_PATH}/login` : "/admin/login");
       return;
     }
 
     const usersData = await usersRes.json();
     setUsers(usersData.users || []);
+    const withdrawalsData = await withdrawalsRes.json();
+    setWithdrawals(withdrawalsData.withdrawals || []);
     if (superadminMode) {
       const depositsData = await depositsRes.json();
-      const withdrawalsData = await withdrawalsRes.json();
       setDeposits(depositsData.deposits || []);
-      setWithdrawals(withdrawalsData.withdrawals || []);
     } else {
       setDeposits([]);
-      setWithdrawals([]);
     }
   }, [router, superadminMode]);
 
@@ -554,6 +555,21 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
       .finally(() => setCashoutsLoading(false));
   }, [cashoutsPage, cashoutSearch]);
 
+  const loadBalanceHistory = useCallback(() => {
+    setBalanceHistoryLoading(true);
+    const scopeQuery = superadminMode ? "?scope=superadmin" : "";
+    return fetch(`/api/admin/balance-adjust${scopeQuery}`, { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => setBalanceHistory(data.items || []))
+      .catch(() => setBalanceHistory([]))
+      .finally(() => setBalanceHistoryLoading(false));
+  }, [superadminMode]);
+
+  useEffect(() => {
+    if (checking || tab !== "balance") return;
+    loadBalanceHistory();
+  }, [checking, tab, loadBalanceHistory]);
+
   useEffect(() => {
     if (checking || tab !== "cashouts") return;
     loadCashouts();
@@ -712,7 +728,8 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
     setReviewingWithdrawal(transactionId);
     setError("");
     try {
-      const res = await fetch("/api/admin/withdrawals", {
+      const scopeQuery = superadminMode ? "?scope=superadmin" : "";
+      const res = await fetch(`/api/admin/withdrawals${scopeQuery}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ transactionId, action }),
@@ -760,7 +777,8 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
     setError("");
     try {
       for (const id of ids) {
-        const res = await fetch("/api/admin/withdrawals", {
+        const scopeQuery = superadminMode ? "?scope=superadmin" : "";
+        const res = await fetch(`/api/admin/withdrawals${scopeQuery}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ transactionId: id, action }),
@@ -971,7 +989,8 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
 
     setBalanceSubmitting(true);
     try {
-      const res = await fetch("/api/admin/balance-adjust", {
+      const scopeQuery = superadminMode ? "?scope=superadmin" : "";
+      const res = await fetch(`/api/admin/balance-adjust${scopeQuery}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: target._id, delta }),
@@ -983,7 +1002,7 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
       }
       setBalanceDeltaInput("");
       setBalanceSuccess(`Balance updated to Rs${Number(data.user.balance).toLocaleString()}.`);
-      loadAll();
+      await Promise.all([loadAll(), loadBalanceHistory()]);
     } catch {
       setBalanceError("Something went wrong. Please try again.");
     } finally {
@@ -1108,7 +1127,7 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
     deposits: loadAll,
     withdrawals: loadAll,
     cashout: loadAll,
-    balance: loadAll,
+    balance: () => Promise.all([loadAll(), loadBalanceHistory()]),
     karopay: () => Promise.all([loadAll(), loadKaropayPayments()]),
     support: loadSupportSettings,
     logins: loadLoginSessions,
@@ -1507,13 +1526,15 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
                             </button>
                           </>
                         )}
-                        <button
-                          className="admin-small-btn reject"
-                          onClick={() => deleteHistoryRecord("withdrawal", w)}
-                          disabled={deletingHistoryItem === `withdrawal:${w._id}`}
-                        >
-                          {deletingHistoryItem === `withdrawal:${w._id}` ? "Deleting…" : "Delete"}
-                        </button>
+                        {superadminMode && (
+                          <button
+                            className="admin-small-btn reject"
+                            onClick={() => deleteHistoryRecord("withdrawal", w)}
+                            disabled={deletingHistoryItem === `withdrawal:${w._id}`}
+                          >
+                            {deletingHistoryItem === `withdrawal:${w._id}` ? "Deleting…" : "Delete"}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -1607,6 +1628,53 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
                 ) : (
                   "Enter a user's email, UID, or phone to check their current balance."
                 )}
+              </div>
+
+              <div className="admin-quick-card">
+                <div className="admin-quick-card-head">
+                  <h3>Balance Adjustment History</h3>
+                  <p>Recent manual credits and deductions.</p>
+                </div>
+                <div className="admin-quick-divider" />
+                <div className="admin-table-wrap">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>User</th>
+                        <th>Changed By</th>
+                        <th>Change</th>
+                        <th>Previous</th>
+                        <th>New Balance</th>
+                        <th>Reason</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {balanceHistory.map((entry) => (
+                        <tr key={entry._id}>
+                          <td>{new Date(entry.createdAt).toLocaleString()}</td>
+                          <td>{entry.targetUser?.uid || entry.targetUser?.name || "Deleted user"}</td>
+                          <td>{entry.meta?.actorScope === "superadmin" ? "Super-admin" : entry.user?.name || entry.user?.uid || "Admin"}</td>
+                          <td>
+                            <span className={`admin-status-pill tone-${Number(entry.meta?.delta) > 0 ? "success" : "danger"}`}>
+                              {Number(entry.meta?.delta) > 0 ? "+" : "-"}Rs{Math.abs(Number(entry.meta?.delta || 0)).toLocaleString()}
+                            </span>
+                          </td>
+                          <td>Rs {Number(entry.meta?.previousBalance || 0).toLocaleString()}</td>
+                          <td>Rs {Number(entry.meta?.newBalance || 0).toLocaleString()}</td>
+                          <td>{entry.meta?.reason || "—"}</td>
+                        </tr>
+                      ))}
+                      {balanceHistory.length === 0 && (
+                        <tr>
+                          <td colSpan={7} className="empty">
+                            {balanceHistoryLoading ? "Loading…" : "No balance adjustments yet."}
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {balanceLookupUser && (
