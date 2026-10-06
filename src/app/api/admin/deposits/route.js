@@ -1,7 +1,8 @@
+import mongoose from "mongoose";
 import dbConnect from "../../../../lib/mongodb";
 import Transaction from "../../../../lib/models/Transaction";
 import User from "../../../../lib/models/User";
-import { requireAdmin } from "../../../../lib/auth";
+import { requireSuperAdmin } from "../../../../lib/auth";
 import { adjustBalance } from "../../../../lib/wallet";
 import { logActivity } from "../../../../lib/activity";
 import { notifyUser } from "../../../../lib/notifications";
@@ -11,7 +12,7 @@ import { escapeTelegramHtml, sendTelegramMessage } from "../../../../lib/telegra
 const DEPOSIT_STATUSES = ["approved", "completed"];
 
 export async function GET() {
-  const admin = await requireAdmin();
+  const admin = await requireSuperAdmin();
   if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
 
   await dbConnect();
@@ -31,7 +32,7 @@ export async function GET() {
 }
 
 export async function PATCH(request) {
-  const admin = await requireAdmin();
+  const admin = await requireSuperAdmin();
   if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
 
   const body = await request.json();
@@ -115,4 +116,31 @@ export async function PATCH(request) {
       rejectionReason: tx.meta?.rejectionReason || null,
     },
   });
+}
+
+export async function DELETE(request) {
+  const admin = await requireSuperAdmin();
+  if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
+
+  const body = await request.json().catch(() => ({}));
+  const { transactionId } = body || {};
+  if (!transactionId || !mongoose.isValidObjectId(transactionId)) {
+    return Response.json({ error: "A valid transactionId is required." }, { status: 400 });
+  }
+
+  await dbConnect();
+  const transaction = await Transaction.findOne({ _id: transactionId, type: "deposit" });
+  if (!transaction) return Response.json({ error: "Deposit not found." }, { status: 404 });
+
+  await logActivity({
+    user: admin._id,
+    actorRole: "admin",
+    action: "deposit_history_deleted",
+    targetUser: transaction.user,
+    message: `Permanently deleted a deposit history record of Rs${Number(transaction.amount).toLocaleString()}; wallet balance was not changed.`,
+    meta: { transactionId: transaction._id, amount: transaction.amount, status: transaction.status },
+  });
+  await transaction.deleteOne();
+
+  return Response.json({ deleted: true, transactionId });
 }

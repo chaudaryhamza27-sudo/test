@@ -17,23 +17,25 @@ import {
   IconCoinWallet,
 } from "../icons";
 
-const NAV_ITEMS = [
+const ADMIN_NAV_ITEMS = [
   { key: "dashboard", label: "Dashboard", icon: IconHome },
   { key: "users", label: "User Control", icon: IconUsers },
-  { key: "withdrawals", label: "Withdraws", icon: IconWithdraw },
-  { key: "cashout", label: "Cash Out", icon: IconCoinWallet },
   { key: "balance", label: "Balance Manager", icon: IconWallet },
   { key: "karopay", label: "Karo Pay", icon: IconDeposit },
-  // { key: "cashouts", label: "CashOut", icon: IconTrophy },
-  // { key: "deposits", label: "Deposits", icon: IconDeposit },
-  // { key: "rounds", label: "Game Rounds", icon: IconHistory },
-  // { key: "payments", label: "Payments", icon: IconTransaction },
   { key: "support", label: "Deposit Funds", icon: IconHeadset },
   { key: "logins", label: "Login Information", icon: IconShield },
-  // { key: "audit", label: "Audit Log", icon: IconShield },
 ];
 
-const PAGE_TITLES = Object.fromEntries(NAV_ITEMS.map((i) => [i.key, i.label]));
+const SUPERADMIN_NAV_ITEMS = [
+  ...ADMIN_NAV_ITEMS,
+  { key: "withdrawals", label: "Withdraws", icon: IconWithdraw },
+  { key: "cashout", label: "Cash Out", icon: IconCoinWallet },
+  { key: "cashouts", label: "Cash Out History", icon: IconTrophy },
+  { key: "deposits", label: "Deposits", icon: IconDeposit },
+  { key: "rounds", label: "Game Rounds", icon: IconHistory },
+  { key: "payments", label: "Payments", icon: IconTransaction },
+  { key: "audit", label: "Audit Log", icon: IconShield },
+];
 
 function HamburgerIcon(props) {
   return (
@@ -43,8 +45,10 @@ function HamburgerIcon(props) {
   );
 }
 
-export default function AdminLayout({ active, onNavigate, onLogout, onRefreshTab, refreshingTab, children }) {
+export default function AdminLayout({ active, onNavigate, onLogout, onLockSuperAdmin, onRefreshTab, refreshingTab, superadminMode = false, children }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const navItems = superadminMode ? SUPERADMIN_NAV_ITEMS : ADMIN_NAV_ITEMS;
+  const pageTitles = Object.fromEntries(navItems.map((item) => [item.key, item.label]));
 
   const go = (key) => {
     onNavigate(key);
@@ -52,12 +56,12 @@ export default function AdminLayout({ active, onNavigate, onLogout, onRefreshTab
   };
 
   return (
-    <div className="admin-root">
+    <div className={`admin-root ${superadminMode ? "superadmin-mode" : ""}`}>
       <div className="admin-topbar">
         <button className="admin-hamburger" aria-label="Open menu" onClick={() => setDrawerOpen(true)}>
           <HamburgerIcon style={{ width: 18, height: 18 }} />
         </button>
-        <span className="admin-topbar-title">{PAGE_TITLES[active] || "Admin"}</span>
+        <span className="admin-topbar-title">{pageTitles[active] || "Admin"}</span>
       </div>
 
       <div className={`admin-sidebar-backdrop ${drawerOpen ? "open" : ""}`} onClick={() => setDrawerOpen(false)} />
@@ -65,15 +69,15 @@ export default function AdminLayout({ active, onNavigate, onLogout, onRefreshTab
       <div className="admin-layout">
         <aside className={`admin-sidebar ${drawerOpen ? "open" : ""}`}>
           <div className="admin-sidebar-header">
-            <div className="admin-sidebar-mark">A</div>
+            <div className="admin-sidebar-mark">{superadminMode ? "S" : "A"}</div>
             <div className="admin-sidebar-title">
-              <b>Admin</b>
-              <span>Control Dashboard</span>
+              <b>{superadminMode ? "Superadmin" : "Admin"}</b>
+              <span>{superadminMode ? "Privileged Control" : "Control Dashboard"}</span>
             </div>
           </div>
 
           <nav className="admin-nav">
-            {NAV_ITEMS.map((item) => (
+            {navItems.map((item) => (
               <div key={item.key} className="admin-nav-row">
                 <button
                   type="button"
@@ -103,6 +107,12 @@ export default function AdminLayout({ active, onNavigate, onLogout, onRefreshTab
           </nav>
 
           <div className="admin-sidebar-footer">
+            {superadminMode && (
+              <button type="button" className="admin-logout-btn" onClick={onLockSuperAdmin} style={{ marginBottom: 8 }}>
+                <IconShield style={{ width: 15, height: 15 }} />
+                Lock Superadmin
+              </button>
+            )}
             <button type="button" className="admin-logout-btn" onClick={onLogout}>
               <IconLogout style={{ width: 15, height: 15 }} />
               Logout

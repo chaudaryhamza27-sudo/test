@@ -15,11 +15,11 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: {
-    default: "Lucky73 | Virtual Gaming Experience",
+    default: "Lucky73 | Online Games, Slots, Casino & More",
     template: "%s | Lucky73",
   },
   description:
-    "Explore Lucky73, a modern virtual gaming experience with interactive games, secure account tools, and dedicated support.",
+    "Explore Lucky73's online games, from Aviator-style crash rounds to slots, lottery, casino, rummy, and fishing. Browse games on mobile and get player support.",
 };
 
 export default function RootLayout({ children }) {

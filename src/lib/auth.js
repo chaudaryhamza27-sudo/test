@@ -6,6 +6,8 @@ import User from "./models/User";
 const JWT_SECRET = process.env.JWT_SECRET;
 const COOKIE_NAME = "session_token";
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+const SUPERADMIN_COOKIE_NAME = "superadmin_token";
+const SUPERADMIN_MAX_AGE = 60 * 30;
 
 export function signToken(userId, sessionId) {
   const payload = sessionId ? { sub: userId, sid: sessionId } : { sub: userId };
@@ -54,6 +56,47 @@ export async function getCurrentUser() {
 
 export async function requireAdmin() {
   const user = await getCurrentUser();
-  if (!user || user.role !== "admin") return null;
-  return user;
+  if (user?.role === "admin") return user;
+  return getSuperAdminUser();
+}
+
+export async function setSuperAdminCookie(admin) {
+  const token = jwt.sign(
+    { sub: admin._id.toString(), scope: "superadmin", email: process.env.SUPER_ADMIN_EMAIL?.trim().toLowerCase() },
+    JWT_SECRET,
+    { expiresIn: SUPERADMIN_MAX_AGE }
+  );
+  const store = await cookies();
+  store.set(SUPERADMIN_COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+    maxAge: SUPERADMIN_MAX_AGE,
+  });
+}
+
+export async function clearSuperAdminCookie() {
+  const store = await cookies();
+  store.delete(SUPERADMIN_COOKIE_NAME);
+}
+
+async function getSuperAdminUser() {
+  const store = await cookies();
+  const token = store.get(SUPERADMIN_COOKIE_NAME)?.value;
+  if (!token) return null;
+
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    if (payload.scope !== "superadmin" || payload.email !== process.env.SUPER_ADMIN_EMAIL?.trim().toLowerCase()) return null;
+    await dbConnect();
+    const admin = await User.findById(payload.sub);
+    return admin?.role === "admin" ? admin : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function requireSuperAdmin() {
+  return getSuperAdminUser();
 }

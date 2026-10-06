@@ -1,7 +1,8 @@
 import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 import dbConnect from "../../../../lib/mongodb";
 import User from "../../../../lib/models/User";
-import { requireAdmin } from "../../../../lib/auth";
+import { requireAdmin, requireSuperAdmin } from "../../../../lib/auth";
 import { logActivity } from "../../../../lib/activity";
 import { notifyUser } from "../../../../lib/notifications";
 
@@ -141,4 +142,33 @@ export async function PATCH(request) {
   await user.save();
 
   return Response.json({ user: { ...user.toObject(), passwordHash: undefined }, newPassword });
+}
+
+export async function DELETE(request) {
+  const admin = await requireSuperAdmin();
+  if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
+
+  const body = await request.json().catch(() => ({}));
+  const { userId } = body || {};
+  if (!userId || !mongoose.isValidObjectId(userId)) {
+    return Response.json({ error: "A valid userId is required." }, { status: 400 });
+  }
+
+  await dbConnect();
+  const user = await User.findById(userId);
+  if (!user) return Response.json({ error: "User not found." }, { status: 404 });
+  if (user.role === "admin" || user._id.equals(admin._id)) {
+    return Response.json({ error: "Admin accounts cannot be deleted here." }, { status: 403 });
+  }
+
+  await logActivity({
+    user: admin._id,
+    actorRole: "admin",
+    action: "user_deleted",
+    targetUser: user._id,
+    message: `Deleted user account ${user.uid}; transaction history was retained.`,
+  });
+  await user.deleteOne();
+
+  return Response.json({ deleted: true, userId });
 }

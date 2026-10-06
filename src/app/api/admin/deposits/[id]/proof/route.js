@@ -1,11 +1,11 @@
 import dbConnect from "../../../../../../lib/mongodb";
 import Transaction from "../../../../../../lib/models/Transaction";
-import { requireAdmin } from "../../../../../../lib/auth";
+import { requireSuperAdmin } from "../../../../../../lib/auth";
 
 // Serves the proof-of-payment image/PDF for one deposit, admin-only — kept
 // out of the list endpoint since these can be multi-MB each.
 export async function GET(request, ctx) {
-  const admin = await requireAdmin();
+  const admin = await requireSuperAdmin();
   if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
 
   const { id } = await ctx.params;

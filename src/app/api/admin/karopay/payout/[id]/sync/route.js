@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import dbConnect from "../../../../../../../lib/mongodb";
 import Payout from "../../../../../../../lib/models/Payout";
-import { requireAdmin } from "../../../../../../../lib/auth";
+import { requireSuperAdmin } from "../../../../../../../lib/auth";
 import { queryPayoutOrder, KaropayError } from "../../../../../../../lib/karopay";
 import { applyPayoutResult, serializePayout } from "../../../../../../../lib/payouts";
 
@@ -9,7 +9,7 @@ import { applyPayoutResult, serializePayout } from "../../../../../../../lib/pay
 // and applies it through the same idempotent path as the notify callback.
 // Never re-sends a payout.
 export async function POST(request, ctx) {
-  const admin = await requireAdmin();
+  const admin = await requireSuperAdmin();
   if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
 
   const { id } = await ctx.params;

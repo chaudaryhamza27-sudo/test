@@ -288,6 +288,8 @@ a{text-decoration:none;color:inherit}
    it was designed for — on the light kk-page surfaces (deposit/wallet/
    withdraw) it was rendering near-invisible near-white-on-near-white. */
 .kk-page .alert-info{color:var(--link)}
+.kk-page .alert-success{color:var(--success)}
+.kk-page .alert-warning{color:var(--warning)}
 /* Same issue as above for .alert-danger on the light kk-auth-shell surfaces
    (login/signup) — #ffd7dc text on a light pink background was unreadable. */
 .kk-auth-shell .alert-danger{color:var(--danger)}

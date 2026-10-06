@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import "./admin.css";
 import AdminLayout from "./AdminLayout";
 import CashOutPanel from "./CashOutPanel";
+import { SUPERADMIN_ROUTE_PATH } from "./super/superadminRoute";
 import { IconUsers, IconShield, IconWallet, IconLockLine, IconX, IconEye, IconEyeOff, IconCheck, IconTrendingUp, IconRefresh } from "../icons";
 
 function IconSearch(props) {
@@ -128,11 +129,14 @@ function PageHead({ title, sub, badge, onRefresh, refreshing, children }) {
   );
 }
 
-export default function AdminDashboard() {
+export default function AdminDashboard({ superadminMode = false } = {}) {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
+  const [superadminUnlocked, setSuperadminUnlocked] = useState(!superadminMode);
   const [tab, setTab] = useState("dashboard");
   const [users, setUsers] = useState([]);
+  const [deletingUser, setDeletingUser] = useState(null);
+  const [deletingHistoryItem, setDeletingHistoryItem] = useState("");
   const [deposits, setDeposits] = useState([]);
   const [withdrawals, setWithdrawals] = useState([]);
   // IDs (rather than booleans) keep a review in one row from disabling every
@@ -230,23 +234,27 @@ export default function AdminDashboard() {
   const loadAll = useCallback(async () => {
     const [usersRes, depositsRes, withdrawalsRes] = await Promise.all([
       fetch("/api/admin/users", { cache: "no-store" }),
-      fetch("/api/admin/deposits", { cache: "no-store" }),
-      fetch("/api/admin/withdrawals", { cache: "no-store" }),
+      superadminMode ? fetch("/api/admin/deposits", { cache: "no-store" }) : null,
+      superadminMode ? fetch("/api/admin/withdrawals", { cache: "no-store" }) : null,
     ]);
 
-    if (usersRes.status === 403 || depositsRes.status === 403 || withdrawalsRes.status === 403) {
-      router.push("/admin/login");
+    if (usersRes.status === 403 || (superadminMode && (depositsRes.status === 403 || withdrawalsRes.status === 403))) {
+      router.replace(superadminMode ? `${SUPERADMIN_ROUTE_PATH}/login` : "/admin/login");
       return;
     }
 
     const usersData = await usersRes.json();
-    const depositsData = await depositsRes.json();
-    const withdrawalsData = await withdrawalsRes.json();
-
     setUsers(usersData.users || []);
-    setDeposits(depositsData.deposits || []);
-    setWithdrawals(withdrawalsData.withdrawals || []);
-  }, [router]);
+    if (superadminMode) {
+      const depositsData = await depositsRes.json();
+      const withdrawalsData = await withdrawalsRes.json();
+      setDeposits(depositsData.deposits || []);
+      setWithdrawals(withdrawalsData.withdrawals || []);
+    } else {
+      setDeposits([]);
+      setWithdrawals([]);
+    }
+  }, [router, superadminMode]);
 
   useEffect(() => {
     fetch("/api/admin/ensure-seed").catch(() => {});
@@ -256,6 +264,14 @@ export default function AdminDashboard() {
     (async () => {
       setChecking(true);
       try {
+        if (superadminMode) {
+          const accessResponse = await fetch("/api/admin/superadmin", { cache: "no-store" });
+          if (!accessResponse.ok) {
+            router.replace(`${SUPERADMIN_ROUTE_PATH}/login`);
+            return;
+          }
+          setSuperadminUnlocked(true);
+        }
         await loadAll();
       } catch {
         setError("Failed to load admin data.");
@@ -263,12 +279,13 @@ export default function AdminDashboard() {
         setChecking(false);
       }
     })();
-  }, [loadAll]);
+  }, [loadAll, router, superadminMode]);
 
   // Only one device can be signed in as admin. When this admin account logs
   // in somewhere else, this session stops being valid — notice it quickly
   // and send this device back to the login page.
   useEffect(() => {
+    if (superadminMode) return;
     let stopped = false;
     const checkSession = async () => {
       try {
@@ -288,7 +305,30 @@ export default function AdminDashboard() {
       window.clearInterval(timer);
       window.removeEventListener("focus", checkSession);
     };
-  }, [router]);
+  }, [router, superadminMode]);
+
+  useEffect(() => {
+    if (!superadminMode || !superadminUnlocked) return;
+    let active = true;
+    const checkSuperadminAccess = async () => {
+      try {
+        const response = await fetch("/api/admin/superadmin", { cache: "no-store" });
+        if (active && !response.ok) {
+          setSuperadminUnlocked(false);
+          router.replace(`${SUPERADMIN_ROUTE_PATH}/login`);
+        }
+      } catch {
+        // Keep the current view during a brief network interruption.
+      }
+    };
+    const timer = window.setInterval(checkSuperadminAccess, 30_000);
+    window.addEventListener("focus", checkSuperadminAccess);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      window.removeEventListener("focus", checkSuperadminAccess);
+    };
+  }, [router, superadminMode, superadminUnlocked]);
 
   const loadOverview = useCallback(() => {
     return fetch("/api/admin/overview")
@@ -527,6 +567,7 @@ export default function AdminDashboard() {
   const [karopayTotalPages, setKaropayTotalPages] = useState(1);
   const [karopayStatusFilter, setKaropayStatusFilter] = useState("all");
   const [karopayVerifying, setKaropayVerifying] = useState("");
+  const [deletingKaropayPayment, setDeletingKaropayPayment] = useState("");
   const [karopayMessage, setKaropayMessage] = useState(null); // { tone, text }
 
   const loadKaropayPayments = useCallback(() => {
@@ -573,6 +614,31 @@ export default function AdminDashboard() {
       await Promise.all([loadKaropayPayments(), loadAll()]);
     } finally {
       setKaropayVerifying("");
+    }
+  };
+
+  const deleteKaropayPayment = async (payment) => {
+    if (!superadminMode || !["FAILED", "CANCELLED"].includes(payment.status)) return;
+    const amount = `Rs ${(payment.amount / 100).toLocaleString()}`;
+    if (!window.confirm(`Permanently delete this uncredited ${payment.status.toLowerCase()} Karo Pay payment (${amount})?`)) return;
+
+    setDeletingKaropayPayment(payment._id);
+    setKaropayMessage(null);
+    try {
+      const response = await fetch(`/api/admin/payments/${payment._id}`, { method: "DELETE" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setKaropayMessage({ tone: "error", text: data.error || "Failed to delete Karo Pay payment." });
+        return;
+      }
+      setKaropayPayments((current) => current.filter((item) => item._id !== payment._id));
+      setKaropayMessage({ tone: "success", text: `Deleted ${payment.status.toLowerCase()} payment ${payment.providerOrderId}. Wallet balance was not changed.` });
+      await loadAll();
+      await loadKaropayPayments();
+    } catch {
+      setKaropayMessage({ tone: "error", text: "Could not delete this Karo Pay payment." });
+    } finally {
+      setDeletingKaropayPayment("");
     }
   };
 
@@ -781,6 +847,72 @@ export default function AdminDashboard() {
     setUserStatsModal(data);
   };
 
+  const deleteUser = async (user) => {
+    if (!window.confirm(`Permanently delete ${user.name || user.uid}? Transaction and audit history will be retained.`)) return;
+    setDeletingUser(user._id);
+    setError("");
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user._id }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setError(data.error || "Failed to delete user.");
+        return;
+      }
+      setUsers((current) => current.filter((item) => item._id !== user._id));
+    } catch {
+      setError("Something went wrong deleting this user.");
+    } finally {
+      setDeletingUser(null);
+    }
+  };
+
+  const deleteHistoryRecord = async (kind, record) => {
+    if (!superadminMode) return;
+    const configs = {
+      deposit: { label: "deposit", url: "/api/admin/deposits", id: record._id, body: { transactionId: record._id } },
+      withdrawal: { label: "withdrawal", url: "/api/admin/withdrawals", id: record._id, body: { transactionId: record._id } },
+      cashout: { label: "cash-out", url: "/api/admin/cashouts", id: record.id, body: { cashoutId: record.id } },
+    };
+    const config = configs[kind];
+    if (!config?.id) return;
+    const pendingKey = `${kind}:${config.id}`;
+    const amount = Number(record.amount || 0).toLocaleString();
+    if (!window.confirm(`Permanently delete this ${config.label} history record (Rs ${amount})? Wallet balances and game outcomes will not change.`)) return;
+
+    setDeletingHistoryItem(pendingKey);
+    setError("");
+    try {
+      const response = await fetch(config.url, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config.body),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setError(data.error || `Failed to delete ${config.label} history.`);
+        return;
+      }
+      if (kind === "deposit") setDeposits((current) => current.filter((item) => item._id !== config.id));
+      if (kind === "withdrawal") {
+        setWithdrawals((current) => current.filter((item) => item._id !== config.id));
+        setSelectedWithdrawals((current) => {
+          const next = new Set(current);
+          next.delete(config.id);
+          return next;
+        });
+      }
+      if (kind === "cashout") await loadCashouts();
+    } catch {
+      setError(`Something went wrong deleting this ${config.label} history record.`);
+    } finally {
+      setDeletingHistoryItem("");
+    }
+  };
+
   const passwordRequirements = [
     { key: "len", label: "At least 8 characters", test: (v) => v.length >= 8 },
     { key: "num", label: "Include a number", test: (v) => /[0-9]/.test(v) },
@@ -943,13 +1075,24 @@ export default function AdminDashboard() {
   };
 
   const logout = async () => {
+    if (superadminMode) {
+      await fetch("/api/admin/superadmin", { method: "DELETE" });
+      router.push(`${SUPERADMIN_ROUTE_PATH}/login`);
+      return;
+    }
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/admin/login");
+  };
+
+  const lockSuperadmin = async () => {
+    await logout();
   };
 
   if (checking) {
     return <div className="admin-root admin-loading-screen">Loading admin panel…</div>;
   }
+
+  if (superadminMode && !superadminUnlocked) return <div className="admin-root admin-loading-screen">Opening superadmin login…</div>;
 
   const balanceLookupUser = balanceEmail.trim() ? findUserByEmail(balanceEmail) : null;
   const balanceLookupDeposits = balanceLookupUser
@@ -976,9 +1119,18 @@ export default function AdminDashboard() {
       active={tab}
       onNavigate={setTab}
       onLogout={logout}
+      onLockSuperAdmin={lockSuperadmin}
+      superadminMode={superadminMode}
       onRefreshTab={(key) => TAB_REFRESHERS[key] && refreshTab(key, TAB_REFRESHERS[key])}
       refreshingTab={refreshingTab}
     >
+      {superadminMode && (
+        <div className="superadmin-command-banner">
+          <span>SUPERADMIN</span>
+          <strong>Privileged control center</strong>
+          <p>Deposit, withdrawal, account, and audit controls are available in this secured session.</p>
+        </div>
+      )}
       {error && <div className="admin-banner-error">{error}</div>}
 
       {tab === "dashboard" && (
@@ -1192,9 +1344,20 @@ export default function AdminDashboard() {
                       <td>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : "—"}</td>
                       <td>
                         {u.role !== "admin" && (
-                          <button className="admin-small-btn" onClick={() => viewUserStats(u._id)}>
-                            Details
-                          </button>
+                          <div style={{ display: "flex", gap: 6 }}>
+                            <button className="admin-small-btn" onClick={() => viewUserStats(u._id)}>
+                              Details
+                            </button>
+                            {superadminMode && (
+                              <button
+                                className="admin-small-btn reject"
+                                onClick={() => deleteUser(u)}
+                                disabled={deletingUser === u._id}
+                              >
+                                {deletingUser === u._id ? "Deleting…" : "Delete"}
+                              </button>
+                            )}
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -1344,6 +1507,13 @@ export default function AdminDashboard() {
                             </button>
                           </>
                         )}
+                        <button
+                          className="admin-small-btn reject"
+                          onClick={() => deleteHistoryRecord("withdrawal", w)}
+                          disabled={deletingHistoryItem === `withdrawal:${w._id}`}
+                        >
+                          {deletingHistoryItem === `withdrawal:${w._id}` ? "Deleting…" : "Delete"}
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -1625,6 +1795,15 @@ export default function AdminDashboard() {
                           </button>
                         )}
                         {p.status === "COMPLETED" && <span style={{ fontSize: 11, color: "var(--a-success)", fontWeight: 800 }}>Auto-approved · Credited</span>}
+                        {superadminMode && ["FAILED", "CANCELLED"].includes(p.status) && (
+                          <button
+                            className="admin-small-btn reject"
+                            onClick={() => deleteKaropayPayment(p)}
+                            disabled={deletingKaropayPayment === p._id}
+                          >
+                            {deletingKaropayPayment === p._id ? "Deleting…" : "Delete"}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );
@@ -1680,18 +1859,19 @@ export default function AdminDashboard() {
                   <th>Round Crash</th>
                   <th>Payout (Rs)</th>
                   <th>Cashed Out</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {cashoutsLoading ? (
                   <tr>
-                    <td colSpan={6} className="empty">
+                    <td colSpan={7} className="empty">
                       Loading…
                     </td>
                   </tr>
                 ) : cashouts.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="empty">
+                    <td colSpan={7} className="empty">
                       No cashouts yet.
                     </td>
                   </tr>
@@ -1704,6 +1884,15 @@ export default function AdminDashboard() {
                       <td>{c.roundCrashPoint ? `${(c.roundCrashPoint / 100).toFixed(2)}x` : "—"}</td>
                       <td>Rs {Number(c.payout).toLocaleString()}</td>
                       <td>{new Date(c.cashedOutAt).toLocaleString()}</td>
+                      <td>
+                        <button
+                          className="admin-small-btn reject"
+                          onClick={() => deleteHistoryRecord("cashout", c)}
+                          disabled={deletingHistoryItem === `cashout:${c.id}`}
+                        >
+                          {deletingHistoryItem === `cashout:${c.id}` ? "Deleting…" : "Delete"}
+                        </button>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -1776,6 +1965,13 @@ export default function AdminDashboard() {
                           </button>
                         </>
                       )}
+                      <button
+                        className="admin-small-btn reject"
+                        onClick={() => deleteHistoryRecord("deposit", d)}
+                        disabled={deletingHistoryItem === `deposit:${d._id}`}
+                      >
+                        {deletingHistoryItem === `deposit:${d._id}` ? "Deleting…" : "Delete"}
+                      </button>
                     </td>
                   </tr>
                 ))}

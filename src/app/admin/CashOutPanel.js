@@ -69,6 +69,7 @@ export default function CashOutPanel({ withdrawals, preselectWithdrawalId, onPre
   const [submitting, setSubmitting] = useState(false);
   const [notice, setNotice] = useState(null); // { tone, text }
   const [syncingId, setSyncingId] = useState("");
+  const [deletingId, setDeletingId] = useState("");
   const submitLock = useRef(false);
 
   const pendingWithdrawals = useMemo(() => (withdrawals || []).filter((w) => w.status === "pending"), [withdrawals]);
@@ -201,6 +202,27 @@ export default function CashOutPanel({ withdrawals, preselectWithdrawalId, onPre
       onWithdrawalsChanged?.();
     } finally {
       setSyncingId("");
+    }
+  };
+
+  const deleteFailedPayout = async (payout) => {
+    if (payout.status !== "FAILED") return;
+    if (!window.confirm(`Permanently delete failed payout ${payout.merchantOrderId}? Pending and completed payouts cannot be deleted.`)) return;
+
+    setDeletingId(payout.id);
+    try {
+      const response = await fetch(`/api/admin/karopay/payout/${payout.id}`, { method: "DELETE" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setNotice({ tone: "error", text: data.error || "Failed to delete payout history." });
+        return;
+      }
+      setNotice({ tone: "success", text: "Failed payout record deleted. No additional balance change was made." });
+      await loadPayouts();
+    } catch {
+      setNotice({ tone: "error", text: "Could not delete the failed payout record." });
+    } finally {
+      setDeletingId("");
     }
   };
 
@@ -383,6 +405,16 @@ export default function CashOutPanel({ withdrawals, preselectWithdrawalId, onPre
                     {p.status === "PENDING" && (
                       <button type="button" className="admin-small-btn" onClick={() => syncPayout(p.id)} disabled={syncingId === p.id}>
                         {syncingId === p.id ? "Checking…" : "Check status"}
+                      </button>
+                    )}
+                    {p.status === "FAILED" && (
+                      <button
+                        type="button"
+                        className="admin-small-btn reject"
+                        onClick={() => deleteFailedPayout(p)}
+                        disabled={deletingId === p.id}
+                      >
+                        {deletingId === p.id ? "Deleting…" : "Delete"}
                       </button>
                     )}
                   </td>

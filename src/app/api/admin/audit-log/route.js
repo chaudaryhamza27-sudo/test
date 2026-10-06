@@ -1,11 +1,11 @@
 import dbConnect from "../../../../lib/mongodb";
 import Activity from "../../../../lib/models/Activity";
-import { requireAdmin } from "../../../../lib/auth";
+import { requireSuperAdmin } from "../../../../lib/auth";
 
 const PAGE_SIZE = 25;
 
 export async function GET(request) {
-  const admin = await requireAdmin();
+  const admin = await requireSuperAdmin();
   if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
 
   const { searchParams } = new URL(request.url);

@@ -3,7 +3,7 @@ import dbConnect from "../../../../../lib/mongodb";
 import Payout from "../../../../../lib/models/Payout";
 import User from "../../../../../lib/models/User";
 import Transaction from "../../../../../lib/models/Transaction";
-import { requireAdmin } from "../../../../../lib/auth";
+import { requireSuperAdmin } from "../../../../../lib/auth";
 import { createPayoutOrder, makeSyntheticCert, KaropayError } from "../../../../../lib/karopay";
 import { checkRateLimit, getClientIp } from "../../../../../lib/rateLimit";
 import { logActivity } from "../../../../../lib/activity";
@@ -51,7 +51,7 @@ function withoutSign(data) {
 }
 
 export async function GET(request) {
-  const admin = await requireAdmin();
+  const admin = await requireSuperAdmin();
   if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
 
   const { searchParams } = new URL(request.url);
@@ -65,7 +65,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const admin = await requireAdmin();
+  const admin = await requireSuperAdmin();
   if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
 
   const limit = checkRateLimit(`admin-payout:${admin._id}`, { max: 6, windowMs: 60_000 });

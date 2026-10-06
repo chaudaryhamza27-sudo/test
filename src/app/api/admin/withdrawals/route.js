@@ -1,14 +1,13 @@
+import mongoose from "mongoose";
 import dbConnect from "../../../../lib/mongodb";
 import Transaction from "../../../../lib/models/Transaction";
-import User from "../../../../lib/models/User";
-import { requireAdmin } from "../../../../lib/auth";
+import { requireSuperAdmin } from "../../../../lib/auth";
 import { adjustBalance } from "../../../../lib/wallet";
 import { logActivity } from "../../../../lib/activity";
 import { notifyUser } from "../../../../lib/notifications";
-import { escapeTelegramHtml, sendTelegramMessage } from "../../../../lib/telegram";
 
 export async function GET() {
-  const admin = await requireAdmin();
+  const admin = await requireSuperAdmin();
   if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
 
   await dbConnect();
@@ -19,7 +18,7 @@ export async function GET() {
 }
 
 export async function PATCH(request) {
-  const admin = await requireAdmin();
+  const admin = await requireSuperAdmin();
   if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
 
   const body = await request.json();
@@ -58,13 +57,6 @@ export async function PATCH(request) {
     meta: { transactionId: tx._id, amount: tx.amount },
   });
 
-  const targetUser = await User.findById(tx.user).select("uid name").lean();
-  await sendTelegramMessage(
-    action === "approve"
-      ? `✅ <b>Withdrawal Approved</b>\nUser: ${escapeTelegramHtml(targetUser?.name || targetUser?.uid || tx.user)}\nAmount: Rs${Number(tx.amount).toLocaleString()}\nStatus: Approved`
-      : `❌ <b>Withdrawal Rejected</b>\nUser: ${escapeTelegramHtml(targetUser?.name || targetUser?.uid || tx.user)}\nAmount: Rs${Number(tx.amount).toLocaleString()}\nStatus: Rejected\nFunds refunded to user`,
-    { withdraw: true }
-  );
   await notifyUser(tx.user, {
     type: action === "approve" ? "withdraw_approved" : "withdraw_rejected",
     title: action === "approve" ? "Withdrawal approved" : "Withdrawal rejected",
@@ -75,4 +67,31 @@ export async function PATCH(request) {
   });
 
   return Response.json({ withdrawal: tx });
+}
+
+export async function DELETE(request) {
+  const admin = await requireSuperAdmin();
+  if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
+
+  const body = await request.json().catch(() => ({}));
+  const { transactionId } = body || {};
+  if (!transactionId || !mongoose.isValidObjectId(transactionId)) {
+    return Response.json({ error: "A valid transactionId is required." }, { status: 400 });
+  }
+
+  await dbConnect();
+  const transaction = await Transaction.findOne({ _id: transactionId, type: "withdraw" });
+  if (!transaction) return Response.json({ error: "Withdrawal not found." }, { status: 404 });
+
+  await logActivity({
+    user: admin._id,
+    actorRole: "admin",
+    action: "withdrawal_history_deleted",
+    targetUser: transaction.user,
+    message: `Permanently deleted a withdrawal history record of Rs${Number(transaction.amount).toLocaleString()}; wallet balance was not changed.`,
+    meta: { transactionId: transaction._id, amount: transaction.amount, status: transaction.status },
+  });
+  await transaction.deleteOne();
+
+  return Response.json({ deleted: true, transactionId });
 }
