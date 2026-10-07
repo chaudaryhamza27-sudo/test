@@ -337,8 +337,23 @@ export default function DepositPage() {
                 {selectedMethod === "easypaisa" && (
                   <div className="deposit-qr-instructions">
                     <h3>Scan to pay with EasyPaisa</h3>
-                    <p>Pay the exact amount above using this QR code, then upload your payment receipt.</p>
-                    <img src="/qrcode.jpeg" alt="EasyPaisa QR payment code" width="360" height="433" />
+                    <p>Scan the QR in EasyPaisa to pay the exact amount. Use the short guide if needed, then upload your receipt.</p>
+                    <div className="deposit-qr-media">
+                      <div className="deposit-qr-media-item">
+                        <img src="/qrcode.jpeg" alt="EasyPaisa QR payment code" width="360" height="433" />
+                        <span>Scan to Pay</span>
+                      </div>
+                      <div className="deposit-qr-media-item">
+                        <video
+                          src="/WhatsApp%20Video%202026-10-06%20at%2010.45.37%20PM%20(1).mp4"
+                          controls
+                          playsInline
+                          preload="metadata"
+                          aria-label="EasyPaisa payment guide"
+                        />
+                        <span>Payment Guide</span>
+                      </div>
+                    </div>
                   </div>
                 )}
                 {selectedMethod && (

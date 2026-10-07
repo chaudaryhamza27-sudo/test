@@ -1163,10 +1163,16 @@ a{text-decoration:none;color:inherit}
 .deposit-number-input-box > span{font-size:11px;color:var(--kk-muted);font-weight:700}
 .deposit-number-input-box input{margin-top:4px;width:100%;background:none;border:0;outline:none;color:var(--kk-text);font-size:16px;font-weight:800;letter-spacing:.4px}
 .deposit-number-input-box input::placeholder{color:var(--text-faint);font-weight:700}
-.deposit-qr-instructions{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);text-align:center}
+.deposit-qr-instructions{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);text-align:left}
 .deposit-qr-instructions h3{margin:0;color:var(--kk-text);font-size:14px}
-.deposit-qr-instructions p{max-width:360px;margin:0;color:var(--kk-muted);font-size:12px;line-height:1.5}
+.deposit-qr-instructions p{max-width:520px;margin:0;color:var(--kk-muted);font-size:12px;line-height:1.5}
 .deposit-qr-instructions img{display:block;width:min(100%,280px);height:auto;max-height:340px;object-fit:contain}
+.deposit-qr-media{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:100%;max-width:640px;margin-top:4px}
+.deposit-qr-media-item{display:flex;min-width:0;flex-direction:column;align-items:center;gap:8px;padding:10px;border:1px solid var(--border);border-radius:14px;background:var(--surface-sunken)}
+.deposit-qr-media-item img{display:block;width:min(100%,280px);height:auto;max-height:320px;object-fit:contain;border-radius:10px;background:#fff}
+.deposit-qr-media-item video{display:block;width:100%;height:180px;object-fit:contain;border-radius:10px;background:#111827}
+.deposit-qr-media-item span{font-size:11px;color:var(--kk-muted);font-weight:700}
+@media(max-width:600px){.deposit-qr-media{grid-template-columns:1fr;max-width:360px;margin-inline:auto}}
 .deposit-proof-upload{display:flex;flex-direction:column;gap:6px;margin-top:12px;padding:12px 14px;border:1px solid var(--border);border-radius:14px;background:var(--surface-sunken)}
 .deposit-proof-upload label{font-size:11px;color:var(--kk-muted);font-weight:700}
 .deposit-proof-upload input{width:100%;font-size:12px;color:var(--kk-text)}

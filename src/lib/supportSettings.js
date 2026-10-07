@@ -9,6 +9,7 @@ const REQUIRED_METHODS = [
   { key: "easypaisa", label: "EasyPaisa" },
   { key: "jazzcash", label: "JazzCash" },
   { key: "karopay", label: "Karopay" },
+  { key: "ngpay", label: "NG Pay" },
 ];
 // Withdraw dropped Karopay (its automated-checkout flow is deposit-only —
 // there's no equivalent instant payout API wired up here, so it never made

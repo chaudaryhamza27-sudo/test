@@ -1,0 +1,17 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "NG Pay signature tests",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"--conditions=react-server",
+				"--test",
+				"tests/ngpay-signature.test.mjs"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}
