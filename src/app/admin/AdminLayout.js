@@ -8,8 +8,6 @@ import {
   IconWallet,
   IconTrophy,
   IconDeposit,
-  IconHistory,
-  IconTransaction,
   IconShield,
   IconLogout,
   IconHeadset,
@@ -32,9 +30,6 @@ const SUPERADMIN_NAV_ITEMS = [
   ...ADMIN_NAV_ITEMS,
   { key: "cashouts", label: "Cash Out History", icon: IconTrophy },
   { key: "deposits", label: "Deposits", icon: IconDeposit },
-  { key: "rounds", label: "Game Rounds", icon: IconHistory },
-  { key: "payments", label: "Payments", icon: IconTransaction },
-  { key: "audit", label: "Audit Log", icon: IconShield },
 ];
 
 function HamburgerIcon(props) {
