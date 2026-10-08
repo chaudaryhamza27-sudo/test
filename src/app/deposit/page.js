@@ -1,549 +1,1097 @@
 "use client";
 
+
+
 import { useEffect, useRef, useState } from "react";
+
 import Link from "next/link";
+
 import { useRouter } from "next/navigation";
+
 import {
+
   IconChevronLeft,
+
   IconChevronRight,
+
   IconShield,
+
   IconDeposit,
+
   IconGlobe,
+
   IconHeadset,
+
   IconX,
+
 } from "../icons";
+
 import KaropayAddFunds from "../components/KaropayAddFunds";
+
 import NgPayAddFunds from "../components/NgPayAddFunds";
+
 import BottomNav from "../components/BottomNav";
+
 import HistoryList from "../components/HistoryList";
+
 import styles from "./deposit.module.css";
 
+
+
 const QUICK_AMOUNTS = [3000, 5000, 10000, 20000, 30000];
+
 const MIN_DEPOSIT = 3000;
+
 const MAX_DEPOSIT = 50000;
+
+
 
 const formatShort = (v) => (v >= 1000 ? `${v / 1000}K` : `${v}`);
 
+
+
 const PAYMENT_METHODS = [
+
   { key: "jazzcash", label: "JazzCash", logo: "/game/jazz.png" },
+
   { key: "easypaisa", label: "Easypaisa", logo: "/game/esy.png" },
+
 ];
 
+
+
 export default function DepositPage() {
+
   const router = useRouter();
+
   const [tab, setTab] = useState("karopay");
+
   const [balance, setBalance] = useState(0);
+
   const [amount, setAmount] = useState(null);
+
   const [customMode, setCustomMode] = useState(false);
+
   const [methods, setMethods] = useState(null); // [{ key, label, enabled }] from admin settings
+
   const [selectedMethod, setSelectedMethod] = useState(null);
+
   const [senderNumber, setSenderNumber] = useState("");
+
   const [proofImage, setProofImage] = useState("");
+
   const [proofFileName, setProofFileName] = useState("");
+
   const proofInputRef = useRef(null);
+
   const [submitting, setSubmitting] = useState(false);
+
   const [popup, setPopup] = useState(null);
+
   const [redirectAt, setRedirectAt] = useState(null);
+
   const [secondsLeft, setSecondsLeft] = useState(120);
 
+
+
   useEffect(() => {
+
     if (!redirectAt) return;
+
     const tick = () => {
+
       const remaining = Math.max(0, Math.ceil((redirectAt - Date.now()) / 1000));
+
       setSecondsLeft(remaining);
+
       if (remaining === 0) router.replace("/crash?deposit=check");
+
     };
+
     tick();
+
     const timer = setInterval(tick, 1000);
+
     return () => clearInterval(timer);
+
   }, [redirectAt, router]);
 
-  useEffect(() => {
-    // Karopay redirects back here with ?karopay=return — that popup is owned
-    // by <KaropayAddFunds>, which only mounts on the Karopay tab, so jump
-    // there first or the redirect silently does nothing.
-    const returnParams = new URLSearchParams(window.location.search);
-    if (returnParams.has("karopay")) setTab("karopay");
-    // Same for NG Pay's ?ngpay=return, owned by <NgPayAddFunds> on the NG Pay tab.
-    else if (returnParams.has("ngpay")) setTab("ngpay");
-  }, []);
+
 
   useEffect(() => {
-    fetch("/api/wallet")
-      .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data) => setBalance(data.balance))
-      .catch(() => router.push("/login"));
-    fetch("/api/support-settings")
-      .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data) => {
-        const list = data.methods || [];
-        setMethods(list);
-        const firstEnabled = PAYMENT_METHODS.find((m) => list.find((x) => x.key === m.key)?.enabled);
-        if (firstEnabled) setSelectedMethod(firstEnabled.key);
-      })
-      .catch(() => setMethods([]));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    // Karopay redirects back here with ?karopay=return — that popup is owned
+
+    // by <KaropayAddFunds>, which only mounts on the Karopay tab, so jump
+
+    // there first or the redirect silently does nothing.
+
+    const returnParams = new URLSearchParams(window.location.search);
+
+    if (returnParams.has("karopay")) setTab("karopay");
+
+    // Same for NG Pay's ?ngpay=return, owned by <NgPayAddFunds> on the NG Pay tab.
+
+    else if (returnParams.has("ngpay")) setTab("ngpay");
+
   }, []);
+
+
+
+  useEffect(() => {
+
+    fetch("/api/wallet")
+
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+
+      .then((data) => setBalance(data.balance))
+
+      .catch(() => router.push("/login"));
+
+    fetch("/api/support-settings")
+
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+
+      .then((data) => {
+
+        const list = data.methods || [];
+
+        setMethods(list);
+
+        const firstEnabled = PAYMENT_METHODS.find((m) => list.find((x) => x.key === m.key)?.enabled);
+
+        if (firstEnabled) setSelectedMethod(firstEnabled.key);
+
+      })
+
+      .catch(() => setMethods([]));
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+  }, []);
+
+
 
   const openNotice = (msg, tone = "info") => setPopup({ msg, tone });
+
   const closeNotice = () => setPopup(null);
 
+
+
   const pickAmount = (v) => {
+
     setAmount(v);
+
     setCustomMode(false);
+
   };
+
+
 
   const clearProof = () => {
+
     setProofImage("");
+
     setProofFileName("");
+
     if (proofInputRef.current) proofInputRef.current.value = "";
+
   };
+
+
 
   const handleProofChange = (e) => {
+
     const file = e.target.files?.[0];
+
     if (!file) return;
+
     if (!new Set(["image/jpeg", "image/png", "application/pdf"]).has(file.type) || file.size > 5 * 1024 * 1024) {
+
       clearProof();
+
       openNotice("Payment proof must be a JPG, PNG or PDF under 5MB.", "error");
+
       return;
+
     }
+
     const reader = new FileReader();
+
     reader.onload = () => {
+
       if (typeof reader.result === "string") {
+
         setProofImage(reader.result);
+
         setProofFileName(file.name);
+
       }
+
     };
+
     reader.onerror = () => {
+
       clearProof();
+
       openNotice("Could not read the payment proof. Please try another file.", "error");
+
     };
+
     reader.readAsDataURL(file);
+
   };
+
+
 
   const selectMethod = (key) => {
+
     setSelectedMethod(key);
+
     if (key !== "easypaisa") clearProof();
+
   };
+
+
 
   const isMethodEnabled = (key) => methods?.find((m) => m.key === key)?.enabled;
+
   const karopayEnabled = isMethodEnabled("karopay");
+
   const ngpayEnabled = isMethodEnabled("ngpay");
+
   // Manual Deposit isn't a single toggle in admin — it's "on" whenever at
+
   // least one of its underlying methods (JazzCash/Easypaisa) is advertised,
+
   // same rule the Karopay tab already follows off its own single toggle.
+
   const manualEnabled = methods === null || PAYMENT_METHODS.some((m) => isMethodEnabled(m.key));
 
+
+
   // Keep the active tab pointed at a method the admin actually has enabled —
+
   // jump to whichever one is still available the moment the other drops out.
+
   useEffect(() => {
+
     if (methods === null) return;
+
     // Admin has switched every deposit method off — nothing to show here.
+
     const available = [karopayEnabled && "karopay", ngpayEnabled && "ngpay", manualEnabled && "manual"].filter(Boolean);
+
     if (available.length === 0) {
+
       router.replace("/");
+
       return;
+
     }
+
     if (!available.includes(tab)) setTab(available[0]);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [methods, manualEnabled, karopayEnabled, ngpayEnabled]);
 
+
+
   const handleSubmit = async () => {
+
     if (!amount || amount < MIN_DEPOSIT) {
+
       openNotice(`Minimum deposit is Rs${MIN_DEPOSIT}.`, "error");
+
       return;
+
     }
+
     if (!selectedMethod || !isMethodEnabled(selectedMethod)) {
+
       openNotice("Please choose a payment method.", "error");
+
       return;
+
     }
+
     if (!senderNumber.trim()) {
+
       openNotice("Please enter the number you sent the payment from.", "error");
+
       return;
+
     }
+
     if (selectedMethod === "easypaisa" && !proofImage) {
+
       openNotice("Upload your EasyPaisa QR payment receipt before submitting.", "error");
+
       return;
+
     }
+
     if (submitting || redirectAt) return;
+
     setSubmitting(true);
+
     try {
+
       const methodLabel = selectedMethod === "easypaisa"
+
         ? "EasyPaisa (QRCode)"
+
         : PAYMENT_METHODS.find((m) => m.key === selectedMethod)?.label || selectedMethod;
+
       const res = await fetch("/api/deposit", {
+
         method: "POST",
+
         headers: { "Content-Type": "application/json" },
+
         body: JSON.stringify({ amount, method: methodLabel, accountNumber: senderNumber.trim(), proofImage }),
+
       });
+
       const data = await res.json();
+
       if (!res.ok) {
+
         openNotice(data.error || "Failed to submit deposit request.", "error");
+
         return;
+
       }
+
       setSenderNumber("");
+
       clearProof();
+
       setSecondsLeft(120);
+
       setRedirectAt(Date.now() + 120000);
+
       openNotice(
+
         `Deposit Request Submitted — Your ${methodLabel} deposit request has been received and is waiting for admin verification. You'll be notified once it's reviewed.`,
+
         "success"
+
       );
+
     } catch {
+
       openNotice("Something went wrong. Please try again.", "error");
+
     } finally {
+
       setSubmitting(false);
+
     }
+
   };
 
+
+
   return (
+
     <div className="kk-page">
+
       <header className="kk-header">
+
         <Link href="/" className="kk-header-icon-btn">
+
           <IconChevronLeft />
+
         </Link>
+
         <div style={{ textAlign: "center" }}>
+
           <span className="kk-header-title" style={{ display: "block" }}>Deposit</span>
+
           <span style={{ fontSize: 11, color: "var(--kk-muted)" }}>Add money to your wallet</span>
+
         </div>
+
         <span className="badge-pill badge-info">
+
           <IconShield style={{ width: 11, height: 11 }} />
+
           100% Secure
+
         </span>
+
       </header>
 
+
+
       <main>
+
         <section className="kk-wallet-banner wallet-hero">
+
           <IconDeposit className="wallet-hero-watermark" />
+
           <div className="kk-wallet-label-row">
+
             <span>CURRENT BALANCE</span>
+
           </div>
+
           <div className="kk-wallet-balance">Rs{Number(balance).toFixed(2)}</div>
+
           <div className="kk-wallet-balance-label">Available to use</div>
+
         </section>
 
+
+
         {(manualEnabled || karopayEnabled || ngpayEnabled) && (
+
           <div className="deposit-tabs">
+
             {karopayEnabled && (
+
               <button
+
                 className={`deposit-tab ${tab === "karopay" ? "active" : ""}`}
+
                 onClick={() => setTab("karopay")}
+
               >
+
                 <span className="deposit-tab-icon purple">🚀</span>
+
                 <span>
+
                   <b>Add Funds (Karopay)</b>
+
                   <span>Instant deposit via Karopay</span>
+
                 </span>
+
               </button>
+
             )}
+
             {ngpayEnabled && (
+
               <button
+
                 className={`deposit-tab ${tab === "ngpay" ? "active" : ""}`}
+
                 onClick={() => setTab("ngpay")}
+
               >
+
                 <span className="deposit-tab-icon purple">⚡</span>
+
                 <span>
+
                   <b>Add Funds (NG Pay)</b>
+
                   <span>Instant deposit via NG Pay</span>
+
                 </span>
+
               </button>
+
             )}
+
             {manualEnabled && (
+
               <button
+
                 className={`deposit-tab ${tab === "manual" ? "active" : ""}`}
+
                 onClick={() => setTab("manual")}
+
               >
+
                 <span className="deposit-tab-icon blue">
+
                   <IconDeposit />
+
                 </span>
+
                 <span>
+
                   <b>Deposit Funds</b>
+
                   <span>Deposit manually</span>
+
                 </span>
+
               </button>
+
             )}
-            
+
+
+
           </div>
+
         )}
+
+
 
         {methods !== null && !manualEnabled && !karopayEnabled && !ngpayEnabled ? (
+
           <section className="deposit-step-card" style={{ textAlign: "center",margin:"10px" }}>
+
             <h2 style={{ marginBottom: 8 }}>No Payment Methods Available</h2>
+
             <p style={{ fontSize: 12.5, color: "var(--kk-muted)" }}>
+
               Deposits are temporarily unavailable. Please contact support or try again later.
+
             </p>
+
           </section>
+
         ) : tab === "manual" ? (
+
           <div className="deposit-grid-2col">
+
             <div className="deposit-main-col">
+
               <section className="deposit-step-card">
+
                 <div className="deposit-amount-head">
+
                   <span className="deposit-amount-icon">
+
                     <IconDeposit />
+
                   </span>
+
                   <h2>Deposit amount</h2>
+
                 </div>
+
+
 
                 <div className="deposit-amount-grid">
+
                   {QUICK_AMOUNTS.map((v) => (
+
                     <button
+
                       key={v}
+
                       type="button"
+
                       className={`deposit-amount-tile ${!customMode && amount === v ? "active" : ""}`}
+
                       onClick={() => pickAmount(v)}
+
                     >
+
                       <span className="tile-rs">Rs</span>
+
                       <span className="tile-val">{formatShort(v)}</span>
+
                     </button>
+
                   ))}
+
                 </div>
+
+
 
                 <div className="deposit-amount-inputbar">
+
                   <span className="inputbar-rs">Rs</span>
+
                   <input
+
                     type="number"
+
                     inputMode="decimal"
+
                     min={MIN_DEPOSIT}
+
                     max={MAX_DEPOSIT}
+
                     placeholder={`Rs${MIN_DEPOSIT.toLocaleString()}.00 - Rs${MAX_DEPOSIT.toLocaleString()}.00`}
+
                     value={amount ?? ""}
+
                     onChange={(e) => {
+
                       setCustomMode(true);
+
                       const v = e.target.value;
+
                       setAmount(v === "" ? null : Number(v) || 0);
+
                     }}
+
                   />
+
                   {amount != null && (
+
                     <button
+
                       type="button"
+
                       className="inputbar-clear"
+
                       aria-label="Clear amount"
+
                       onClick={() => {
+
                         setAmount(null);
+
                         setCustomMode(false);
+
                       }}
+
                     >
+
                       <IconX />
+
                     </button>
+
                   )}
+
                 </div>
+
                 <div className="deposit-min-hint">Minimum deposit: Rs{MIN_DEPOSIT}</div>
+
               </section>
 
+
+
               <section className="deposit-step-card">
+
                 <div className="deposit-step-head">
+
                   <span className="deposit-step-num">2</span>
+
                   <div>
+
                     <h2>Payment Method</h2>
+
                     <p>Choose one</p>
+
                   </div>
+
                 </div>
+
                 <div className="deposit-method-grid">
+
                   {PAYMENT_METHODS.filter((m) => isMethodEnabled(m.key)).map((m) => (
+
                     <button
+
                       key={m.key}
+
                       type="button"
+
                       className={`deposit-method-card ${selectedMethod === m.key ? "selected" : ""}`}
+
                       onClick={() => selectMethod(m.key)}
+
                     >
+
                       <img src={m.logo} alt={m.label} />
+
                       <span>{m.label}</span>
+
                     </button>
+
                   ))}
+
                 </div>
-                {selectedMethod === "easypaisa" && (
+
+                {(selectedMethod === "easypaisa" || selectedMethod === "jazzcash") && (
+
                   <div className="deposit-qr-instructions">
-                    <h3>Scan to pay with EasyPaisa</h3>
-                    <p>Scan the QR in EasyPaisa to pay the exact amount. Use the short guide if needed, then upload your receipt.</p>
+
+                    <h3>Scan to pay with {selectedMethod === "jazzcash" ? "JazzCash" : "EasyPaisa"}</h3>
+
+                    <p>Scan the QR in {selectedMethod === "jazzcash" ? "JazzCash" : "EasyPaisa"} to pay the exact amount. Use the short guide if needed{selectedMethod === "easypaisa" ? ", then upload your receipt." : "."}</p>
+
                     <div className="deposit-qr-media">
+
                       <div className="deposit-qr-media-item">
-                        <img src="/qrcode.jpeg" alt="EasyPaisa QR payment code" width="360" height="433" />
+
+                        <img src={selectedMethod === "jazzcash" ? "/qrcodejazz.jpeg" : "/qrcode.jpeg"} alt={`${selectedMethod === "jazzcash" ? "JazzCash" : "EasyPaisa"} QR payment code`} width="360" height="433" />
+
                         <span>Scan to Pay</span>
+
                       </div>
+
                       <div className="deposit-qr-media-item">
+
                         <video
+
                           src="/WhatsApp%20Video%202026-10-06%20at%2010.45.37%20PM%20(1).mp4"
+
                           controls
+
                           playsInline
+
                           preload="metadata"
-                          aria-label="EasyPaisa payment guide"
+
+                          aria-label={`${selectedMethod === "jazzcash" ? "JazzCash" : "EasyPaisa"} payment guide`}
+
                         />
+
                         <span>Payment Guide</span>
+
                       </div>
+
                     </div>
+
                   </div>
+
                 )}
+
                 {selectedMethod && (
+
                   <div className="deposit-number-input-box">
+
                     <span>Your {PAYMENT_METHODS.find((m) => m.key === selectedMethod)?.label} Number</span>
+
                     <input
+
                       type="tel"
+
                       inputMode="numeric"
+
                       placeholder="03XXXXXXXXX"
+
                       maxLength={15}
+
                       value={senderNumber}
+
                       onChange={(e) => setSenderNumber(e.target.value)}
+
                     />
+
                   </div>
+
                 )}
+
                 {selectedMethod === "easypaisa" && (
+
                   <div className="deposit-proof-upload">
+
                     <label htmlFor="manual-deposit-proof">Payment receipt</label>
+
                     <input
+
                       ref={proofInputRef}
+
                       id="manual-deposit-proof"
+
                       type="file"
+
                       accept="image/jpeg,image/png,application/pdf"
+
                       onChange={handleProofChange}
+
                     />
+
                     <span>{proofFileName || "Required · JPG, PNG or PDF · max 5MB"}</span>
+
                   </div>
+
                 )}
+
               </section>
+
+
 
               <button className="deposit-submit-btn" onClick={handleSubmit} disabled={submitting}>
+
                 {submitting ? "Submitting…" : "Submit Deposit Request"}
+
                 <IconChevronRight style={{ width: 16, height: 16 }} />
+
               </button>
 
+
+
               <section className="deposit-step-card">
+
                 <div className="deposit-step-head">
+
                   <span className="deposit-step-num">3</span>
+
                   <div>
+
                     <h2>Important Instructions</h2>
+
                   </div>
+
                 </div>
+
                 <ul className="deposit-instructions">
+
                   <li>Send the exact amount using your selected payment method</li>
+
                   <li>Keep your payment receipt until it's verified</li>
+
                   <li>Your deposit will be verified within minutes</li>
+
                 </ul>
+
               </section>
+
             </div>
 
+
+
             <div className="deposit-side-col">
+
               <div className="alert alert-info">
-              
+
+
+
                 <span>
+
                   <b>Note</b> — Make sure to send from your own account. Third-party payments are not accepted.
+
                 </span>
+
               </div>
 
+
+
               <section className="deposit-safety-card">
+
                 <div className="deposit-info-head">
+
                   <span className="deposit-info-icon success">
+
                     <IconShield />
+
                   </span>
+
                   <h2>Your Money is Safe</h2>
+
                 </div>
+
                 <ul className="deposit-safety-list">
+
                   <li>🔒 SSL Encrypted</li>
+
                   <li>✏️ Fast Verification</li>
+
                   <li>🕐 24/7 Support</li>
+
                   <li>💰 Secure Transactions</li>
+
                 </ul>
+
               </section>
+
             </div>
+
           </div>
+
         ) : (
+
           <div className="deposit-grid-2col">
+
             <div className="deposit-main-col">
+
               <section className="deposit-step-card">
+
                 {tab === "ngpay" ? (
+
                   ngpayEnabled ? (
+
                     <NgPayAddFunds onBalanceChange={setBalance} />
+
                   ) : (
+
                     <p style={{ fontSize: 12.5, color: "var(--kk-muted)" }}>
+
                       NG Pay deposits are currently unavailable. Please use Deposit Funds instead.
+
                     </p>
+
                   )
+
                 ) : karopayEnabled ? (
+
                   <KaropayAddFunds inline theme="light" onBalanceChange={setBalance} />
+
                 ) : (
+
                   <p style={{ fontSize: 12.5, color: "var(--kk-muted)" }}>
+
                     Karopay deposits are currently unavailable. Please use Deposit Funds instead.
+
                   </p>
+
                 )}
+
               </section>
+
             </div>
+
             <div className="deposit-side-col">
+
               <section className="deposit-safety-card">
+
                 <div className="deposit-info-head">
+
                   <span className="deposit-info-icon success">
+
                     <IconShield />
+
                   </span>
+
                   <h2>Your Money is Safe</h2>
+
                 </div>
+
                 <ul className="deposit-safety-list">
+
                   <li>🔒 SSL Encrypted</li>
+
                     <li>⚡ Instant Balance Update</li>
+
                   <li>🕐 24/7 Support</li>
+
                   <li>💰 Secure Transactions</li>
+
                 </ul>
+
               </section>
+
             </div>
+
           </div>
+
         )}
+
+
 
         <HistoryList type="deposit" title="Deposit History" />
 
+
+
         <div className="deposit-help-footer">
+
           <div className="deposit-help-footer-head">
+
             <span className="deposit-help-footer-icon">
+
               <IconGlobe />
+
             </span>
+
             <div>
+
               <b>Need Help?</b>
+
               <p>If you face any issues with deposit, please contact our support.</p>
+
             </div>
+
           </div>
+
           <Link href="/support" className="deposit-help-footer-btn">
+
             <IconHeadset style={{ width: 16, height: 16 }} />
+
             Contact Support
+
           </Link>
+
         </div>
 
+
+
         {/* <footer className="kk-footer">
+
           Lucky73 is an educational simulation using virtual funds only — no real money or payment gateway is
+
           involved. See our <Link href="/legal/terms">Terms</Link> and{" "}
+
           <Link href="/legal/deposit-policy">Deposit Policy</Link>.
+
         </footer> */}
+
       </main>
+
+
 
       <BottomNav />
 
+
+
       {redirectAt && (
+
         <div className={styles.overlay}>
+
           <section className={styles.card} role="dialog" aria-modal="true" aria-labelledby="deposit-wait-title" aria-describedby="deposit-wait-description" tabIndex={-1} ref={(node) => node?.focus()}>
+
             <span className={styles.badge}><IconShield /> Request received</span>
+
             <h2 id="deposit-wait-title">You’re almost there</h2>
+
             <p id="deposit-wait-description">Your request is waiting for verification. We’ll take you to Crash when the countdown ends.</p>
+
             <div className={styles.timerRing} style={{ "--progress": `${((120 - secondsLeft) / 120) * 360}deg` }}>
+
             <div className={styles.clock} role="timer" aria-label={`${secondsLeft} seconds remaining`}>
+
               <strong>{String(Math.floor(secondsLeft / 60)).padStart(2, "0")}<span>:</span>{String(secondsLeft % 60).padStart(2, "0")}</strong>
+
               <small>TIME REMAINING</small>
+
             </div>
+
             </div>
+
             <div className={styles.steps}><span><b>✓</b>Submitted</span><i /><span className={styles.currentStep}><b>2</b>Waiting</span><i /><span><b>3</b>Open Crash</span></div>
+
             <div className={styles.destination}><IconDeposit /><div><small>UP NEXT</small><b>Crash game</b></div><IconChevronRight /></div>
+
             <span className={styles.caption}>{secondsLeft ? "Please wait · Opening Crash automatically" : "Opening Crash…"}</span>
+
             <p className={styles.note}>This countdown does not confirm approval. Your wallet balance will be checked on Crash.</p>
+
           </section>
+
         </div>
+
       )}
 
+
+
       <div className={`popup ${popup && !redirectAt ? "active" : ""}`} onClick={closeNotice}>
+
         <div className="kk-popup-box" onClick={(e) => e.stopPropagation()}>
+
           <div className="kk-popup-icon">{popup?.tone === "success" ? "✅" : popup?.tone === "error" ? "⚠️" : "🧪"}</div>
+
           <div className="kk-popup-title">
+
             {popup?.tone === "success" ? "Deposit Request Submitted" : popup?.tone === "error" ? "Couldn't Submit" : "Practice Mode"}
+
           </div>
+
           <p className="kk-popup-text">{popup?.msg}</p>
+
           <button className="kk-popup-btn" onClick={closeNotice}>
+
             Got it
+
           </button>
+
         </div>
+
       </div>
+
     </div>
+
   );
+
 }
