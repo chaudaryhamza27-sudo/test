@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { IconBell } from "../icons";
+import { startVisibleInterval } from "./visibleInterval";
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
@@ -21,8 +22,7 @@ export default function NotificationBell() {
 
   useEffect(() => {
     load();
-    const t = setInterval(load, 20000);
-    return () => clearInterval(t);
+    return startVisibleInterval(load, 20000);
   }, []);
 
   useEffect(() => {

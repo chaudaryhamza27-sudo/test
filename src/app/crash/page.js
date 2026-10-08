@@ -10,6 +10,7 @@ import { useSound } from '../components/SoundProvider';
 import { IconHistory, IconHeadset, IconChevronRight } from '../icons';
 import depositStyles from '../deposit/deposit.module.css';
 import './crash.css';
+import { startVisibleInterval } from '../components/visibleInterval';
 
 /*
  * The stage receives the authoritative game state over Socket.IO (with REST
@@ -162,7 +163,6 @@ export default function CrashDemoPage() {
   // bets — the simulated players are layered in separately below, tied to
   // each round's own lifecycle rather than this timer.
   useEffect(() => {
-    let timer;
     const tick = () => {
       fetch('/api/game/all-bets', { cache: 'no-store' })
         .then((res) => (res.ok ? res.json() : Promise.reject()))
@@ -175,10 +175,9 @@ export default function CrashDemoPage() {
           payout: Number(bet.payout || 0),
         }))))
         .catch(() => {});
-      timer = setTimeout(tick, 10000);
     };
     tick();
-    return () => clearTimeout(timer);
+    return startVisibleInterval(tick, 10000);
   }, []);
 
   useEffect(() => {

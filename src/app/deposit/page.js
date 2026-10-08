@@ -13,6 +13,7 @@ import {
   IconX,
 } from "../icons";
 import KaropayAddFunds from "../components/KaropayAddFunds";
+import NgPayAddFunds from "../components/NgPayAddFunds";
 import BottomNav from "../components/BottomNav";
 import HistoryList from "../components/HistoryList";
 import styles from "./deposit.module.css";
@@ -61,7 +62,10 @@ export default function DepositPage() {
     // Karopay redirects back here with ?karopay=return — that popup is owned
     // by <KaropayAddFunds>, which only mounts on the Karopay tab, so jump
     // there first or the redirect silently does nothing.
-    if (new URLSearchParams(window.location.search).has("karopay")) setTab("karopay");
+    const returnParams = new URLSearchParams(window.location.search);
+    if (returnParams.has("karopay")) setTab("karopay");
+    // Same for NG Pay's ?ngpay=return, owned by <NgPayAddFunds> on the NG Pay tab.
+    else if (returnParams.has("ngpay")) setTab("ngpay");
   }, []);
 
   useEffect(() => {
@@ -124,6 +128,7 @@ export default function DepositPage() {
 
   const isMethodEnabled = (key) => methods?.find((m) => m.key === key)?.enabled;
   const karopayEnabled = isMethodEnabled("karopay");
+  const ngpayEnabled = isMethodEnabled("ngpay");
   // Manual Deposit isn't a single toggle in admin — it's "on" whenever at
   // least one of its underlying methods (JazzCash/Easypaisa) is advertised,
   // same rule the Karopay tab already follows off its own single toggle.
@@ -134,14 +139,14 @@ export default function DepositPage() {
   useEffect(() => {
     if (methods === null) return;
     // Admin has switched every deposit method off — nothing to show here.
-    if (!manualEnabled && !karopayEnabled) {
+    const available = [karopayEnabled && "karopay", ngpayEnabled && "ngpay", manualEnabled && "manual"].filter(Boolean);
+    if (available.length === 0) {
       router.replace("/");
       return;
     }
-    if (!manualEnabled && karopayEnabled && tab === "manual") setTab("karopay");
-    if (!karopayEnabled && manualEnabled && tab === "karopay") setTab("manual");
+    if (!available.includes(tab)) setTab(available[0]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [methods, manualEnabled, karopayEnabled]);
+  }, [methods, manualEnabled, karopayEnabled, ngpayEnabled]);
 
   const handleSubmit = async () => {
     if (!amount || amount < MIN_DEPOSIT) {
@@ -217,7 +222,7 @@ export default function DepositPage() {
           <div className="kk-wallet-balance-label">Available to use</div>
         </section>
 
-        {(manualEnabled || karopayEnabled) && (
+        {(manualEnabled || karopayEnabled || ngpayEnabled) && (
           <div className="deposit-tabs">
             {karopayEnabled && (
               <button
@@ -228,6 +233,18 @@ export default function DepositPage() {
                 <span>
                   <b>Add Funds (Karopay)</b>
                   <span>Instant deposit via Karopay</span>
+                </span>
+              </button>
+            )}
+            {ngpayEnabled && (
+              <button
+                className={`deposit-tab ${tab === "ngpay" ? "active" : ""}`}
+                onClick={() => setTab("ngpay")}
+              >
+                <span className="deposit-tab-icon purple">⚡</span>
+                <span>
+                  <b>Add Funds (NG Pay)</b>
+                  <span>Instant deposit via NG Pay</span>
                 </span>
               </button>
             )}
@@ -249,7 +266,7 @@ export default function DepositPage() {
           </div>
         )}
 
-        {methods !== null && !manualEnabled && !karopayEnabled ? (
+        {methods !== null && !manualEnabled && !karopayEnabled && !ngpayEnabled ? (
           <section className="deposit-step-card" style={{ textAlign: "center",margin:"10px" }}>
             <h2 style={{ marginBottom: 8 }}>No Payment Methods Available</h2>
             <p style={{ fontSize: 12.5, color: "var(--kk-muted)" }}>
@@ -432,7 +449,15 @@ export default function DepositPage() {
           <div className="deposit-grid-2col">
             <div className="deposit-main-col">
               <section className="deposit-step-card">
-                {karopayEnabled ? (
+                {tab === "ngpay" ? (
+                  ngpayEnabled ? (
+                    <NgPayAddFunds onBalanceChange={setBalance} />
+                  ) : (
+                    <p style={{ fontSize: 12.5, color: "var(--kk-muted)" }}>
+                      NG Pay deposits are currently unavailable. Please use Deposit Funds instead.
+                    </p>
+                  )
+                ) : karopayEnabled ? (
                   <KaropayAddFunds inline theme="light" onBalanceChange={setBalance} />
                 ) : (
                   <p style={{ fontSize: 12.5, color: "var(--kk-muted)" }}>

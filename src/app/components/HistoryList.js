@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { startVisibleInterval } from "./visibleInterval";
 import Link from "next/link";
 import { IconChevronRight, IconDeposit, IconWithdraw, IconHistory } from "../icons";
 import TransactionHistoryCard from "./TransactionHistoryCard";
@@ -28,10 +29,10 @@ export default function HistoryList({ type, title }) {
   // as Pending until the user manually reloads the page.
   useEffect(() => {
     const refresh = () => setRefreshVersion((version) => version + 1);
-    const timer = window.setInterval(refresh, 30000);
+    const stopPolling = startVisibleInterval(refresh, 30000);
     window.addEventListener("focus", refresh);
     return () => {
-      window.clearInterval(timer);
+      stopPolling();
       window.removeEventListener("focus", refresh);
     };
   }, []);

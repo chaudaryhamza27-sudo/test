@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { startVisibleInterval } from "../components/visibleInterval";
 import Link from "next/link";
 import { IconChevronLeft } from "../icons";
 import BottomNav from "../components/BottomNav";
@@ -23,10 +24,10 @@ export default function TransactionsPage() {
 
   useEffect(() => {
     const refresh = () => setRefreshVersion((version) => version + 1);
-    const timer = window.setInterval(refresh, 30000);
+    const stopPolling = startVisibleInterval(refresh, 30000);
     window.addEventListener("focus", refresh);
     return () => {
-      window.clearInterval(timer);
+      stopPolling();
       window.removeEventListener("focus", refresh);
     };
   }, []);

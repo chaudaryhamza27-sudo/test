@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 process.env.NGPAY_API_KEY = "111222";
 
-const { buildNgPaySignContent, signNgPayData, verifyNgPayDataSign, formatNgPayAmount, parseNgPayAmount } = await import("../src/lib/ngpay.js");
+const { buildNgPaySignContent, signNgPayData, verifyNgPayDataSign, formatNgPayAmount, parseNgPayAmount, pickNgPayCheckoutUrl } = await import("../src/lib/ngpay.js");
 
 test("NG Pay signer matches the documented uppercase MD5 vector", () => {
   const data = {
@@ -33,4 +33,10 @@ test("PKR amounts convert exactly between rupees and paisa", () => {
   assert.equal(parseNgPayAmount("100.25"), 10025);
   assert.equal(formatNgPayAmount(10025), "100.25");
   assert.equal(parseNgPayAmount("1.234"), null);
+});
+
+test("checkout URL is taken from the first http(s) field NG Pay returns", () => {
+  assert.equal(pickNgPayCheckoutUrl({ payUrl: "https://pay.example/c/1" }), "https://pay.example/c/1");
+  assert.equal(pickNgPayCheckoutUrl({ payData: "https://pay.example/c/2", orderNo: "9" }), "https://pay.example/c/2");
+  assert.equal(pickNgPayCheckoutUrl({ payUrl: "", url: "javascript:alert(1)" }), null);
 });

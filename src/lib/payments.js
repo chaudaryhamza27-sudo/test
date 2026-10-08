@@ -7,6 +7,7 @@ import { logActivity } from "./activity";
 import { notifyUser } from "./notifications";
 import { computeTrustScore } from "./trustScore";
 import { queryOrder } from "./karopay";
+import { queryNgPayCollectionOrder, mapNgPayStatus, parseNgPayAmount } from "./ngpay";
 import { escapeTelegramHtml, sendTelegramMessage } from "./telegram";
 
 export const PRESET_DEPOSIT_AMOUNTS = [5, 10, 20, 50, 100];
@@ -20,6 +21,10 @@ export const MAX_PENDING_ORDERS_PER_MINUTE = 5;
 export const KAROPAY_PRESET_DEPOSIT_AMOUNTS = [3000, 5000, 10000, 25000, 50000];
 export const KAROPAY_MIN_DEPOSIT_AMOUNT = 3000;
 export const KAROPAY_MAX_DEPOSIT_AMOUNT = 50000;
+
+// NG Pay deposits are PKR too, on the same 1 PKR == 1 demo credit scale.
+export const NGPAY_MIN_DEPOSIT_AMOUNT = 100;
+export const NGPAY_MAX_DEPOSIT_AMOUNT = 50000;
 
 export function validateKaropayAmount(amount, minAmount = KAROPAY_MIN_DEPOSIT_AMOUNT) {
   if (typeof amount !== "number" || !Number.isFinite(amount)) return null;
@@ -35,6 +40,7 @@ export function validateKaropayAmount(amount, minAmount = KAROPAY_MIN_DEPOSIT_AM
 const PROVIDER_LABELS = {
   paypal: "PayPal Sandbox",
   karopay: "Karopay",
+  ngpay: "NG Pay",
 };
 
 // Validates a dollar amount from the client and returns it as integer cents,
@@ -48,8 +54,8 @@ export function validateDepositAmount(amount) {
   return cents;
 }
 
-// Telegram admin alert for a Karopay deposit, in the same format as the
-// manual deposit alerts. kind: "requested" | "completed" | "failed".
+// Telegram admin alert for a gateway (Karopay / NG Pay) deposit, in the same
+// format as the manual deposit alerts. kind: "requested" | "completed" | "failed".
 // Never throws — sendTelegramMessage() already swallows its own errors.
 export async function alertKaropayDeposit(kind, payment, phone) {
   try {
@@ -57,15 +63,46 @@ export async function alertKaropayDeposit(kind, payment, phone) {
     const who = `${escapeTelegramHtml(user?.name || user?.uid || payment.userId)} (${escapeTelegramHtml(user?.uid || "-")})`;
     const amount = `Rs${(payment.amount / 100).toLocaleString()}`;
     const order = escapeTelegramHtml(payment.providerOrderId);
+    const label = PROVIDER_LABELS[payment.provider] || payment.provider;
     const text = {
-      requested: `🚀 <b>New Karopay Deposit Request</b>\nUser: ${who}\nAmount: ${amount}\nMethod: Karopay${phone ? `\nAccount: ${escapeTelegramHtml(phone)}` : ""}\nOrder: ${order}\nStatus: Pending payment`,
-      completed: `✅ <b>Karopay Deposit Completed</b>\nUser: ${who}\nAmount: ${amount}\nOrder: ${order}\nStatus: Auto-approved, balance credited`,
-      failed: `❌ <b>Karopay Deposit Failed</b>\nUser: ${who}\nAmount: ${amount}\nOrder: ${order}\nStatus: Failed at Karopay, nothing credited`,
+      requested: `🚀 <b>New ${label} Deposit Request</b>\nUser: ${who}\nAmount: ${amount}\nMethod: ${label}${phone ? `\nAccount: ${escapeTelegramHtml(phone)}` : ""}\nOrder: ${order}\nStatus: Pending payment`,
+      completed: `✅ <b>${label} Deposit Completed</b>\nUser: ${who}\nAmount: ${amount}\nOrder: ${order}\nStatus: Auto-approved, balance credited`,
+      failed: `❌ <b>${label} Deposit Failed</b>\nUser: ${who}\nAmount: ${amount}\nOrder: ${order}\nStatus: Failed at ${label}, nothing credited`,
     }[kind];
     if (text) await sendTelegramMessage(text);
   } catch (err) {
-    console.error("[payments] Karopay Telegram alert failed", err?.message);
+    console.error("[payments] deposit Telegram alert failed", err?.message);
   }
+}
+
+// NG Pay counterpart of reconcileKaropayPayment(): asks NG Pay's collection
+// query endpoint (postNgPay already verified the response signature) and
+// applies the same rules as the NG Pay notify callback.
+export async function reconcileNgPayPayment(payment) {
+  const data = await queryNgPayCollectionOrder({ merchantOrderNo: payment.providerOrderId });
+  const status = mapNgPayStatus(data?.status);
+  if (status === "COMPLETED") {
+    const reportedPaisa = parseNgPayAmount(data.amount);
+    if (reportedPaisa !== payment.amount) {
+      console.error("[payments] NG Pay query amount mismatch", {
+        paymentId: String(payment._id),
+        expectedPaisa: payment.amount,
+        reportedPaisa,
+      });
+      return payment.status;
+    }
+    const result = await creditVerifiedPayment(payment._id, {
+      captureId: data.orderNo != null ? String(data.orderNo) : payment.providerCaptureId,
+      rawCaptureResponse: data,
+    });
+    return result.payment?.status ?? "COMPLETED";
+  }
+  if (status === "FAILED") {
+    const res = await Payment.updateOne({ _id: payment._id, status: "PENDING" }, { $set: { status: "FAILED", rawCaptureResponse: data } });
+    if (res?.modifiedCount) await alertKaropayDeposit("failed", payment);
+    return "FAILED";
+  }
+  return payment.status;
 }
 
 // Fallback for when Karopay's notify webhook never reaches us (e.g. the notify
@@ -210,7 +247,7 @@ export async function creditVerifiedPayment(paymentId, { captureId, rawCaptureRe
     meta: { paymentId: claimed._id, providerOrderId: claimed.providerOrderId },
   });
   // Only the caller that won the claim gets here, so this fires once per payment.
-  if (claimed.provider === "karopay") await alertKaropayDeposit("completed", claimed);
+  if (["karopay", "ngpay"].includes(claimed.provider)) await alertKaropayDeposit("completed", claimed);
 
   await notifyUser(claimed.userId, {
     type: `${claimed.provider}_deposit_completed`,

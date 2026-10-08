@@ -15,7 +15,9 @@ const REQUIRED_METHODS = [
 // there's no equivalent instant payout API wired up here, so it never made
 // sense as a withdraw method) without dropping it from deposits. Self-healing
 // the two lists off one shared REQUIRED_METHODS would keep re-adding it here.
-const REQUIRED_WITHDRAW_METHODS = REQUIRED_METHODS.filter((m) => m.key !== "karopay");
+// NG Pay is deposit-only here too (no payout flow wired up).
+const DEPOSIT_ONLY_METHODS = ["karopay", "ngpay"];
+const REQUIRED_WITHDRAW_METHODS = REQUIRED_METHODS.filter((m) => !DEPOSIT_ONLY_METHODS.includes(m.key));
 
 export async function getOrCreateSupportSettings() {
   await dbConnect();
@@ -32,6 +34,13 @@ export async function getOrCreateSupportSettings() {
       settings.methods.push({ key: required.key, label: required.label, enabled: false });
       changed = true;
     }
+  }
+  // Drop a stale withdraw toggle for a deposit-only method (e.g. an ngpay
+  // entry seeded before it was marked deposit-only).
+  const withdrawKept = settings.withdrawMethods.filter((m) => !DEPOSIT_ONLY_METHODS.includes(m.key));
+  if (withdrawKept.length !== settings.withdrawMethods.length) {
+    settings.withdrawMethods = withdrawKept;
+    changed = true;
   }
   for (const required of REQUIRED_WITHDRAW_METHODS) {
     if (!settings.withdrawMethods.some((m) => m.key === required.key)) {

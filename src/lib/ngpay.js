@@ -147,9 +147,20 @@ async function postNgPay(path, fields) {
   return envelope.data;
 }
 
-export async function createNgPayCollectionOrder({ amount, payType, productTitle, notifyUrl, viewUrl, clientIp }) {
+// The checkout link's field name isn't fixed across NG Pay products, so take
+// the first http(s) URL among the names it's known to use.
+export function pickNgPayCheckoutUrl(data) {
+  for (const key of ["payUrl", "payLink", "cashierUrl", "url", "h5Url", "payData"]) {
+    const value = data?.[key];
+    if (typeof value === "string" && /^https?:\/\//i.test(value)) return value;
+  }
+  return null;
+}
+
+export async function createNgPayCollectionOrder({ merchantOrderNo, amount, payType, productTitle, notifyUrl, viewUrl, clientIp }) {
   const { productNo } = getNgPayConfig();
   return postNgPay(COLLECTION_PATH, {
+    merchantOrderNo,
     amount,
     coinUnit: "PKR",
     payType,

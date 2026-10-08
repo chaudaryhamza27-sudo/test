@@ -24,6 +24,7 @@ export function useGameSocket() {
 
   const socketRef = useRef(null);
   const pollTimerRef = useRef(null);
+  const pollVisibilityCleanupRef = useRef(null);
   const modeRef = useRef(SOCKET_URL ? "socket" : "polling"); // "socket" | "polling"
 
   const applyRoundUpdate = useCallback((payload) => {
@@ -46,6 +47,8 @@ export function useGameSocket() {
 
     let lastPhase = null;
     const poll = async () => {
+      // A hidden tab can't show the round — skip, and catch up on return below.
+      if (document.hidden) return;
       try {
         const res = await fetch("/api/game/state", { cache: "no-store" });
         const data = await res.json();
@@ -61,6 +64,11 @@ export function useGameSocket() {
     };
     poll();
     pollTimerRef.current = setInterval(poll, POLL_MS);
+    const onVisibility = () => {
+      if (!document.hidden) poll();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    pollVisibilityCleanupRef.current = () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
 
   const stopPolling = useCallback(() => {
@@ -68,6 +76,8 @@ export function useGameSocket() {
       clearInterval(pollTimerRef.current);
       pollTimerRef.current = null;
     }
+    pollVisibilityCleanupRef.current?.();
+    pollVisibilityCleanupRef.current = null;
   }, []);
 
   // --- Socket.IO primary path ---

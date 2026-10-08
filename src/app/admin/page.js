@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import "./admin.css";
 import AdminLayout from "./AdminLayout";
+import { startVisibleInterval } from "../components/visibleInterval";
 import CashOutPanel from "./CashOutPanel";
 import { SUPERADMIN_ROUTE_PATH } from "./super/superadminRoute";
 import { IconUsers, IconShield, IconWallet, IconLockLine, IconX, IconEye, IconEyeOff, IconCheck, IconTrendingUp, IconRefresh } from "../icons";
@@ -296,11 +297,11 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
         // Network blip — try again on the next tick.
       }
     };
-    const timer = window.setInterval(checkSession, 5000);
+    const stopPolling = startVisibleInterval(checkSession, 5000);
     window.addEventListener("focus", checkSession);
     return () => {
       stopped = true;
-      window.clearInterval(timer);
+      stopPolling();
       window.removeEventListener("focus", checkSession);
     };
   }, [router, superadminMode]);
@@ -319,11 +320,11 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
         // Keep the current view during a brief network interruption.
       }
     };
-    const timer = window.setInterval(checkSuperadminAccess, 30_000);
+    const stopPolling = startVisibleInterval(checkSuperadminAccess, 30_000);
     window.addEventListener("focus", checkSuperadminAccess);
     return () => {
       active = false;
-      window.clearInterval(timer);
+      stopPolling();
       window.removeEventListener("focus", checkSuperadminAccess);
     };
   }, [router, superadminMode, superadminUnlocked]);
@@ -340,10 +341,10 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
     loadOverview();
     // Keep the dashboard live while it's open (new deposits, cash outs,
     // Karopay balance) — refreshes on tab focus and every 20s.
-    const timer = window.setInterval(loadOverview, 20000);
+    const stopPolling = startVisibleInterval(loadOverview, 20000);
     window.addEventListener("focus", loadOverview);
     return () => {
-      window.clearInterval(timer);
+      stopPolling();
       window.removeEventListener("focus", loadOverview);
     };
   }, [checking, tab, loadOverview]);

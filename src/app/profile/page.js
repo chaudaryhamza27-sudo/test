@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import BottomNav from "../components/BottomNav";
+import { startVisibleInterval } from "../components/visibleInterval";
 import {
   IconCopy,
   IconRefresh,
@@ -46,10 +47,10 @@ export default function ProfilePage() {
   useEffect(() => {
     const refresh = () => loadUser();
     window.addEventListener("focus", refresh);
-    const timer = window.setInterval(refresh, 10000);
+    const stopPolling = startVisibleInterval(refresh, 30000);
     return () => {
       window.removeEventListener("focus", refresh);
-      window.clearInterval(timer);
+      stopPolling();
     };
   }, [loadUser]);
 
