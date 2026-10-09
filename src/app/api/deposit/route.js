@@ -50,9 +50,10 @@ export async function POST(request) {
   if (!methodLabel) {
     return Response.json({ error: "Payment method is required." }, { status: 400 });
   }
-  const isEasyPaisaQr = methodLabel.toLowerCase() === "easypaisa (qrcode)";
-  if (isEasyPaisaQr && !proofImage) {
-    return Response.json({ error: "Upload your EasyPaisa QR payment receipt." }, { status: 400 });
+  // Both manual QR methods need a payment screenshot.
+  const proofMethod = { "easypaisa (qrcode)": "EasyPaisa", jazzcash: "JazzCash" }[methodLabel.toLowerCase()];
+  if (proofMethod && !proofImage) {
+    return Response.json({ error: `Upload your ${proofMethod} payment screenshot.` }, { status: 400 });
   }
 
   let validatedProof = null;

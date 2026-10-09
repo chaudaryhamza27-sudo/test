@@ -248,7 +248,7 @@ export default function DepositPage() {
 
     setSelectedMethod(key);
 
-    if (key !== "easypaisa") clearProof();
+    clearProof();
 
   };
 
@@ -326,9 +326,9 @@ export default function DepositPage() {
 
     }
 
-    if (selectedMethod === "easypaisa" && !proofImage) {
+    if (!proofImage) {
 
-      openNotice("Upload your EasyPaisa QR payment receipt before submitting.", "error");
+      openNotice(`Upload your ${selectedMethod === "jazzcash" ? "JazzCash" : "EasyPaisa"} payment screenshot before submitting.`, "error");
 
       return;
 
@@ -712,7 +712,7 @@ export default function DepositPage() {
 
                     <h3>Scan to pay with {selectedMethod === "jazzcash" ? "JazzCash" : "EasyPaisa"}</h3>
 
-                    <p>Scan the QR in {selectedMethod === "jazzcash" ? "JazzCash" : "EasyPaisa"} to pay the exact amount. Use the short guide if needed{selectedMethod === "easypaisa" ? ", then upload your receipt." : "."}</p>
+                    <p>Scan the QR in {selectedMethod === "jazzcash" ? "JazzCash" : "EasyPaisa"} to pay the exact amount. Use the short guide if needed, then upload your payment screenshot.</p>
 
                     <div className="deposit-qr-media">
 
@@ -785,11 +785,11 @@ export default function DepositPage() {
 
                 )}
 
-                {selectedMethod === "easypaisa" && (
+                {(selectedMethod === "easypaisa" || selectedMethod === "jazzcash") && (
 
                   <div className="deposit-proof-upload">
 
-                    <label htmlFor="manual-deposit-proof">Payment receipt</label>
+                    <label htmlFor="manual-deposit-proof">Payment screenshot</label>
 
                     <input
 
