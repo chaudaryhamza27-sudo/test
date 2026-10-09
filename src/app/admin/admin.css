@@ -1155,6 +1155,76 @@
   color: var(--a-muted);
 }
 
+/* ---- Deposit QR codes (Support tab) ---- */
+.admin-qr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+.admin-qr-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: var(--a-surface);
+  border: 1px solid var(--a-border);
+}
+.admin-qr-card b {
+  align-self: flex-start;
+  font-size: 13.5px;
+  font-weight: 800;
+}
+.admin-qr-preview,
+.admin-qr-empty {
+  width: 160px;
+  height: 160px;
+  border-radius: 10px;
+}
+.admin-qr-preview {
+  object-fit: contain;
+  background: #fff;
+}
+.admin-qr-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--a-border-strong);
+  color: var(--a-muted);
+  font-size: 12px;
+}
+.admin-qr-actions {
+  display: flex;
+  gap: 8px;
+}
+.admin-qr-upload {
+  cursor: pointer;
+}
+.admin-qr-upload.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+.admin-qr-delete {
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--a-danger);
+  background: var(--a-danger-bg);
+  color: var(--a-danger);
+  font-weight: 700;
+  cursor: pointer;
+}
+.admin-qr-error {
+  margin-top: 10px;
+  color: var(--a-danger);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.admin-qr-delete:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 /* ---- User Control quick panels: Block / Trust Score, by email ---- */
 .admin-quick-grid {
   display: grid;

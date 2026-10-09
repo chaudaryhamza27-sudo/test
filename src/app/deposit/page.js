@@ -256,6 +256,8 @@ export default function DepositPage() {
 
   const isMethodEnabled = (key) => methods?.find((m) => m.key === key)?.enabled;
 
+  const selectedQr = methods?.find((m) => m.key === selectedMethod)?.qrUrl || "";
+
   const karopayEnabled = isMethodEnabled("karopay");
 
   const ngpayEnabled = isMethodEnabled("ngpay");
@@ -714,13 +716,22 @@ export default function DepositPage() {
 
                     <div className="deposit-qr-media">
 
-                      <div className="deposit-qr-media-item">
+                      {/* Only the QR the admin uploaded for this method — none once they delete it. */}
+                      {selectedQr ? (
+                        <div className="deposit-qr-media-item">
 
-                        <img src={selectedMethod === "jazzcash" ? "/qrcodejazz.jpeg" : "/qrcode.jpeg"} alt={`${selectedMethod === "jazzcash" ? "JazzCash" : "EasyPaisa"} QR payment code`} width="360" height="433" />
+                          <img src={selectedQr} alt={`${selectedMethod === "jazzcash" ? "JazzCash" : "EasyPaisa"} QR payment code`} width="360" height="433" />
 
-                        <span>Scan to Pay</span>
+                          <span>Scan to Pay</span>
 
-                      </div>
+                        </div>
+                      ) : (
+                        <div className="deposit-qr-media-item">
+                          <p style={{ fontSize: 12.5, color: "var(--kk-muted)", textAlign: "center", padding: 16 }}>
+                            QR code is not available right now. Please contact support for payment details.
+                          </p>
+                        </div>
+                      )}
 
                       <div className="deposit-qr-media-item">
 

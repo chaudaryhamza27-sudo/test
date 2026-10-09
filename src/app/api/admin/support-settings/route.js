@@ -1,13 +1,14 @@
 import { requireAdmin } from "../../../../lib/auth";
 import { logActivity } from "../../../../lib/activity";
 import { getOrCreateSupportSettings } from "../../../../lib/supportSettings";
+import { getQrUrls } from "../../../../lib/paymentQr";
 
 export async function GET() {
   const admin = await requireAdmin();
   if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
 
-  const settings = await getOrCreateSupportSettings();
-  return Response.json({ settings });
+  const [settings, qr] = await Promise.all([getOrCreateSupportSettings(), getQrUrls()]);
+  return Response.json({ settings, qr });
 }
 
 // Content/config only — toggles what's displayed to users (support status,

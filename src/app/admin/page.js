@@ -219,6 +219,9 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
   const [supportSavingWhatsapp, setSupportSavingWhatsapp] = useState(false);
   const [methodToggling, setMethodToggling] = useState(null);
   const [withdrawMethodToggling, setWithdrawMethodToggling] = useState(null);
+  const [qrSaving, setQrSaving] = useState(null);
+  const [qrUrls, setQrUrls] = useState({});
+  const [qrError, setQrError] = useState("");
   const [announcementInput, setAnnouncementInput] = useState("");
   const [announcementEnabledInput, setAnnouncementEnabledInput] = useState(false);
   const [supportSavingAnnouncement, setSupportSavingAnnouncement] = useState(false);
@@ -396,6 +399,7 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => {
         setSupportSettings(data.settings);
+        setQrUrls(data.qr || {});
         setSupportOnlineInput(data.settings.online ? "online" : "offline");
         setWhatsappInput(data.settings.whatsappNumber || "");
         setAnnouncementInput(data.settings.announcementText || "");
@@ -515,6 +519,45 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
     } finally {
       setMethodToggling(null);
     }
+  };
+
+  // file: an image File to upload, or null to delete the method's QR.
+  const saveMethodQr = async (method, file) => {
+    setQrSaving(method.key);
+    setQrError("");
+    setSupportSaved("");
+    try {
+      let res;
+      if (file) {
+        const form = new FormData();
+        form.append("file", file);
+        res = await fetch(`/api/admin/payment-qr/${method.key}`, { method: "POST", body: form });
+      } else {
+        res = await fetch(`/api/admin/payment-qr/${method.key}`, { method: "DELETE" });
+      }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setQrError(data.error || "Failed to update QR code.");
+        return;
+      }
+      setQrUrls(data.qr || {});
+      setSupportSaved(`qr-${method.key}`);
+    } catch {
+      setQrError("Something went wrong updating the QR code. Please try again.");
+    } finally {
+      setQrSaving(null);
+    }
+  };
+
+  const handleQrFile = (method, e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type) || file.size > 2 * 1024 * 1024) {
+      setQrError("QR code must be a PNG, JPG or WEBP image under 2MB.");
+      return;
+    }
+    saveMethodQr(method, file);
   };
 
   const toggleWithdrawMethod = async (method) => {
@@ -2486,6 +2529,54 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
               <p className="admin-modal-note" style={{ marginTop: 14 }}>
                 This only controls which method names are shown as available on the deposit page — no payment gateway, API key, or real transaction
                 capability is connected to any of these.
+              </p>
+
+              <div className="admin-info-section-label" style={{ marginTop: 24, marginBottom: 10 }}>
+                Deposit QR Codes
+              </div>
+              <div className="admin-qr-grid">
+                {supportSettings.methods
+                  .filter((m) => m.key === "easypaisa" || m.key === "jazzcash")
+                  .map((m) => (
+                    <div key={m.key} className="admin-qr-card">
+                      <b>{m.label}</b>
+                      {qrUrls[m.key] ? (
+                        <img src={qrUrls[m.key]} alt={`${m.label} QR code`} className="admin-qr-preview" />
+                      ) : (
+                        <div className="admin-qr-empty">No QR uploaded</div>
+                      )}
+                      <div className="admin-qr-actions">
+                        <label className={`admin-btn admin-qr-upload ${qrSaving === m.key ? "disabled" : ""}`}>
+                          {qrSaving === m.key ? "Saving…" : qrUrls[m.key] ? "Replace" : "Upload"}
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            hidden
+                            disabled={qrSaving === m.key}
+                            onChange={(e) => handleQrFile(m, e)}
+                          />
+                        </label>
+                        {qrUrls[m.key] && (
+                          <button
+                            type="button"
+                            className="admin-qr-delete"
+                            disabled={qrSaving === m.key}
+                            onClick={() => {
+                              if (window.confirm(`Delete the ${m.label} QR code? Users will no longer see it on the deposit page.`)) saveMethodQr(m, null);
+                            }}
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                      {supportSaved === `qr-${m.key}` && <span className="admin-saved-tick">Saved ✓</span>}
+                    </div>
+                  ))}
+              </div>
+              {qrError && <p className="admin-qr-error">{qrError}</p>}
+              <p className="admin-modal-note" style={{ marginTop: 14 }}>
+                Users see a method&apos;s QR on the Deposit Funds tab only while one is uploaded here and the method is ON. Deleting it removes it from the
+                deposit page immediately.
               </p>
 
               <div className="admin-info-section-label" style={{ marginTop: 24, marginBottom: 10 }}>
