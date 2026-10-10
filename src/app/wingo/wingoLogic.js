@@ -44,10 +44,9 @@ export function colorsOf(n) {
   return n % 2 === 0 ? ['red'] : ['green'];
 }
 
-// Big = 6-9, Small = 1-4. 0 and 5 are "house" numbers: neither Big nor
-// Small, so both size bets lose on them (40% win chance instead of 50%).
-export const sizeKeyOf = (n) => (n >= 6 ? 'big' : n >= 1 && n <= 4 ? 'small' : null);
-export const sizeOf = (n) => ({ big: 'Big', small: 'Small' })[sizeKeyOf(n)] ?? '—';
+// Big = 5-9, Small = 0-4.
+export const sizeKeyOf = (n) => (n >= 5 ? 'big' : 'small');
+export const sizeOf = (n) => (sizeKeyOf(n) === 'big' ? 'Big' : 'Small');
 
 // A selection is { kind: 'color', value: 'green'|'red'|'violet' },
 // { kind: 'number', value: 0-9 } or { kind: 'size', value: 'big'|'small' }.
@@ -59,7 +58,7 @@ export function selectionLabel(sel) {
 // Multiplier on the post-fee contract amount, per the rules dialog:
 //   green: 1,3,7,9 → x2, 5 → x1.5      red: 2,4,6,8 → x2, 0 → x1.5
 //   violet: 0,5 → x4.5                  number: exact match → x9
-//   big: 6-9 → x2                       small: 1-4 → x2   (0 and 5: both lose)
+//   big: 5-9 → x2                       small: 0-4 → x2
 export function payoutMultiplier(sel, n) {
   if (sel.kind === 'number') return sel.value === n ? 9 : 0;
   if (sel.kind === 'size') return sel.value === sizeKeyOf(n) ? 2 : 0;

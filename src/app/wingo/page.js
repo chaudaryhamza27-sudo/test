@@ -26,8 +26,8 @@ const RULES = [
   ['red', 'If the result shows 2, 4, 6, 8 you will get (98×2) 196; if the result shows 0, you will get (98×1.5) 147.'],
   ['violet', 'If the result shows 0 or 5, you will get (98×4.5) 441.'],
   ['number', 'If the result is the same as the number you selected, you will get (98×9) 882.'],
-  ['big', 'If the result shows 6, 7, 8, 9 you will get (98×2) 196. If the result shows 0 or 5, Big loses.'],
-  ['small', 'If the result shows 1, 2, 3, 4 you will get (98×2) 196. If the result shows 0 or 5, Small loses.'],
+  ['big', 'If the result shows 5, 6, 7, 8, 9 you will get (98×2) 196.'],
+  ['small', 'If the result shows 0, 1, 2, 3, 4 you will get (98×2) 196.'],
 ];
 
 function ColorDots({ n }) {
@@ -307,10 +307,9 @@ export default function WingoPage() {
           </div>
 
           <div className="wingo-size-row">
-            <button type="button" className="wingo-size big" onClick={() => openSheet({ kind: 'size', value: 'big' })}>Big <small>6-9</small></button>
-            <button type="button" className="wingo-size small" onClick={() => openSheet({ kind: 'size', value: 'small' })}>Small <small>1-4</small></button>
+            <button type="button" className="wingo-size big" onClick={() => openSheet({ kind: 'size', value: 'big' })}>Big <small>5-9</small></button>
+            <button type="button" className="wingo-size small" onClick={() => openSheet({ kind: 'size', value: 'small' })}>Small <small>0-4</small></button>
           </div>
-          <p className="wingo-size-note">0 and 5: Big and Small both lose</p>
 
           {locked && (
             <div className="wingo-lock" aria-live="polite">

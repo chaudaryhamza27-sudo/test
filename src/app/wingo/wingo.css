@@ -181,9 +181,7 @@
 
 .wingo-size-row { display: grid; grid-template-columns: 1fr 1fr; border-radius: 999px; overflow: hidden; }
 .wingo-size { height: 42px; font-weight: 700; }
-.wingo-size small { font-size: 11px; font-weight: 600; opacity: .75; margin-left: 4px; }
-.wingo-size-note { margin: -8px 0 0; text-align: center; font-size: 11px; color: var(--wg-muted); }
-.wingo-size.big { background: var(--wg-big) !important; color: #1b1203 !important; }
+.wingo-size small { font-size: 11px; font-weight: 600; opacity: .75; margin-left: 4px; }.wingo-size.big { background: var(--wg-big) !important; color: #1b1203 !important; }
 .wingo-size.small { background: var(--wg-small) !important; color: #fff !important; }
 
 .wingo-lock {
