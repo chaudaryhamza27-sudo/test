@@ -181,6 +181,8 @@
 
 .wingo-size-row { display: grid; grid-template-columns: 1fr 1fr; border-radius: 999px; overflow: hidden; }
 .wingo-size { height: 42px; font-weight: 700; }
+.wingo-size small { font-size: 11px; font-weight: 600; opacity: .75; margin-left: 4px; }
+.wingo-size-note { margin: -8px 0 0; text-align: center; font-size: 11px; color: var(--wg-muted); }
 .wingo-size.big { background: var(--wg-big) !important; color: #1b1203 !important; }
 .wingo-size.small { background: var(--wg-small) !important; color: #fff !important; }
 
@@ -423,3 +425,28 @@
 }
 .wingo-toast.ok { color: var(--wg-green); }
 .wingo-toast.fail { color: var(--wg-red); }
+
+/* ---------- deposit prompt ---------- */
+.wingo-ghost-btn { display: inline-flex; align-items: center; text-decoration: none; }
+.wingo-deposit { padding: 22px 18px 16px; text-align: center; }
+.wingo-deposit-icon {
+  width: 52px; height: 52px; margin: 0 auto 10px;
+  display: grid; place-items: center; border-radius: 16px;
+  background: rgba(245, 184, 46, .14); color: var(--wg-big);
+  font-size: 24px; font-weight: 900;
+}
+.wingo-deposit h3 { margin: 0 0 6px; font-size: 19px; }
+.wingo-deposit p { margin: 0 0 14px; font-size: 13px; color: var(--wg-muted); }
+.wingo-deposit-bal {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 12px; margin-bottom: 14px;
+  border-radius: 12px; background: var(--wg-card-2);
+}
+.wingo-deposit-bal span { font-size: 12px; color: var(--wg-muted); }
+.wingo-deposit-bal strong { font-size: 22px; }
+.wingo-deposit-go {
+  display: grid !important; place-items: center;
+  width: 100% !important; margin: 0 0 6px !important;
+  text-decoration: none;
+}
+.wingo-deposit-later { width: 100%; height: 38px; color: var(--wg-muted) !important; font-size: 13px; }

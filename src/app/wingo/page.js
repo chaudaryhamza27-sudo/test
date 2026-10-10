@@ -1,35 +1,23 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import AppShellHeader from '../components/AppShellHeader';
 import BetSheet from './BetSheet';
 import { useWingoRound } from './useWingoRound';
-import {
-  MODES,
-  MULTIPLIERS,
-  colorsOf,
-  modeByKey,
-  money,
-  payoutFor,
-  recentResults,
-  resultFor,
-  selectionLabel,
-  sizeOf,
-} from './wingoLogic';
+import { MODES, MULTIPLIERS, colorsOf, modeByKey, money, selectionLabel, sizeOf } from './wingoLogic';
 import './wingo.css';
 
 /*
  * Win Go — ported from the standalone 51game-wingo HTML/JS project.
  *
- * Practice mode only: the balance and bets live in this browser
- * (localStorage), exactly like the original's on-page demo wallet. Nothing
- * here touches the real account wallet behind /api/wallet. To make it real,
- * replace placeBet / the settlement effect with calls to server routes —
- * those are the only two places that move money.
+ * Plays against the signed-in account's real wallet balance. The server owns
+ * everything that matters: POST /api/wingo/bet debits the balance for the
+ * current period, and GET /api/wingo/state settles finished bets, credits
+ * wins and returns the result history (results are drawn server-side with a
+ * secret, see src/lib/wingo.js). This page only renders and calls those two.
  */
 
-const START_BALANCE = 10_000;
-const STORE_KEY = 'wingo-practice-v1';
 const PAGE_SIZE = 10;
 const HISTORY_PAGES = 10;
 
@@ -38,8 +26,8 @@ const RULES = [
   ['red', 'If the result shows 2, 4, 6, 8 you will get (98×2) 196; if the result shows 0, you will get (98×1.5) 147.'],
   ['violet', 'If the result shows 0 or 5, you will get (98×4.5) 441.'],
   ['number', 'If the result is the same as the number you selected, you will get (98×9) 882.'],
-  ['big', 'If the result shows 5, 6, 7, 8, 9 you will get (98×2) 196.'],
-  ['small', 'If the result shows 0, 1, 2, 3, 4 you will get (98×2) 196.'],
+  ['big', 'If the result shows 6, 7, 8, 9 you will get (98×2) 196. If the result shows 0 or 5, Big loses.'],
+  ['small', 'If the result shows 1, 2, 3, 4 you will get (98×2) 196. If the result shows 0 or 5, Small loses.'],
 ];
 
 function ColorDots({ n }) {
@@ -56,11 +44,15 @@ export default function WingoPage() {
   const [modeKey, setModeKey] = useState(MODES[0].key);
   const mode = modeByKey(modeKey);
   const [voiceOn, setVoiceOn] = useState(true);
-  const { now, period, secondsLeft, locked } = useWingoRound(mode, { voiceOn });
+  const { period, secondsLeft, locked } = useWingoRound(mode, { voiceOn });
 
-  const [balance, setBalance] = useState(START_BALANCE);
-  const [bets, setBets] = useState([]);
-  const loadedRef = useRef(false);
+  // null until the first sync answers — never shown as a fake 0.
+  const [signedIn, setSignedIn] = useState(null);
+  const [balance, setBalance] = useState(null);
+  const [results, setResults] = useState([]);
+  const [lastFive, setLastFive] = useState([]);
+  const [myBets, setMyBets] = useState([]);
+  const [placing, setPlacing] = useState(false);
 
   const [presetQty, setPresetQty] = useState(1);
   const [sheet, setSheet] = useState(null);
@@ -68,25 +60,67 @@ export default function WingoPage() {
   const [toast, setToast] = useState(null);
   const [resultDialog, setResultDialog] = useState(null);
   const [autoClose, setAutoClose] = useState(false);
+  const [depositPrompt, setDepositPrompt] = useState(false);
   const [tab, setTab] = useState('game');
   const [page, setPage] = useState(0);
 
-  // ---- practice wallet persistence ----
-  useEffect(() => {
+  // ---- server sync: settle finished bets, refresh balance + history ----
+  const syncSeq = useRef(0);
+  const retryTimer = useRef(null);
+  const zeroPromptShown = useRef(false);
+  const sync = useCallback(async () => {
+    const seq = ++syncSeq.current;
+    clearTimeout(retryTimer.current);
+    let data;
     try {
-      const saved = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
-      if (saved && typeof saved.balance === 'number') setBalance(saved.balance);
-      if (saved && Array.isArray(saved.bets)) setBets(saved.bets);
-    } catch { /* fresh practice wallet */ }
-    loadedRef.current = true;
-  }, []);
+      const res = await fetch(`/api/wingo/state?mode=${modeKey}&page=${tab === 'game' ? page : 0}`, { cache: 'no-store' });
+      if (!res.ok) return;
+      data = await res.json();
+    } catch {
+      return; // a failed sync changes nothing; the next period tick retries
+    }
+    if (seq !== syncSeq.current) return; // a newer sync (mode/page change) already answered
 
+    setSignedIn(data.signedIn);
+    setResults(data.results);
+    setLastFive(data.lastFive);
+    setMyBets(data.myBets);
+    if (typeof data.balance === 'number') {
+      setBalance(data.balance);
+      // First deposit nudge: a signed-in player with nothing to bet with.
+      if (data.balance <= 0 && !zeroPromptShown.current) {
+        zeroPromptShown.current = true;
+        setDepositPrompt(true);
+      }
+    }
+
+    if (data.settled.length > 0) {
+      const last = data.settled.reduce((a, b) => (b.endsAt > a.endsAt ? b : a));
+      const group = data.settled.filter((b) => b.mode === last.mode && b.issue === last.issue);
+      const bonus = group.reduce((s, b) => s + b.payout, 0);
+      setResultDialog({
+        issue: last.issue,
+        modeLabel: modeByKey(last.mode).label,
+        number: last.number,
+        won: bonus > 0,
+        bonus,
+      });
+    }
+
+    // Client clock a little ahead of the server's: a bet can still read as
+    // pending just after the boundary, so check again shortly.
+    if (data.myBets.some((b) => b.status === 'pending' && b.endsAt <= Date.now())) {
+      retryTimer.current = setTimeout(sync, 1500);
+    }
+  }, [modeKey, page, tab]);
+
+  // On load, on mode/page/tab change, and every time a period rolls over.
+  const periodIssue = period?.issue;
   useEffect(() => {
-    if (!loadedRef.current) return;
-    try {
-      localStorage.setItem(STORE_KEY, JSON.stringify({ balance, bets: bets.slice(0, 100) }));
-    } catch { /* storage unavailable — keep playing in memory */ }
-  }, [balance, bets]);
+    if (!periodIssue) return;
+    sync();
+  }, [sync, periodIssue]);
+  useEffect(() => () => clearTimeout(retryTimer.current), []);
 
   // ---- toast ----
   const toastTimer = useRef(null);
@@ -101,36 +135,6 @@ export default function WingoPage() {
     if (locked) setSheet(null);
   }, [locked]);
 
-  // ---- settlement: any pending bet whose period has ended ----
-  useEffect(() => {
-    if (now === null) return;
-    const due = bets.filter((b) => b.status === 'pending' && b.endsAt <= now);
-    if (due.length === 0) return;
-
-    let credit = 0;
-    const settled = new Map();
-    for (const b of due) {
-      const number = resultFor(b.modeKey, b.issue);
-      const payout = payoutFor(b.selection, b.amount, number);
-      credit += payout;
-      settled.set(b.id, { ...b, status: payout > 0 ? 'won' : 'lost', number, payout });
-    }
-    setBets((prev) => prev.map((b) => settled.get(b.id) || b));
-    if (credit > 0) setBalance((v) => Math.round((v + credit) * 100) / 100);
-
-    // One result dialog for the most recent finished period the player was in.
-    const last = due.reduce((a, b) => (b.endsAt > a.endsAt ? b : a));
-    const group = [...settled.values()].filter((b) => b.modeKey === last.modeKey && b.issue === last.issue);
-    const bonus = group.reduce((s, b) => s + b.payout, 0);
-    setResultDialog({
-      issue: last.issue,
-      modeLabel: modeByKey(last.modeKey).label,
-      number: group[0].number,
-      won: bonus > 0,
-      bonus,
-    });
-  }, [now, bets]);
-
   useEffect(() => {
     if (!resultDialog || !autoClose) return;
     const t = setTimeout(() => setResultDialog(null), 3000);
@@ -140,31 +144,51 @@ export default function WingoPage() {
   // ---- betting ----
   const openSheet = (selection, quantity = presetQty) => {
     if (!period || locked) return;
+    if (signedIn === false) {
+      showToast('Please log in to play', 'fail');
+      return;
+    }
+    if (balance !== null && balance <= 0) {
+      setDepositPrompt(true);
+      return;
+    }
     setSheet({ selection, quantity });
   };
 
-  const placeBet = ({ selection, amount }) => {
-    if (!period || locked) return;
-    if (amount > balance) {
-      showToast('Insufficient balance', 'fail');
+  const placeBet = async ({ selection, amount }) => {
+    if (!period || locked || placing) return;
+    if (balance !== null && amount > balance) {
+      setSheet(null);
+      setDepositPrompt(true);
       return;
     }
-    setBalance((v) => Math.round((v - amount) * 100) / 100);
-    setBets((prev) => [
-      {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        modeKey,
-        issue: period.issue,
-        endsAt: period.endsAt,
-        selection,
-        amount,
-        status: 'pending',
-        placedAt: Date.now(),
-      },
-      ...prev,
-    ]);
-    setSheet(null);
-    showToast('Bet succeed');
+    setPlacing(true);
+    try {
+      const res = await fetch('/api/wingo/bet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: modeKey, issue: period.issue, selection, amount }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (res.status === 401) setSignedIn(false);
+        if (data.error?.toLowerCase().includes('insufficient balance')) {
+          setSheet(null);
+          setDepositPrompt(true);
+        } else {
+          showToast(data.error || 'Could not place the bet', 'fail');
+        }
+        return;
+      }
+      setBalance(data.balance);
+      setMyBets((prev) => [data.bet, ...prev]);
+      setSheet(null);
+      showToast('Bet succeed');
+    } catch {
+      showToast('Network error, bet not placed', 'fail');
+    } finally {
+      setPlacing(false);
+    }
   };
 
   const randomPick = () => {
@@ -173,19 +197,6 @@ export default function WingoPage() {
   };
 
   // ---- derived views ----
-  // Recompute history only when the period rolls over, not every tick.
-  const periodIssue = period?.issue;
-  const lastFive = useMemo(
-    () => (now === null ? [] : recentResults(mode, now, 5)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [modeKey, periodIssue],
-  );
-  const gameHistory = useMemo(
-    () => (now === null ? [] : recentResults(mode, now, PAGE_SIZE, page * PAGE_SIZE)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [modeKey, periodIssue, page],
-  );
-  const myBets = bets.filter((b) => b.modeKey === modeKey);
   const myPages = Math.max(1, Math.ceil(myBets.length / PAGE_SIZE));
   const totalPages = tab === 'game' ? HISTORY_PAGES : myPages;
 
@@ -200,14 +211,16 @@ export default function WingoPage() {
 
   return (
     <main className="wingo-page">
-      <AppShellHeader subtitle="Win Go" showTrustBadges={false} />
+      <AppShellHeader subtitle="Win Go" showTrustBadges={false} balance={balance ?? undefined} />
 
       <div className="wingo-body">
-        {/* practice wallet */}
+        {/* account wallet */}
         <section className="wingo-card wingo-wallet">
           <div>
-            <div className="wingo-wallet-lbl">Practice balance</div>
-            <div className="wingo-wallet-val">Rs {money(balance)}</div>
+            <div className="wingo-wallet-lbl">Wallet balance</div>
+            <div className="wingo-wallet-val">
+              {signedIn === false ? 'Not logged in' : balance === null ? 'Rs —' : `Rs ${money(balance)}`}
+            </div>
           </div>
           <div className="wingo-wallet-actions">
             <button
@@ -218,17 +231,11 @@ export default function WingoPage() {
             >
               {voiceOn ? '🔊' : '🔇'}
             </button>
-            <button
-              type="button"
-              className="wingo-ghost-btn"
-              onClick={() => {
-                setBalance(START_BALANCE);
-                setBets([]);
-                showToast('Practice wallet reset');
-              }}
-            >
-              Reset
-            </button>
+            {signedIn === false ? (
+              <Link href="/login" className="wingo-ghost-btn">Log in</Link>
+            ) : (
+              <Link href="/deposit#deposit-options" className="wingo-ghost-btn">Deposit</Link>
+            )}
           </div>
         </section>
 
@@ -300,9 +307,10 @@ export default function WingoPage() {
           </div>
 
           <div className="wingo-size-row">
-            <button type="button" className="wingo-size big" onClick={() => openSheet({ kind: 'size', value: 'big' })}>Big</button>
-            <button type="button" className="wingo-size small" onClick={() => openSheet({ kind: 'size', value: 'small' })}>Small</button>
+            <button type="button" className="wingo-size big" onClick={() => openSheet({ kind: 'size', value: 'big' })}>Big <small>6-9</small></button>
+            <button type="button" className="wingo-size small" onClick={() => openSheet({ kind: 'size', value: 'small' })}>Small <small>1-4</small></button>
           </div>
+          <p className="wingo-size-note">0 and 5: Big and Small both lose</p>
 
           {locked && (
             <div className="wingo-lock" aria-live="polite">
@@ -324,7 +332,7 @@ export default function WingoPage() {
               <div className="wingo-tr head">
                 <span>Period</span><span>Number</span><span>Big Small</span><span>Color</span>
               </div>
-              {gameHistory.map((r) => (
+              {results.map((r) => (
                 <div className="wingo-tr" key={r.issue}>
                   <span className="wingo-td-issue">{r.issue}</span>
                   <span className={`wingo-td-num ${numClass(r.number)}`}>{r.number}</span>
@@ -376,6 +384,7 @@ export default function WingoPage() {
           onCancel={() => setSheet(null)}
           onConfirm={placeBet}
           onShowRules={() => setShowRules(true)}
+          busy={placing}
         />
       )}
 
@@ -425,6 +434,22 @@ export default function WingoPage() {
               <span>3 seconds auto close</span>
             </label>
             <button type="button" className="wingo-result-close" onClick={() => setResultDialog(null)} aria-label="Close">×</button>
+          </div>
+        </div>
+      )}
+
+      {depositPrompt && (
+        <div className="wingo-overlay center" onClick={() => setDepositPrompt(false)}>
+          <div className="wingo-dialog wingo-deposit" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="wingo-deposit-title">
+            <div className="wingo-deposit-icon">₨</div>
+            <h3 id="wingo-deposit-title">{balance > 0 ? 'Insufficient balance' : 'Make your first deposit'}</h3>
+            <p>Add funds to your wallet to start playing Win Go.</p>
+            <div className="wingo-deposit-bal">
+              <span>Current wallet balance</span>
+              <strong>Rs {money(balance)}</strong>
+            </div>
+            <Link href="/deposit#deposit-options" className="wingo-dialog-btn wingo-deposit-go" autoFocus>Deposit now</Link>
+            <button type="button" className="wingo-deposit-later" onClick={() => setDepositPrompt(false)}>Later</button>
           </div>
         </div>
       )}

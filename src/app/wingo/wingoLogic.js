@@ -1,7 +1,8 @@
-// Pure Win Go rules — no React, no DOM. Ported from the standalone
-// 51game-wingo project (offlineTimer.js / gameRecord.js / the rules dialog),
-// so the page and the hook only ever ask this file "what period is it" and
-// "what does this bet pay".
+// Pure Win Go rules shared by the page and the server — no React, no DOM.
+// Ported from the standalone 51game-wingo project (offlineTimer.js /
+// gameRecord.js / the rules dialog). The draw itself is deliberately NOT
+// here: it is keyed with a server secret in src/lib/wingo.js so the browser
+// can never compute a result ahead of time.
 
 export const MODES = [
   { key: '30s', label: 'Win Go 30s', ms: 30_000 },
@@ -36,18 +37,6 @@ export function periodAt(mode, t) {
   return { issue, startsAt: start, endsAt: start + mode.ms };
 }
 
-// Deterministic draw per (mode, issue) — every tab, reload and history page
-// agrees on what a given period drew, the same way a server-drawn result would.
-export function resultFor(modeKey, issue) {
-  let h = 0x811c9dc5;
-  const s = `${modeKey}:${issue}`;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 0x01000193);
-  }
-  return (h >>> 0) % 10;
-}
-
 // 0 = red+violet, 5 = green+violet, other evens red, other odds green.
 export function colorsOf(n) {
   if (n === 0) return ['red', 'violet'];
@@ -55,17 +44,10 @@ export function colorsOf(n) {
   return n % 2 === 0 ? ['red'] : ['green'];
 }
 
-export const isBig = (n) => n >= 5;
-export const sizeOf = (n) => (isBig(n) ? 'Big' : 'Small');
-
-// Past N completed periods for a mode, newest first.
-export function recentResults(mode, now, count, offset = 0) {
-  const current = Math.floor(now / mode.ms) * mode.ms;
-  return Array.from({ length: count }, (_, i) => {
-    const { issue } = periodAt(mode, current - (offset + i + 1) * mode.ms);
-    return { issue, number: resultFor(mode.key, issue) };
-  });
-}
+// Big = 6-9, Small = 1-4. 0 and 5 are "house" numbers: neither Big nor
+// Small, so both size bets lose on them (40% win chance instead of 50%).
+export const sizeKeyOf = (n) => (n >= 6 ? 'big' : n >= 1 && n <= 4 ? 'small' : null);
+export const sizeOf = (n) => ({ big: 'Big', small: 'Small' })[sizeKeyOf(n)] ?? '—';
 
 // A selection is { kind: 'color', value: 'green'|'red'|'violet' },
 // { kind: 'number', value: 0-9 } or { kind: 'size', value: 'big'|'small' }.
@@ -77,10 +59,10 @@ export function selectionLabel(sel) {
 // Multiplier on the post-fee contract amount, per the rules dialog:
 //   green: 1,3,7,9 → x2, 5 → x1.5      red: 2,4,6,8 → x2, 0 → x1.5
 //   violet: 0,5 → x4.5                  number: exact match → x9
-//   big: 5-9 → x2                       small: 0-4 → x2
+//   big: 6-9 → x2                       small: 1-4 → x2   (0 and 5: both lose)
 export function payoutMultiplier(sel, n) {
   if (sel.kind === 'number') return sel.value === n ? 9 : 0;
-  if (sel.kind === 'size') return (sel.value === 'big') === isBig(n) ? 2 : 0;
+  if (sel.kind === 'size') return sel.value === sizeKeyOf(n) ? 2 : 0;
   if (sel.value === 'violet') return n === 0 || n === 5 ? 4.5 : 0;
   if (!colorsOf(n).includes(sel.value)) return 0;
   return n === 0 || n === 5 ? 1.5 : 2;

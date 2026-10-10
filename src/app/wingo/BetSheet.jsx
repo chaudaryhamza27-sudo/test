@@ -6,7 +6,7 @@ import { BALANCE_CHIPS, MULTIPLIERS, MAX_QUANTITY, money, selectionLabel } from 
 // Bottom sheet opened by any color / number / Big / Small pick — same fields
 // as the original Betting__Popup: balance chip × quantity, multiplier
 // shortcuts, the pre-sale agreement, and Cancel / Total amount.
-export default function BetSheet({ mode, selection, initialQuantity = 1, onCancel, onConfirm, onShowRules }) {
+export default function BetSheet({ mode, selection, initialQuantity = 1, onCancel, onConfirm, onShowRules, busy = false }) {
   const [chip, setChip] = useState(BALANCE_CHIPS[0]);
   const [quantity, setQuantity] = useState(initialQuantity);
   const [agreed, setAgreed] = useState(true);
@@ -76,7 +76,7 @@ export default function BetSheet({ mode, selection, initialQuantity = 1, onCance
           <button
             type="button"
             className="wingo-sheet-confirm"
-            disabled={!agreed || quantity < 1}
+            disabled={busy || !agreed || quantity < 1}
             onClick={() => onConfirm({ selection, amount: total })}
           >
             Total amount Rs {money(total)}

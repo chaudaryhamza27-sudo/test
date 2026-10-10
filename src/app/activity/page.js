@@ -30,6 +30,8 @@ const ACTION_LABELS = {
   withdraw_rejected: "Withdrawal rejected",
   game_bet_placed: "Game bet placed",
   game_cashout: "Game cash-out",
+  wingo_bet_placed: "Win Go bet placed",
+  wingo_win: "Win Go win",
   account_banned: "Withdrawals restricted",
   account_unbanned: "Withdrawals re-enabled",
   balance_adjusted: "Balance updated",
@@ -48,13 +50,15 @@ const ACTION_META = {
   withdraw_rejected: { tag: "Withdraw", icon: IconWithdraw, bg: "linear-gradient(160deg,#ff6b6b,#c0392b)", dot: "var(--danger)" },
   game_bet_placed: { tag: "Aviator", icon: IconGame, bg: "linear-gradient(160deg,#4aa8ff,#1565e8)", dot: "var(--link)" },
   game_cashout: { tag: "Aviator", icon: IconTrophy, bg: "linear-gradient(160deg,#7c5cff,#4a2fd6)", dot: "var(--violet)" },
+  wingo_bet_placed: { tag: "Win Go", icon: IconGame, bg: "linear-gradient(160deg,#33d19a,#1a9450)", dot: "var(--success)" },
+  wingo_win: { tag: "Win Go", icon: IconTrophy, bg: "linear-gradient(160deg,#ffb23d,#e8531b)", dot: "var(--warning)" },
   account_banned: { tag: "Account", icon: IconAccount, bg: "linear-gradient(160deg,#ff6b6b,#c0392b)", dot: "var(--danger)" },
   account_unbanned: { tag: "Account", icon: IconAccount, bg: "linear-gradient(160deg,#33d19a,#1a9450)", dot: "var(--success)" },
   balance_adjusted: { tag: "Wallet", icon: IconWallet, bg: "linear-gradient(160deg,#33d19a,#1a9450)", dot: "var(--success)" },
 };
 const DEFAULT_META = { tag: "Activity", icon: IconActivity, bg: "linear-gradient(160deg,#8891A3,#565D6E)", dot: "var(--text-muted)" };
 
-const FILTERS = ["All Activity", "Account", "Deposit", "Withdraw", "Aviator", "Wallet", "Security"];
+const FILTERS = ["All Activity", "Account", "Deposit", "Withdraw", "Aviator", "Win Go", "Wallet", "Security"];
 
 const money = (n) => `Rs${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -65,8 +69,11 @@ const money = (n) => `Rs${Number(n ?? 0).toLocaleString(undefined, { minimumFrac
 function getAmountBadge(item) {
   const meta = item.meta || {};
   switch (item.action) {
+    case "wingo_bet_placed":
     case "game_bet_placed":
       return meta.amount != null ? { sign: "-", value: meta.amount } : null;
+    case "wingo_win":
+      return meta.payout != null ? { sign: "+", value: meta.payout } : null;
     case "game_cashout":
       return meta.payout != null ? { sign: "+", value: meta.payout } : null;
     case "deposit_approved":
