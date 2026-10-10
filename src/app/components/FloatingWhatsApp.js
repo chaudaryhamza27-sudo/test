@@ -4,9 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { IconWhatsapp } from "../icons";
 
-// Hidden on the admin panel (not customer-facing) and the crash game page
-// (button would float over the game canvas/controls).
-const HIDDEN_PATH_PREFIXES = ["/admin", "/crash"];
+// Hidden on the admin panel (not customer-facing) and the game pages —
+// Aviator (/crash) and Win Go (/wingo) — where it would float over the
+// game controls.
+const HIDDEN_PATH_PREFIXES = ["/admin", "/crash", "/wingo"];
 
 // Movement smaller than this counts as a tap/click, not a drag — lets the
 // button stay draggable while still being clickable without moving it.
