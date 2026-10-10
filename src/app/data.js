@@ -65,7 +65,7 @@ export const sections = [
     subtitle: "Fair and diverse lottery gameplay",
     noDetail: true,
     games: [
-      { name: "Color Predict", tag: "Lottery", icon: "IconGameWheel", tint: ["#2f6fe0", "#123a8f"], img: "/gamesall/Color Predict - Lottery.jpg", href: "/crash" },
+      { name: "Win Go", tag: "Lottery", badge: "New", icon: "IconGameWheel", tint: ["#2f6fe0", "#123a8f"], img: "/gamesall/Color Predict - Lottery.jpg", href: "/wingo", playable: true },
       { name: "Dice Draw", tag: "Lottery", icon: "IconGameWheel", tint: ["#1a9450", "#0d5c30"], img: "/gamesall/Dice Draw - Lottery.jpg", href: "/crash" },
       { name: "5D Draw", tag: "Lottery", icon: "IconGameWheel", tint: ["#7c5cff", "#2c1a6e"], img: "/gamesall/5D Draw - Lottery.jpg", href: "/crash" },
     ],

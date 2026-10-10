@@ -130,7 +130,7 @@ export default function Home() {
               <p className="hero-sub">New dark royal theme, faster game access, smooth mobile design and premium casino style.</p>
               <div className="hero-actions">
                 <Link href="/crash" className="hero-btn primary"><i className="fa-solid fa-play"></i> Play Aviator</Link>
-                <a href="/data/wingoload.php" className="hero-btn ghost"><i className="fa-solid fa-bolt"></i> Wingo</a>
+                <a href="/wingo" className="hero-btn ghost"><i className="fa-solid fa-bolt"></i> Wingo</a>
               </div>
             </div>
           </section>
@@ -187,7 +187,7 @@ export default function Home() {
                   <div className="game-online"><div className="online-dot"></div>8,178 Players Online</div>
                 </div>
               </a>
-              <a href="/data/wingoload.php" className="game-card">
+              <a href="/wingo" className="game-card">
                 <div className="game-media">
                   <span className="badge">HOT</span>
                   <img src="https://wingolottery.app/wp-content/uploads/2025/12/Wingo-Lottery-favicon.webp" className="game-thumb" alt="Wingo" />
