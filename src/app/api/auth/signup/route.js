@@ -77,7 +77,7 @@ export async function POST(request) {
   await notifyUser(user._id, {
     type: "welcome",
     title: "Welcome to Practice Mode",
-    message: "Your account starts with a Rs0 balance — make a virtual deposit to get started. No real money is involved.",
+    message: "Your account starts with a Rs0 balance — make a virtual deposit to get started.  real money is involved.",
   });
 
   return Response.json({

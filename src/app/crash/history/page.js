@@ -110,7 +110,7 @@ export default function GameHistoryPage() {
           </>
         )}
 
-        <footer className="kk-footer">Every round here used virtual funds only — no real money was wagered or won.</footer>
+        <footer className="kk-footer">Every round here used virtual funds only — real money was wagered or won.</footer>
       </main>
 
       <BottomNav />

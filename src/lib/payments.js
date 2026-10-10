@@ -252,7 +252,7 @@ export async function creditVerifiedPayment(paymentId, { captureId, rawCaptureRe
   await notifyUser(claimed.userId, {
     type: `${claimed.provider}_deposit_completed`,
     title: `${providerLabel} deposit completed`,
-    message: `Your virtual deposit of Rs${creditAmount.toLocaleString()} via ${providerLabel} has been added. No real money was processed.`,
+    message: `Your virtual deposit of Rs${creditAmount.toLocaleString()} via ${providerLabel} has been added. real money was processed.`,
   });
 
   return { payment: claimed, transaction, balance: updatedUser?.balance ?? null, alreadyCredited: false };

@@ -110,7 +110,7 @@ export default function PayPalAddFunds({ theme = "dark", triggerClassName, trigg
           </button>
 
           <div className="paybost-modal-badge">
-            <span>🅿️</span> PAYPAL <span className="dot">•</span> SANDBOX <span className="dot">•</span> NO REAL MONEY
+            <span>🅿️</span> PAYPAL <span className="dot">•</span> SANDBOX <span className="dot">•</span>  REAL MONEY
           </div>
 
           {phase === "select" && (
@@ -195,7 +195,7 @@ export default function PayPalAddFunds({ theme = "dark", triggerClassName, trigg
               <div className="alert alert-info" style={{ marginTop: 14 }}>
                 <IconShield style={{ width: 15, height: 15, flexShrink: 0 }} />
                 <span>
-                  <b>This is a test mode using PayPal Sandbox.</b> No real money is involved. Funds are for practice
+                  <b>This is a test mode using PayPal Sandbox.</b>  real money is involved. Funds are for practice
                   purposes only.
                 </span>
               </div>
