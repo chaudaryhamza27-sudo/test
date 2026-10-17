@@ -17,15 +17,22 @@ export async function GET(request) {
   if (!access) return Response.json({ error: "Forbidden." }, { status: 403 });
 
   await dbConnect();
-  const raw = await Transaction.find({ type: "deposit" })
-    .populate("user", "uid name phone email")
-    .sort({ createdAt: -1 })
-    .lean();
   // Proof images (up to 5MB each) are fetched on demand via
-  // /api/admin/deposits/[id]/proof, not embedded in the list.
+  // /api/admin/deposits/[id]/proof. Exclude them from the query itself —
+  // loading every proof just to strip it exhausts memory once enough
+  // deposits have one — and look up which deposits have a proof by _id only.
+  const [raw, proofIds] = await Promise.all([
+    Transaction.find({ type: "deposit" })
+      .select("-meta.proofImage")
+      .populate("user", "uid name phone email")
+      .sort({ createdAt: -1 })
+      .lean(),
+    Transaction.find({ type: "deposit", "meta.proofImage": { $nin: [null, ""] } }).distinct("_id"),
+  ]);
+  const hasProofIds = new Set(proofIds.map(String));
   const deposits = raw.map(({ meta, ...d }) => ({
     ...d,
-    hasProof: Boolean(meta?.proofImage),
+    hasProof: hasProofIds.has(String(d._id)),
     rejectionReason: meta?.rejectionReason || null,
     provider: meta?.provider || null, // set on gateway (Karopay/PayPal) credits
   }));

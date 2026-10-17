@@ -1,12 +1,15 @@
 import dbConnect from "../../../../../../lib/mongodb";
 import Transaction from "../../../../../../lib/models/Transaction";
-import { requireSuperAdmin } from "../../../../../../lib/auth";
+import { requireAdminAccess } from "../../../../../../lib/auth";
 
 // Serves the proof-of-payment image/PDF for one deposit, admin-only — kept
-// out of the list endpoint since these can be multi-MB each.
+// out of the list endpoint since these can be multi-MB each. Same access
+// rule as the deposits list, so admins reviewing deposits in Balance
+// Manager can see the proof too.
 export async function GET(request, ctx) {
-  const admin = await requireSuperAdmin();
-  if (!admin) return Response.json({ error: "Forbidden." }, { status: 403 });
+  const isSuperAdmin = new URL(request.url).searchParams.get("scope") === "superadmin";
+  const access = await requireAdminAccess(isSuperAdmin ? "superadmin" : "admin");
+  if (!access) return Response.json({ error: "Forbidden." }, { status: 403 });
 
   const { id } = await ctx.params;
   await dbConnect();

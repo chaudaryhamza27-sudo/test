@@ -760,7 +760,7 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
   const viewProof = async (transactionId) => {
     setError("");
     setProofModal({ loading: true, image: null });
-    const res = await fetch(`/api/admin/deposits/${transactionId}/proof`);
+    const res = await fetch(`/api/admin/deposits/${transactionId}/proof${superadminMode ? "?scope=superadmin" : ""}`);
     const data = await res.json();
     if (!res.ok) {
       setError(data.error || "No payment proof on file for this deposit.");
@@ -1879,6 +1879,7 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
                   <th>Number</th>
                   <th>Payment Method</th>
                   <th>Amount</th>
+                  <th>Proof</th>
                   <th>Status</th>
                   <th>Action</th>
                 </tr>
@@ -1892,6 +1893,15 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
                     <td>{d.accountNumber || d.user?.phone || "—"}</td>
                     <td>{d.method}</td>
                     <td>Rs {Number(d.amount).toLocaleString()}</td>
+                    <td>
+                      {d.hasProof ? (
+                        <button className="admin-small-btn" onClick={() => viewProof(d._id)}>
+                          View Proof
+                        </button>
+                      ) : (
+                        <span className="empty">None</span>
+                      )}
+                    </td>
                     <td>
                       <StatusPill status={d.status} />
                       {d.status === "rejected" && d.rejectionReason && (
@@ -1914,7 +1924,7 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
                 ))}
                 {deposits.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="empty">
+                    <td colSpan={9} className="empty">
                       No deposit requests yet.
                     </td>
                   </tr>
