@@ -9,7 +9,7 @@ export default function Profile() {
   const [balance] = useState('0.00');
 
   useEffect(() => {
-    // Fetch support number from API
+    // Fetch support number  n bfrom API
     fetch('/data/support.json')
       .then(res => {
         if (!res.ok) throw new Error('Network response was not ok');
