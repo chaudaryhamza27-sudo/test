@@ -1870,14 +1870,12 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
             Deposit Requests
           </div>
           <div className="admin-table-wrap">
-            <table className="admin-table">
+            <table className="admin-table admin-deposit-requests">
               <thead>
                 <tr>
-                  <th>User ID</th>
-                  <th>Name</th>
-                  <th>Email</th>
+                  <th>User</th>
                   <th>Number</th>
-                  <th>Payment Method</th>
+                  <th>Method</th>
                   <th>Amount</th>
                   <th>Proof</th>
                   <th>Status</th>
@@ -1887,12 +1885,24 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
               <tbody>
                 {deposits.map((d) => (
                   <tr key={d._id}>
-                    <td>{d.user?.uid || "—"}</td>
-                    <td>{d.user?.name || "—"}</td>
-                    <td>{d.user?.email || "—"}</td>
+                    <td>
+                      <div className="admin-name-cell">
+                        <Avatar name={d.user?.name} uid={d.user?.uid} />
+                        <div>
+                          <b>{d.user?.name || "—"}</b>
+                          <div className="admin-cell-sub">
+                            {d.user?.uid || "—"}
+                            {d.user?.email ? ` · ${d.user.email}` : ""}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
                     <td>{d.accountNumber || d.user?.phone || "—"}</td>
-                    <td>{d.method}</td>
-                    <td>Rs {Number(d.amount).toLocaleString()}</td>
+                    <td>{d.method || "—"}</td>
+                    <td>
+                      <b>Rs {Number(d.amount).toLocaleString()}</b>
+                      <div className="admin-cell-sub">{new Date(d.createdAt).toLocaleString()}</div>
+                    </td>
                     <td>
                       {d.hasProof ? (
                         <button className="admin-small-btn" onClick={() => viewProof(d._id)}>
@@ -1924,7 +1934,7 @@ export default function AdminDashboard({ superadminMode = false } = {}) {
                 ))}
                 {deposits.length === 0 && (
                   <tr>
-                    <td colSpan={9} className="empty">
+                    <td colSpan={7} className="empty">
                       No deposit requests yet.
                     </td>
                   </tr>
